@@ -1,5 +1,5 @@
 <nav class="nav flex-column p-3">
-    <a class="nav-link" href="<?php echo BASE_URL; ?>dashboard/xt">
+    <a class="nav-link" href="<?php echo BASE_URL; ?>xuongtruong/dashboard">
         <i class="fas fa-tachometer-alt me-2"></i>Dashboard
     </a>
     <a class="nav-link" href="<?php echo BASE_URL; ?>xuongtruong/xemkehoachsanxuat">

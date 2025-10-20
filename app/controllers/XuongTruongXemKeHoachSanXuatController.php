@@ -5,7 +5,7 @@ class XuongTruongXemKeHoachSanXuatController extends BaseController {
         $this->requireAuth();
         $currentUser = $this->getCurrentUser();
         // Lấy danh sách kế hoạch đã phê duyệt cho xưởng
-        $kehoachs = $this->getApprovedPlans($currentUser['BoPhan'] ?? null);
+    $kehoachs = $this->getApprovedPlans();
         $data = [
             'currentUser' => $currentUser,
             'kehoachs' => $kehoachs,
@@ -13,14 +13,18 @@ class XuongTruongXemKeHoachSanXuatController extends BaseController {
         ];
         $this->loadView('xuongtruong/xemkehoachsanxuat', $data);
     }
-    private function getApprovedPlans($boPhan) {
-        $database = new Database();
-        $conn = $database->getConnection();
-        $query = "SELECT * FROM KeHoachSanXuat WHERE TrangThai = 'Đã duyệt' ORDER BY NgayBatDau DESC";
-        $stmt = $conn->prepare($query);
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
+        private function getApprovedPlans() {
+            $database = new Database();
+            $conn = $database->getConnection();
+            $query = "SELECT k.*, nv.HoTen as NguoiLap, dh.TenDonHang FROM KeHoachSanXuat k
+                      LEFT JOIN NhanVien nv ON k.MaNV = nv.MaNV
+                      LEFT JOIN DonHang dh ON k.MaDonHang = dh.MaDonHang
+                      WHERE k.TrangThai = 'Đã duyệt'
+                      ORDER BY k.NgayBatDau DESC";
+            $stmt = $conn->prepare($query);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
     public function exportPDF($maKeHoach) {
         // ... code xuất PDF ...
         $this->logAudit('export_pdf', $maKeHoach);

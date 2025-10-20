@@ -3,17 +3,19 @@ require_once APP_PATH . '/controllers/BaseController.php';
 class LapKeHoachCapXuongController extends BaseController {
     public function index() {
         $this->requireAuth();
-        $currentUser = $this->getCurrentUser();
         $kehoachModel = $this->loadModel('KeHoachSanXuat');
-        $kehoachs = $kehoachModel->getApprovedPlansByBoPhan($currentUser['bo_phan'] ?? null);
-        $this->loadView('xuongtruong/lapkehoachcapxuong', ['kehoachs' => $kehoachs, 'pageTitle' => 'Kế hoạch tổng đã duyệt']);
+        $kehoachs = $kehoachModel->getApprovedPlans();
+        $selectedKeHoach = null;
+        if (isset($_GET['kehoach'])) {
+            $selectedKeHoach = $kehoachModel->getById($_GET['kehoach']);
+        }
+        $this->loadView('xuongtruong/lapkehoachcapxuong', [
+            'kehoachs' => $kehoachs,
+            'kehoach' => $selectedKeHoach,
+            'pageTitle' => 'Lập kế hoạch cấp xưởng'
+        ]);
     }
-    public function create($maKeHoach) {
-        $this->requireAuth();
-        $kehoachModel = $this->loadModel('KeHoachSanXuat');
-        $kehoach = $kehoachModel->getById($maKeHoach);
-        $this->loadView('xuongtruong/lapkehoachcapxuong', ['kehoach' => $kehoach, 'pageTitle' => 'Lập kế hoạch cấp xưởng']);
-    }
+    // Xóa hàm create, không cần chuyển trang nữa
     public function store() {
         $this->requireAuth();
         // Validate dữ liệu POST

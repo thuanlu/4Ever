@@ -2,7 +2,7 @@
 ob_start();
 ?>
 <div class="container mt-4">
-    <h2><?= $pageTitle ?></h2>
+    <!-- <h2 class="text-primary fw-bold">Lập kế hoạch cấp xưởng</h2> -->
     <?php if (!empty($kehoachs)): ?>
         <table class="table table-bordered mb-4">
             <thead>
@@ -26,7 +26,7 @@ ob_start();
                     <td><?= $kh['NguoiLap'] ?></td>
                     <td><?= $kh['TenDonHang'] ?></td>
                     <td>
-                        <a href="<?= BASE_URL ?>xuongtruong/lapkehoachcapxuong/create/<?= $kh['MaKeHoach'] ?>" class="btn btn-primary btn-sm">Lập kế hoạch cấp xưởng</a>
+                        <a href="?kehoach=<?= $kh['MaKeHoach'] ?>" class="btn btn-primary btn-sm">Lập kế hoạch cấp xưởng</a>
                     </td>
                 </tr>
                 <?php endforeach; ?>

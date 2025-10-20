@@ -125,7 +125,30 @@
                 <!-- Header -->
                 <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom">
                     <div class="container-fluid">
-                        <a class="navbar-brand" href="<?php echo BASE_URL; ?>dashboard">
+                        <?php
+                        $roleRaw = $_SESSION['user_role'] ?? '';
+                        $roleMap = [
+                            'KH' => 'kehoachsanxuat',
+                            'BGD' => 'giamdoc',
+                            'XT' => 'xuongtruong',
+                            'TT' => 'totruong',
+                            'QC' => 'qc',
+                            'NVK' => 'kho',
+                            'CN' => 'congnhan',
+                            'ADMIN' => 'admin',
+                            'ban_giam_doc' => 'giamdoc',
+                            'nhan_vien_ke_hoach' => 'kehoachsanxuat',
+                            'xuong_truong' => 'xuongtruong',
+                            'to_truong' => 'totruong',
+                            'nhan_vien_qc' => 'qc',
+                            'nhan_vien_kho_nl' => 'kho',
+                            'cong_nhan' => 'congnhan',
+                            'admin' => 'admin',
+                        ];
+                        $role = strtolower($roleMap[$roleRaw] ?? 'dashboard');
+                        $dashboardUrl = BASE_URL . $role . '/dashboard';
+                        ?>
+                        <a class="navbar-brand" href="<?php echo $dashboardUrl; ?>">
                             <?php echo $pageTitle ?? 'Dashboard'; ?>
                         </a>
                         

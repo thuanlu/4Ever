@@ -5,7 +5,7 @@
     <a class="nav-link" href="<?php echo BASE_URL; ?>xuongtruong/xemkehoachsanxuat">
         <i class="fas fa-tasks me-2"></i>Xem Kế hoạch
     </a>
-    <a class="nav-link" href="<?php echo BASE_URL; ?>xuongtruong/kehoachxuong">
+    <a class="nav-link" href="<?php echo BASE_URL; ?>xuongtruong/lapkehoachcapxuong">
         <i class="fas fa-chart-line me-2"></i>Kế hoạch xưởng
     </a>
     <a class="nav-link" href="<?php echo BASE_URL; ?>xuongtruong/phieuyeucaunl">

@@ -5,6 +5,27 @@
 require_once CONFIG_PATH . '/database.php';
 
 class KeHoachSanXuat {
+    public function getApprovedPlansByBoPhan($boPhan) {
+        $query = "SELECT k.*, nv.HoTen as NguoiLap, dh.TenDonHang FROM KeHoachSanXuat k
+                  LEFT JOIN NhanVien nv ON k.MaNV = nv.MaNV
+                  LEFT JOIN DonHang dh ON k.MaDonHang = dh.MaDonHang
+                  WHERE k.TrangThai = 'Đã duyệt' AND nv.BoPhan = :boPhan
+                  ORDER BY k.NgayBatDau DESC";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':boPhan', $boPhan);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    public function getApprovedPlans() {
+        $query = "SELECT k.*, nv.HoTen as NguoiLap, dh.TenDonHang FROM KeHoachSanXuat k
+                  LEFT JOIN NhanVien nv ON k.MaNV = nv.MaNV
+                  LEFT JOIN DonHang dh ON k.MaDonHang = dh.MaDonHang
+                  WHERE k.TrangThai = 'Đã duyệt'
+                  ORDER BY k.NgayBatDau DESC";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
     private $conn;
     private $table = 'KeHoachSanXuat';
 

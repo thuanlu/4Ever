@@ -1,4 +1,5 @@
 
+
 <?php
 
 require_once 'config/config.php';
@@ -24,6 +25,12 @@ $router->addRoute('GET', '/totruong/dashboard', 'DashboardController', 'tt');
 $router->addRoute('GET', '/qc/dashboard', 'DashboardController', 'qc');
 $router->addRoute('GET', '/kho/dashboard', 'DashboardController', 'nvk');
 $router->addRoute('GET', '/congnhan/dashboard', 'DashboardController', 'cn');
+
+// Routes cho xưởng trưởng
+$router->addRoute('GET', '/xuongtruong/xemkehoachsanxuat', 'XuongTruongXemKeHoachSanXuatController', 'index');
+$router->addRoute('GET', '/xuongtruong/lapkehoachcapxuong', 'LapKeHoachCapXuongController', 'index');
+$router->addRoute('GET', '/xuongtruong/lapkehoachcapxuong/create/(.*)', 'LapKeHoachCapXuongController', 'create');
+$router->addRoute('POST', '/xuongtruong/lapkehoachcapxuong/store', 'LapKeHoachCapXuongController', 'store');
 
 
 // Routes cho quản lý kế hoạch sản xuất (KeHoachSanXuat)

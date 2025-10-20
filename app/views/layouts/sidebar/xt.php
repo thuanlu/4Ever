@@ -2,17 +2,23 @@
     <a class="nav-link" href="<?php echo BASE_URL; ?>dashboard/xt">
         <i class="fas fa-tachometer-alt me-2"></i>Dashboard
     </a>
-    <a class="nav-link" href="<?php echo BASE_URL; ?>workshop/plans">
-        <i class="fas fa-tasks me-2"></i>Kế hoạch xưởng
+    <a class="nav-link" href="<?php echo BASE_URL; ?>xuongtruong/xemkehoachsanxuat">
+        <i class="fas fa-tasks me-2"></i>Xem Kế hoạch
     </a>
-    <a class="nav-link" href="<?php echo BASE_URL; ?>workshop/progress">
-        <i class="fas fa-chart-line me-2"></i>Tiến độ SX
+    <a class="nav-link" href="<?php echo BASE_URL; ?>xuongtruong/kehoachxuong">
+        <i class="fas fa-chart-line me-2"></i>Kế hoạch xưởng
     </a>
-    <a class="nav-link" href="<?php echo BASE_URL; ?>workshop/report">
-        <i class="fas fa-file-alt me-2"></i>Báo cáo tiến độ
+    <a class="nav-link" href="<?php echo BASE_URL; ?>xuongtruong/phieuyeucaunl">
+        <i class="fas fa-file-alt me-2"></i>Quản lý yêu cầu xuất
     </a>
-    <a class="nav-link" href="<?php echo BASE_URL; ?>attendance">
-        <i class="fas fa-clock me-2"></i>Chấm công
+   <a class="nav-link" href="<?php echo BASE_URL; ?>xuongtruong/phieuyeucaukt">
+        <i class="fas fa-file-alt me-2"></i>Tạo phiếu kiểm tra
+    </a>
+    <a class="nav-link" href="<?php echo BASE_URL; ?>xuongtruong/theodoitiendo">
+        <i class="fas fa-file-alt me-2"></i> Theo dõi tiến độ
+    </a>
+     <a class="nav-link" href="<?php echo BASE_URL; ?>xuongtruong/quanlycongnhan">
+        <i class="fas fa-file-alt me-2"></i>Quản lý công nhân
     </a>
     <hr class="border-light">
     <a class="nav-link" href="<?php echo BASE_URL; ?>logout">

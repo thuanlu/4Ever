@@ -16,7 +16,7 @@ class DashboardController extends BaseController {
             'dashboardData' => $dashboardData,
             'pageTitle' => 'Dashboard Tổ trưởng'
         ];
-        $this->loadView('tt/dashboard', $data);
+        $this->loadView('totruong/dashboard', $data);
     }
 
     public function qc() {
@@ -52,7 +52,7 @@ class DashboardController extends BaseController {
             'dashboardData' => $dashboardData,
             'pageTitle' => 'Dashboard Công nhân'
         ];
-        $this->loadView('cn/dashboard', $data);
+        $this->loadView('congnhan/dashboard', $data);
     }
 
     public function admin() {
@@ -99,7 +99,7 @@ class DashboardController extends BaseController {
             'dashboardData' => $dashboardData,
             'pageTitle' => 'Dashboard XT'
         ];
-        $this->loadView('xt/dashboard', $data);
+    $this->loadView('xuongtruong/dashboard', $data);
     }
     
     public function index() {

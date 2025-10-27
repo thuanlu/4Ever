@@ -66,6 +66,12 @@ $router->addRoute('GET', '/reports', 'ReportController', 'index');
 $router->addRoute('GET', '/reports/production', 'ReportController', 'production');
 $router->addRoute('GET', '/reports/attendance', 'ReportController', 'attendance');
 
+// Routes cho Nhập Kho Thành Phẩm
+$router->addRoute('GET', '/nhapkho', 'NhapKhoController', 'index');
+$router->addRoute('POST', '/nhapkho/confirm', 'NhapKhoController', 'confirmImport');
+$router->addRoute('POST', '/nhapkho/confirm-multi', 'NhapKhoController', 'confirmImportMulti');
+$router->addRoute('GET', '/nhapkho/detail', 'NhapKhoController', 'getDetail');
+
 // Xử lý request
 $router->dispatch();
 ?>

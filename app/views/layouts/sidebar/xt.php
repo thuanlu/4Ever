@@ -1,5 +1,5 @@
 <nav class="nav flex-column p-3">
-    <a class="nav-link" href="<?php echo BASE_URL; ?>dashboard/xt">
+    <a class="nav-link" href="<?php echo BASE_URL; ?>xuongtruong/dashboard">
         <i class="fas fa-tachometer-alt me-2"></i>Dashboard
     </a>
     <a class="nav-link" href="<?php echo BASE_URL; ?>workshop/plans">
@@ -13,6 +13,14 @@
     </a>
     <a class="nav-link" href="<?php echo BASE_URL; ?>attendance">
         <i class="fas fa-clock me-2"></i>Chấm công
+    </a>
+    <hr class="border-light">
+    <span class="text-light px-3 mb-1" style="font-size: .9rem; opacity:.85;">Kho nguyên liệu</span>
+    <a class="nav-link" href="<?php echo BASE_URL; ?>yeucauxuat">
+        <i class="fas fa-arrow-up-right-from-square me-2"></i>Tạo phiếu xuất NL
+    </a>
+    <a class="nav-link" href="<?php echo BASE_URL; ?>yeucauxuat/list">
+        <i class="fas fa-list me-2"></i>Quản lý phiếu xuất
     </a>
     <hr class="border-light">
     <a class="nav-link" href="<?php echo BASE_URL; ?>logout">

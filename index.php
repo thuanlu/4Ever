@@ -44,6 +44,11 @@ $router->addRoute('GET', '/materials', 'MaterialController', 'index');
 $router->addRoute('GET', '/materials/orders', 'MaterialController', 'orders');
 $router->addRoute('POST', '/materials/order', 'MaterialController', 'createOrder');
 
+// Routes: Tạo phiếu / Quản lý yêu cầu xuất nguyên liệu (Xưởng trưởng)
+$router->addRoute('GET', '/yeucauxuat', 'YeuCauXuatController', 'index');
+$router->addRoute('POST', '/yeucauxuat/save', 'YeuCauXuatController', 'save');
+$router->addRoute('GET', '/yeucauxuat/list', 'YeuCauXuatController', 'list');
+
 // Routes cho Quality Control
 $router->addRoute('GET', '/quality-control', 'QualityController', 'index');
 $router->addRoute('POST', '/quality-control/check', 'QualityController', 'performCheck');

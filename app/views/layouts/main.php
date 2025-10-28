@@ -150,6 +150,7 @@
                         ?>
                         <a class="navbar-brand" href="<?php echo $dashboardUrl; ?>">
                             <?php echo $pageTitle ?? 'Dashboard'; ?>
+
                         </a>
                         
                         <div class="navbar-nav ms-auto">

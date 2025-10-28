@@ -38,6 +38,9 @@ ob_start();
 
     <?php if (!empty($kehoach)): ?>
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> origin/ke_hoach_san_xuat
     <div class="card shadow-lg border-2 rounded-4 mb-4">
         <div class="card-header rounded-top-4 py-3 px-4">
             <h2 class="fw-bold mb-0">Lập Kế hoạch Cấp Xưởng</h2>

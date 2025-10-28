@@ -1,76 +1,84 @@
 <?php
-/**
- * Model KeHoachSanXuat - Quản lý kế hoạch sản xuất
- */
-require_once CONFIG_PATH . '/database.php';
+// Tệp: app/models/KeHoachSanXuat.php
 
-class KeHoachSanXuat {
-    public function getApprovedPlansByBoPhan($boPhan) {
-        $query = "SELECT k.*, nv.HoTen as NguoiLap, dh.TenDonHang FROM KeHoachSanXuat k
-                  LEFT JOIN NhanVien nv ON k.MaNV = nv.MaNV
-                  LEFT JOIN DonHang dh ON k.MaDonHang = dh.MaDonHang
-                  WHERE k.TrangThai = 'Đã duyệt' AND nv.BoPhan = :boPhan
-                  ORDER BY k.NgayBatDau DESC";
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':boPhan', $boPhan);
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-    public function getApprovedPlans() {
-        $query = "SELECT k.*, nv.HoTen as NguoiLap, dh.TenDonHang FROM KeHoachSanXuat k
-                  LEFT JOIN NhanVien nv ON k.MaNV = nv.MaNV
-                  LEFT JOIN DonHang dh ON k.MaDonHang = dh.MaDonHang
-                  WHERE k.TrangThai = 'Đã duyệt'
-                  ORDER BY k.NgayBatDau DESC";
-        $stmt = $this->conn->prepare($query);
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-    private $conn;
-    private $table = 'KeHoachSanXuat';
+// Kế thừa từ BaseModel để có các hàm CRUD chung
+require_once APP_PATH . '/models/BaseModel.php';
 
-    public function __construct() {
-        $database = new Database();
-        $this->conn = $database->getConnection();
+class KeHoachSanXuat extends BaseModel {
+    
+    // Ghi đè các thuộc tính của BaseModel
+    protected $tableName = 'kehoachsanxuat';
+    protected $primaryKey = 'MaKeHoach';
+
+    /**
+     * HÀM BỊ THIẾU: Lấy Mã Kế hoạch cuối cùng
+     * Được gọi bởi: KeHoachSanXuatController::loadCreateView()
+     */
+    public function getLastMaKeHoach() {
+        try {
+            // Sắp xếp theo MaKeHoach giảm dần (ví dụ: KH12, KH11, ...)
+            // và chỉ lấy 1 dòng đầu tiên
+            $sql = "SELECT {$this->primaryKey} 
+                    FROM {$this->tableName} 
+                    ORDER BY {$this->primaryKey} DESC 
+                    LIMIT 1";
+                    
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute();
+            
+            // fetchColumn(0) chỉ lấy giá trị của cột đầu tiên
+            $result = $stmt->fetchColumn(0); 
+            
+            return $result; // Sẽ trả về 'KH12' hoặc false nếu bảng rỗng
+            
+        } catch (PDOException $e) {
+            error_log(__METHOD__ . "::Error: " . $e->getMessage());
+            return false; // Trả về false nếu có lỗi
+        }
+    }
+    
+    /**
+     * HÀM MÀ HÀM EDIT/VIEW SẼ CẦN:
+     * Lấy kế hoạch theo ID, JOIN với tên người lập
+     * Được gọi bởi: KeHoachSanXuatController::loadEditView()
+     */
+    public function getByIdWithNguoiLap($maKeHoach) {
+         try {
+            $sql = "SELECT k.*, n.HoTen AS HoTenNguoiLap 
+                    FROM {$this->tableName} k
+                    LEFT JOIN nhanvien n ON k.MaNV = n.MaNV
+                    WHERE k.{$this->primaryKey} = ?";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute([$maKeHoach]);
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log(__METHOD__ . "::Error: " . $e->getMessage());
+            return false;
+        }
+    }
+    
+    // Các hàm CRUD chung (getAll, getById, create, update, delete)
+    // đã được kế thừa từ BaseModel.php
+
+    public function getPlannedDonHangIds() {
+        try {
+            // Chỉ chọn cột MaDonHang và loại bỏ các giá trị trùng lặp (DISTINCT)
+            $sql = "SELECT DISTINCT MaDonHang FROM {$this->tableName}";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute();
+
+            // fetchAll(PDO::FETCH_COLUMN, 0) lấy tất cả giá trị của cột đầu tiên (MaDonHang)
+            // thành một mảng đơn giản, ví dụ: ['DH01', 'DH02']
+            $ids = $stmt->fetchAll(PDO::FETCH_COLUMN, 0);
+
+            return $ids ?? []; // Trả về mảng ID hoặc mảng rỗng
+
+        } catch (PDOException $e) {
+            error_log(__METHOD__ . "::Error: " . $e->getMessage());
+            return []; // Trả về mảng rỗng nếu có lỗi
+        }
     }
 
-    public function getAll() {
-        $query = "SELECT k.*, nv.HoTen as NguoiLap, dh.TenDonHang FROM KeHoachSanXuat k
-                  LEFT JOIN NhanVien nv ON k.MaNV = nv.MaNV
-                  LEFT JOIN DonHang dh ON k.MaDonHang = dh.MaDonHang
-                  ORDER BY k.NgayLap DESC";
-        $stmt = $this->conn->prepare($query);
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
-    public function getById($maKeHoach) {
-        $query = "SELECT * FROM KeHoachSanXuat WHERE MaKeHoach = :maKeHoach";
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':maKeHoach', $maKeHoach);
-        $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC);
-    }
-
-    public function create($data) {
-        $query = "INSERT INTO KeHoachSanXuat (MaKeHoach, TenKeHoach, NgayBatDau, NgayKetThuc, MaNV, MaDonHang, TrangThai, TongChiPhiDuKien, SoLuongCongNhanCan, GhiChu)
-                  VALUES (:MaKeHoach, :TenKeHoach, :NgayBatDau, :NgayKetThuc, :MaNV, :MaDonHang, :TrangThai, :TongChiPhiDuKien, :SoLuongCongNhanCan, :GhiChu)";
-        $stmt = $this->conn->prepare($query);
-        return $stmt->execute($data);
-    }
-
-    public function update($maKeHoach, $data) {
-        $data['MaKeHoach'] = $maKeHoach;
-        $query = "UPDATE KeHoachSanXuat SET TenKeHoach = :TenKeHoach, NgayBatDau = :NgayBatDau, NgayKetThuc = :NgayKetThuc, MaDonHang = :MaDonHang, TrangThai = :TrangThai, TongChiPhiDuKien = :TongChiPhiDuKien, SoLuongCongNhanCan = :SoLuongCongNhanCan, GhiChu = :GhiChu WHERE MaKeHoach = :MaKeHoach";
-        $stmt = $this->conn->prepare($query);
-        return $stmt->execute($data);
-    }
-
-    public function delete($maKeHoach) {
-        $query = "DELETE FROM KeHoachSanXuat WHERE MaKeHoach = :maKeHoach";
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':maKeHoach', $maKeHoach);
-        return $stmt->execute();
-    }
 }
 ?>
+>>>>>>> origin/ke_hoach_san_xuat

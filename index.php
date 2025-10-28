@@ -1,5 +1,4 @@
 
-
 <?php
 
 require_once 'config/config.php';
@@ -17,7 +16,7 @@ $router->addRoute('GET', '/login', 'AuthController', 'showLogin');
 $router->addRoute('POST', '/login', 'AuthController', 'processLogin');
 $router->addRoute('GET', '/logout', 'AuthController', 'logout');
 
-
+// Routes cho dashboard các vai trò
 $router->addRoute('GET', '/giamdoc/dashboard', 'DashboardController', 'bgd');
 $router->addRoute('GET', '/kehoachsanxuat/dashboard', 'DashboardController', 'kh');
 $router->addRoute('GET', '/xuongtruong/dashboard', 'DashboardController', 'xt');
@@ -40,6 +39,8 @@ $router->addRoute('POST', '/kehoachsanxuat/create', 'KeHoachSanXuatController', 
 $router->addRoute('GET', '/kehoachsanxuat/edit/(.*)', 'KeHoachSanXuatController', 'edit');
 $router->addRoute('POST', '/kehoachsanxuat/edit/(.*)', 'KeHoachSanXuatController', 'edit');
 $router->addRoute('GET', '/kehoachsanxuat/delete/(.*)', 'KeHoachSanXuatController', 'delete');
+$router->addRoute('GET', '/kehoachsanxuat/view/(.*)', 'KeHoachSanXuatController', 'view');
+
 
 // Routes cho quản lý xưởng
 $router->addRoute('GET', '/workshops', 'WorkshopController', 'index');

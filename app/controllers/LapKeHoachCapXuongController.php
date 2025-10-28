@@ -32,5 +32,8 @@ class LapKeHoachCapXuongController extends BaseController {
         $_SESSION['success'] = 'Lập kế hoạch cấp xưởng thành công!';
         $this->redirect('xuongtruong/lapkehoachcapxuong');
     }
+
+    
+
 }
 ?>

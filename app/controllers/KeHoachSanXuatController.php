@@ -8,6 +8,10 @@ require_once APP_PATH . '/controllers/BaseController.php';
 
 class KeHoachSanXuatController extends BaseController {
 
+    public function __construct() {
+        parent::__construct();
+    }
+
     
     /**
      * Dashboard riêng cho Kế hoạch
@@ -333,4 +337,4 @@ class KeHoachSanXuatController extends BaseController {
     }
 }
 ?>
->>>>>>> origin/ke_hoach_san_xuat
+

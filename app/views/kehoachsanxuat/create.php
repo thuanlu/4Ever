@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-<?php include APP_PATH . '/views/kehoachsanxuat/form.php'; ?>
-=======
 <?php
 ob_start();
 ?>
@@ -18,4 +15,3 @@ ob_start();
 $content = ob_get_clean();
 include APP_PATH . '/views/layouts/main.php';
 ?>
->>>>>>> origin/ke_hoach_san_xuat

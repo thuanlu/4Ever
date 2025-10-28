@@ -5,6 +5,13 @@
  */
 
 class BaseController {
+    protected $db;
+
+    public function __construct() {
+        // Khởi tạo kết nối CSDL
+        $database = new Database();
+        $this->db = $database->getConnection();
+    }
     protected function loadView($viewName, $data = []) {
         // Truyền dữ liệu vào view
         extract($data);

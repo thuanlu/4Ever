@@ -16,10 +16,8 @@ class Router {
         ];
     }
     
-<<<<<<< HEAD
-=======
-    // --- BẮT ĐẦU SỬA LỖI ---
->>>>>>> origin/ke_hoach_san_xuat
+
+
     public function dispatch() {
         $requestMethod = $_SERVER['REQUEST_METHOD'];
         $requestPath = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
@@ -34,7 +32,7 @@ class Router {
         if ($requestPath === '' || $requestPath === '/') {
             $requestPath = '/home';
         }
-<<<<<<< HEAD
+
         
         foreach ($this->routes as $route) {
             if ($route['method'] === $requestMethod && $this->matchPath($route['path'], $requestPath)) {
@@ -42,36 +40,16 @@ class Router {
                 $actionName = $route['action'];
                 
                 // Kiểm tra file controller có tồn tại
-=======
 
-        foreach ($this->routes as $route) {
-            // 1. Chuyển đổi path của route thành regex
-            // (ví dụ: /kehoachsanxuat/edit/(.*) -> #^/kehoachsanxuat/edit/(.*)$#)
-            $routePattern = "#^" . $route['path'] . "$#";
-            
-            // 2. So sánh method VÀ so khớp regex của path
-            if ($route['method'] === $requestMethod && preg_match($routePattern, $requestPath, $matches)) {
-                
-                // 3. Lấy các tham số đã bắt được (bỏ qua $matches[0] vì đó là toàn bộ chuỗi)
-                array_shift($matches); 
-                $params = $matches; // $params bây giờ là ['KH01']
-
-                $controllerName = $route['controller'];
-                $actionName = $route['action'];
-                
->>>>>>> origin/ke_hoach_san_xuat
                 $controllerFile = APP_PATH . '/controllers/' . $controllerName . '.php';
                 if (file_exists($controllerFile)) {
                     require_once $controllerFile;
                     
                     $controller = new $controllerName();
                     if (method_exists($controller, $actionName)) {
-<<<<<<< HEAD
+
                         $controller->$actionName();
-=======
-                        // 4. Gọi hàm trong controller và truyền mảng $params vào
-                        call_user_func_array([$controller, $actionName], $params);
->>>>>>> origin/ke_hoach_san_xuat
+
                         return;
                     }
                 }
@@ -82,31 +60,19 @@ class Router {
         $this->show404();
     }
     
-<<<<<<< HEAD
+
     private function matchPath($routePath, $requestPath) {
         return $routePath === $requestPath;
     }
-=======
-    // Xóa hàm matchPath() cũ vì không còn dùng
-    /*
-    private function matchPath($routePath, $requestPath) {
-        return $routePath === $requestPath;
-    }
-    */
-    // --- KẾT THÚC SỬA LỖI ---
->>>>>>> origin/ke_hoach_san_xuat
+
     
     private function show404() {
         http_response_code(404);
         echo "<h1>404 - Trang không tìm thấy</h1>";
         echo "<p>Xin lỗi, trang bạn đang tìm kiếm không tồn tại.</p>";
-<<<<<<< HEAD
+
         // echo "<a href='" . BASE_URL . "'>Quay về trang chủ</a>";
     }
 }
 ?>
-=======
-    }
-}
-?>
->>>>>>> origin/ke_hoach_san_xuat
+

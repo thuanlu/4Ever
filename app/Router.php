@@ -31,19 +31,43 @@ class Router {
             $requestPath = '/home';
         }
         
+        // foreach ($this->routes as $route) {
+        //     if ($route['method'] === $requestMethod && $this->matchPath($route['path'], $requestPath)) {
+        //         $controllerName = $route['controller'];
+        //         $actionName = $route['action'];
+                
+        //         // Kiểm tra file controller có tồn tại
+        //         $controllerFile = APP_PATH . '/controllers/' . $controllerName . '.php';
+        //         if (file_exists($controllerFile)) {
+        //             require_once $controllerFile;
+                    
+        //             $controller = new $controllerName();
+        //             if (method_exists($controller, $actionName)) {
+        //                 $controller->$actionName();
+        //                 return;
+        //             }
+        //         }
+        //     }
+        // }
         foreach ($this->routes as $route) {
-            if ($route['method'] === $requestMethod && $this->matchPath($route['path'], $requestPath)) {
+            // Kiểm tra method và so khớp đường dẫn bằng regex
+            if ($route['method'] === $requestMethod && preg_match('#^' . $route['path'] . '$#', $requestPath, $matches)) {
                 $controllerName = $route['controller'];
                 $actionName = $route['action'];
                 
-                // Kiểm tra file controller có tồn tại
                 $controllerFile = APP_PATH . '/controllers/' . $controllerName . '.php';
                 if (file_exists($controllerFile)) {
                     require_once $controllerFile;
                     
                     $controller = new $controllerName();
                     if (method_exists($controller, $actionName)) {
-                        $controller->$actionName();
+                        // Nếu có tham số động trong URL (vd: /qc/view/PYC01)
+                        // thì truyền vào controller (vd: view('PYC01'))
+                        if (isset($matches[1])) {
+                            $controller->$actionName($matches[1]);
+                        } else {
+                            $controller->$actionName();
+                        }
                         return;
                     }
                 }
@@ -54,9 +78,15 @@ class Router {
         $this->show404();
     }
     
+    // private function matchPath($routePath, $requestPath) {
+    //     return $routePath === $requestPath;
+    // }
+
     private function matchPath($routePath, $requestPath) {
-        return $routePath === $requestPath;
+    $pattern = '#^' . $routePath . '$#';
+    return preg_match($pattern, $requestPath);
     }
+
     
     private function show404() {
         http_response_code(404);

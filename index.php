@@ -12,12 +12,11 @@ $router = new Router();
 
 // Định nghĩa các routes
 $router->addRoute('GET', '/home', 'HomeController', 'index');
+$router->addRoute('GET', '/dashboard', 'HomeController', 'index');
 $router->addRoute('GET', '/login', 'AuthController', 'showLogin');
 $router->addRoute('POST', '/login', 'AuthController', 'processLogin');
 $router->addRoute('GET', '/logout', 'AuthController', 'logout');
-$router->addRoute('GET', '/dashboard', 'DashboardController', 'index');
 
-// Routes cho dashboard theo vai trò
 $router->addRoute('GET', '/giamdoc/dashboard', 'DashboardController', 'bgd');
 $router->addRoute('GET', '/kehoachsanxuat/dashboard', 'DashboardController', 'kh');
 $router->addRoute('GET', '/xuongtruong/dashboard', 'DashboardController', 'xt');
@@ -65,6 +64,14 @@ $router->addRoute('POST', '/attendance/checkout', 'AttendanceController', 'check
 $router->addRoute('GET', '/reports', 'ReportController', 'index');
 $router->addRoute('GET', '/reports/production', 'ReportController', 'production');
 $router->addRoute('GET', '/reports/attendance', 'ReportController', 'attendance');
+
+
+//Routes cho QC
+$router->addRoute('GET', '/qc', 'KetQuaKiemDinhController', 'index');
+$router->addRoute('GET', '/qc/view/(.*)', 'KetQuaKiemDinhController', 'view');
+$router->addRoute('POST', '/qc/view/(.*)', 'KetQuaKiemDinhController', 'view');  
+$router->addRoute('POST', '/qc/save', 'KetQuaKiemDinhController', 'save');
+$router->addRoute('GET', '/qc/history', 'KetQuaKiemDinhController', 'history');
 
 // Xử lý request
 $router->dispatch();

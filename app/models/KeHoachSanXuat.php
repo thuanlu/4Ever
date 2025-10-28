@@ -5,6 +5,26 @@
 require_once APP_PATH . '/models/BaseModel.php';
 
 class KeHoachSanXuat extends BaseModel {
+
+    /**
+     * Lấy danh sách kế hoạch đã duyệt
+     */
+    public function getApprovedPlans() {
+        try {
+            $sql = "SELECT k.*, n.HoTen AS NguoiLap, d.TenDonHang
+                    FROM {$this->tableName} k
+                    LEFT JOIN nhanvien n ON k.MaNV = n.MaNV
+                    LEFT JOIN donhang d ON k.MaDonHang = d.MaDonHang
+                    WHERE k.TrangThai = 'Đã duyệt'
+                    ORDER BY k.NgayBatDau DESC";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log(__METHOD__ . "::Error: " . $e->getMessage());
+            return [];
+        }
+    }
     
     // Ghi đè các thuộc tính của BaseModel
     protected $tableName = 'kehoachsanxuat';

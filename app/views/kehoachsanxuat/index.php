@@ -1,9 +1,4 @@
 <?php
-// Tệp: app/views/kehoachsanxuat/index.php (Đã dọn dẹp)
-
-// --- PHẦN LOGIC ĐÃ ĐƯỢC CHUYỂN SANG CONTROLLER ---
-// Các biến $kehoachs và $error_message được Controller truyền sang.
-// --- KẾT THÚC PHẦN LOGIC ---
 
 ob_start();
 ?>

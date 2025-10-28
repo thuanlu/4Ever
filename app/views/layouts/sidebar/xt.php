@@ -8,14 +8,11 @@
     <a class="nav-link" href="<?php echo BASE_URL; ?>xuongtruong/lapkehoachcapxuong">
         <i class="fas fa-chart-line me-2"></i>Kế hoạch xưởng
     </a>
-    <a class="nav-link" href="<?php echo BASE_URL; ?>xuongtruong/phieuyeucaunl">
-        <i class="fas fa-file-alt me-2"></i>Quản lý yêu cầu xuất
+    <a class="nav-link" href="<?php echo BASE_URL; ?>yeucauxuat">
+        <i class="fas fa-arrow-up-right-from-square me-2"></i>Tạo phiếu xuất NL
     </a>
-   <a class="nav-link" href="<?php echo BASE_URL; ?>xuongtruong/phieuyeucaukt">
-        <i class="fas fa-file-alt me-2"></i>Tạo phiếu kiểm tra
-    </a>
-    <a class="nav-link" href="<?php echo BASE_URL; ?>xuongtruong/theodoitiendo">
-        <i class="fas fa-file-alt me-2"></i> Theo dõi tiến độ
+    <a class="nav-link" href="<?php echo BASE_URL; ?>yeucauxuat/list">
+        <i class="fas fa-list me-2"></i>Quản lý phiếu xuất
     </a>
      <a class="nav-link" href="<?php echo BASE_URL; ?>xuongtruong/quanlycongnhan">
         <i class="fas fa-file-alt me-2"></i>Quản lý công nhân

@@ -41,11 +41,22 @@ $router->addRoute('POST', '/kehoachsanxuat/edit/(.*)', 'KeHoachSanXuatController
 $router->addRoute('GET', '/kehoachsanxuat/delete/(.*)', 'KeHoachSanXuatController', 'delete');
 $router->addRoute('GET', '/kehoachsanxuat/view/(.*)', 'KeHoachSanXuatController', 'view');
 
+// 
+// ===== DÒNG BỊ THIẾU GÂY LỖI 404 ĐÃ ĐƯỢC THÊM VÀO ĐÂY =====
+//
+// Route cho API (AJAX) lấy chi tiết đơn hàng
+$router->addRoute('GET', '/kehoachsanxuat/getDonHangDetails/(.*)', 'KeHoachSanXuatController', 'getDonHangDetails');
+//
 
 // Routes cho quản lý xưởng
 $router->addRoute('GET', '/workshops', 'WorkshopController', 'index');
 $router->addRoute('GET', '/workshops/assignments', 'WorkshopController', 'assignments');
 $router->addRoute('POST', '/workshops/assign', 'WorkshopController', 'assign');
+
+// Routes: Tạo phiếu / Quản lý yêu cầu xuất nguyên liệu (Xưởng trưởng)
+$router->addRoute('GET', '/yeucauxuat', 'YeuCauXuatController', 'index');
+$router->addRoute('POST', '/yeucauxuat/save', 'YeuCauXuatController', 'save');
+$router->addRoute('GET', '/yeucauxuat/list', 'YeuCauXuatController', 'list');
 
 // Routes cho quản lý nguyên vật liệu
 $router->addRoute('GET', '/materials', 'MaterialController', 'index');

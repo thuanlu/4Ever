@@ -28,7 +28,7 @@ class BaseController {
         $modelFile = APP_PATH . '/models/' . $modelName . '.php';
         if (file_exists($modelFile)) {
             require_once $modelFile;
-            return new $modelName();
+            return new $modelName($this->db);
         } else {
             throw new Exception("Model không tồn tại: " . $modelName);
         }

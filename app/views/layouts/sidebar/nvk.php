@@ -11,7 +11,7 @@
     <a class="nav-link" href="<?php echo BASE_URL; ?>warehouse/stock">
         <i class="fas fa-boxes me-2"></i>Tồn kho NVL
     </a>
-    <a class="nav-link" href="<?php echo BASE_URL; ?>warehouse/import-finished">
+    <a class="nav-link" href="<?php echo BASE_URL; ?>nhapkho">
         <i class="fas fa-box-open me-2"></i>Nhập kho TP
     </a>
     <hr class="border-light">

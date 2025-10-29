@@ -172,6 +172,29 @@ class KeHoachSanXuatController extends BaseController {
         
         $khModel = $this->loadModel('KeHoachSanXuat');
         $ctkhModel = $this->loadModel('ChiTietKeHoach');
+
+        // --- BƯỚC 1: TẢI DỮ LIỆU VÀ KIỂM TRA TRẠNG THÁI ---
+        // Tải dữ liệu kế hoạch trước
+        $kehoach = $khModel->getByIdWithNguoiLap($maKeHoach); 
+
+        if (!$kehoach) {
+            $_SESSION['error'] = 'Không tìm thấy kế hoạch.';
+            $this->redirect('kehoachsanxuat');
+            return;
+        }
+
+        // --- BƯỚC 2: ÁP DỤNG QUY TẮC NGHIỆP VỤ ---
+        // Kế hoạch chỉ được sửa khi và chỉ khi ở trạng thái 'Chờ duyệt'
+        if ($kehoach['TrangThai'] !== 'Chờ duyệt') {
+            // Đặt thông báo lỗi theo yêu cầu của bạn
+            $_SESSION['error'] = 'Không thể sửa kế hoạch đã duyệt (hoặc đang thực hiện/hoàn thành/hủy bỏ).';
+            
+            // Chuyển hướng người dùng đến trang XEM (view) thay vì trang SỬA
+            $this->redirect('kehoachsanxuat/view/' . $maKeHoach);
+            return; // Dừng thực thi ngay lập tức
+        }
+        
+        // --- NẾU ĐẾN ĐÂY, KẾ HOẠCH HỢP LỆ ĐỂ SỬA ('Chờ duyệt') ---
         
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // --- XỬ LÝ LƯU DỮ LIỆU ---
@@ -182,8 +205,14 @@ class KeHoachSanXuatController extends BaseController {
                     'TenKeHoach' => $_POST['TenKeHoach'],
                     'NgayBatDau' => $_POST['NgayBatDau'],
                     'NgayKetThuc' => $_POST['NgayKetThuc'],
-                    'TrangThai' => $_POST['TrangThai'],
-                    'GhiChu' => $_POST['GhiChu']
+                    // Lấy từ input hidden (vẫn là 'Chờ duyệt' do form.php đã sửa)
+                    'TrangThai' => $_POST['TrangThai'], 
+                    'GhiChu' => $_POST['GhiChu'],
+                    // Cập nhật các chi phí đã được JS tính toán từ form.php
+                    'ChiPhiNguyenLieu' => $_POST['ChiPhiNguyenLieu'] ?? 0,
+                    'ChiPhiNhanCong' => $_POST['ChiPhiNhanCong'] ?? 0,
+                    'ChiPhiKhac' => $_POST['ChiPhiKhac'] ?? 0,
+                    'TongChiPhiDuKien' => $_POST['TongChiPhiDuKien'] ?? 0
                 ];
                 $khModel->update($maKeHoach, $data_kh);
                 
@@ -199,7 +228,7 @@ class KeHoachSanXuatController extends BaseController {
                             'MaSanPham' => $product['MaSanPham'],
                             'SanLuongMucTieu' => $product['SanLuongMucTieu'],
                             'MaPhanXuong' => $product['MaPhanXuong'],
-                            'CanBoSung' => 0
+                            'CanBoSung' => 0 // Tạm thời
                         ];
                         $ctkhModel->create($data_ctkh);
                     }
@@ -210,11 +239,13 @@ class KeHoachSanXuatController extends BaseController {
             } catch (Exception $e) {
                 $this->db->rollBack();
                 $_SESSION['error'] = 'Lỗi khi cập nhật kế hoạch: ' . $e->getMessage();
+                // Khi lỗi, tải lại view edit với dữ liệu POST
                 $this->loadEditView($maKeHoach, ['_POST' => $_POST, 'error_message' => $e->getMessage()]);
             }
             
         } else {
             // --- HIỂN THỊ FORM (GET) ---
+            // Kế hoạch đã được xác minh là 'Chờ duyệt', chỉ cần tải view
             $this->loadEditView($maKeHoach);
         }
     }

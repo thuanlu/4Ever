@@ -5,6 +5,7 @@ require_once 'config/config.php';
 require_once 'config/database.php';
 require_once 'app/Router.php';
 require_once 'app/controllers/BaseController.php';
+require_once 'app/models/BaseModel.php';
 
 // Bắt đầu session (nếu chưa có) để kiểm tra quyền truy cập
 if (session_status() === PHP_SESSION_NONE) {
@@ -84,17 +85,14 @@ $router->addRoute('POST', '/kehoachsanxuat/edit/(.*)', 'KeHoachSanXuatController
 $router->addRoute('GET', '/kehoachsanxuat/delete/(.*)', 'KeHoachSanXuatController', 'delete');
 $router->addRoute('GET', '/kehoachsanxuat/view/(.*)', 'KeHoachSanXuatController', 'view');
 
-// Routes cho quản lý phiếu nhập nguyên vật liệu (PhieuNhap)
-$router->addRoute('GET', '/kehoachsanxuat/phieu-nhap', 'PhieuNhapController', 'index');
-$router->addRoute('GET', '/kehoachsanxuat/phieu-nhap/create', 'PhieuNhapController', 'create');
-$router->addRoute('POST', '/kehoachsanxuat/phieu-nhap/store', 'PhieuNhapController', 'store');
-$router->addRoute('GET', '/kehoachsanxuat/phieu-nhap/show/(.*)', 'PhieuNhapController', 'show');
-$router->addRoute('GET', '/kehoachsanxuat/phieu-nhap/get-chi-tiet-nvl', 'PhieuNhapController', 'getChiTietNVL');
-$router->addRoute('GET', '/kehoachsanxuat/phieu-nhap/get-nha-cung-cap', 'PhieuNhapController', 'getNhaCungCap');
-$router->addRoute('POST', '/kehoachsanxuat/phieu-nhap/calculate-total', 'PhieuNhapController', 'calculateTotal');
-$router->addRoute('POST', '/kehoachsanxuat/phieu-nhap/duyet/(.*)', 'PhieuNhapController', 'duyet');
-$router->addRoute('POST', '/kehoachsanxuat/phieu-nhap/huy/(.*)', 'PhieuNhapController', 'huy');
-// 
+// Routes cho Phiếu Đặt Hàng Nguyên Vật Liệu (NVL)
+$router->addRoute('GET', '/kehoachsanxuat/phieudatnvl', 'PhieuDatHangNVLController', 'index');
+$router->addRoute('GET', '/kehoachsanxuat/phieudatnvl/create', 'PhieuDatHangNVLController', 'create');
+$router->addRoute('POST', '/kehoachsanxuat/phieudatnvl/store', 'PhieuDatHangNVLController', 'store');
+$router->addRoute('GET', '/kehoachsanxuat/phieudatnvl/view/(.*)', 'PhieuDatHangNVLController', 'view');
+$router->addRoute('GET', '/kehoachsanxuat/getThongTinThieuHutNVL/(.*)', 'PhieuDatHangNVLController', 'getThongTinThieuHutNVL');
+$router->addRoute('GET', '/kehoachsanxuat/getDonHangDetails/(.*)', 'KeHoachSanXuatController', 'getDonHangDetails');
+
 // ===== DÒNG BỊ THIẾU GÂY LỖI 404 ĐÃ ĐƯỢC THÊM VÀO ĐÂY =====
 //
 // Route cho API (AJAX) lấy chi tiết đơn hàng

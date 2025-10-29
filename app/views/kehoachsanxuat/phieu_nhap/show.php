@@ -1,4 +1,5 @@
 <?php
+
 /**
  * View: Chi tiết phiếu nhập nguyên vật liệu
  * Hệ thống quản lý sản xuất nhà máy 4Ever
@@ -20,7 +21,7 @@ ob_start();
                             </h3>
                         </div>
                         <div class="col-auto">
-                            <a href="<?php echo BASE_URL; ?>/phieu-nhap" class="btn btn-secondary">
+                            <a href="<?php echo BASE_URL; ?>kehoachsanxuat/phieu-nhap" class="btn btn-secondary">
                                 <i class="fas fa-arrow-left"></i> Quay lại
                             </a>
                         </div>
@@ -107,9 +108,9 @@ ob_start();
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    <?php 
+                                                    <?php
                                                     $tongThanhTien = 0;
-                                                    foreach ($chiTietNVL as $item): 
+                                                    foreach ($chiTietNVL as $item):
                                                         $thanhTien = $item['SoLuongNhap'] * $item['DonGia'];
                                                         $tongThanhTien += $thanhTien;
                                                     ?>
@@ -205,70 +206,72 @@ ob_start();
 </div>
 
 <script>
-function exportToPDF() {
-    // Tạo PDF từ nội dung hiện tại
-    window.print();
-}
+    function exportToPDF() {
+        // Tạo PDF từ nội dung hiện tại
+        window.print();
+    }
 
-function exportToExcel() {
-    // Tạo Excel từ dữ liệu
-    const table = document.querySelector('table');
-    const rows = table.querySelectorAll('tr');
-    let csv = '';
-    
-    rows.forEach(row => {
-        const cells = row.querySelectorAll('td, th');
-        const rowData = Array.from(cells).map(cell => {
-            return '"' + cell.textContent.replace(/"/g, '""') + '"';
+    function exportToExcel() {
+        // Tạo Excel từ dữ liệu
+        const table = document.querySelector('table');
+        const rows = table.querySelectorAll('tr');
+        let csv = '';
+
+        rows.forEach(row => {
+            const cells = row.querySelectorAll('td, th');
+            const rowData = Array.from(cells).map(cell => {
+                return '"' + cell.textContent.replace(/"/g, '""') + '"';
+            });
+            csv += rowData.join(',') + '\n';
         });
-        csv += rowData.join(',') + '\n';
-    });
-    
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', 'phieu_nhap_<?php echo $phieuNhap['MaPhieuNhap']; ?>.csv');
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
 
-// Ẩn các nút action khi in
-window.addEventListener('beforeprint', function() {
-    document.querySelectorAll('.btn').forEach(btn => {
-        btn.style.display = 'none';
-    });
-});
+        const blob = new Blob([csv], {
+            type: 'text/csv;charset=utf-8;'
+        });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', 'phieu_nhap_<?php echo $phieuNhap['MaPhieuNhap']; ?>.csv');
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
 
-window.addEventListener('afterprint', function() {
-    document.querySelectorAll('.btn').forEach(btn => {
-        btn.style.display = '';
+    // Ẩn các nút action khi in
+    window.addEventListener('beforeprint', function() {
+        document.querySelectorAll('.btn').forEach(btn => {
+            btn.style.display = 'none';
+        });
     });
-});
+
+    window.addEventListener('afterprint', function() {
+        document.querySelectorAll('.btn').forEach(btn => {
+            btn.style.display = '';
+        });
+    });
 </script>
 
 <style>
-@media print {
-    .btn {
-        display: none !important;
+    @media print {
+        .btn {
+            display: none !important;
+        }
+
+        .card-header {
+            background-color: #f8f9fa !important;
+            border-bottom: 2px solid #dee2e6 !important;
+        }
+
+        .table {
+            border-collapse: collapse !important;
+        }
+
+        .table th,
+        .table td {
+            border: 1px solid #dee2e6 !important;
+        }
     }
-    
-    .card-header {
-        background-color: #f8f9fa !important;
-        border-bottom: 2px solid #dee2e6 !important;
-    }
-    
-    .table {
-        border-collapse: collapse !important;
-    }
-    
-    .table th,
-    .table td {
-        border: 1px solid #dee2e6 !important;
-    }
-}
 </style>
 
 <?php

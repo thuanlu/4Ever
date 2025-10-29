@@ -22,6 +22,9 @@ ob_start();
     <div class="card shadow">
         <div class="card-body">
             <?php 
+            if (!empty($error_message)) {
+                echo '<div class="alert alert-danger" role="alert">' . htmlspecialchars($error_message) . '</div>';
+            }
             // Truyền biến is_viewing, is_editing, và dữ liệu $kehoach vào form.php
             // $donhangs cũng được truyền ngầm
             include APP_PATH . '/views/kehoachsanxuat/form.php'; 

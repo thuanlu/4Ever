@@ -35,20 +35,25 @@ class Router {
 
         
         foreach ($this->routes as $route) {
-            if ($route['method'] === $requestMethod && $this->matchPath($route['path'], $requestPath)) {
+            // matchPath now returns false (no match) or an array of captured params (may be empty)
+            $matchResult = $this->matchPath($route['path'], $requestPath);
+            if ($route['method'] === $requestMethod && $matchResult !== false) {
                 $controllerName = $route['controller'];
                 $actionName = $route['action'];
-                
-                // Kiểm tra file controller có tồn tại
 
+                // Kiểm tra file controller có tồn tại
                 $controllerFile = APP_PATH . '/controllers/' . $controllerName . '.php';
                 if (file_exists($controllerFile)) {
                     require_once $controllerFile;
-                    
+
                     $controller = new $controllerName();
                     if (method_exists($controller, $actionName)) {
-
-                        $controller->$actionName();
+                        // Nếu có tham số bắt được từ đường dẫn, truyền chúng vào action
+                        if (is_array($matchResult) && count($matchResult) > 0) {
+                            $controller->$actionName(...$matchResult);
+                        } else {
+                            $controller->$actionName();
+                        }
 
                         return;
                     }
@@ -61,8 +66,26 @@ class Router {
     }
     
 
+    /**
+     * Match a route path to the request path.
+     * Supports exact match and simple pattern with (.*) to capture segments.
+     * Returns false if no match, or an array of captured params (may be empty).
+     */
     private function matchPath($routePath, $requestPath) {
-        return $routePath === $requestPath;
+        // If the route contains a simple wildcard pattern (.*), convert to regex
+        if (strpos($routePath, '(.*)') !== false) {
+            // Escape then restore the (.*) token
+            $pattern = '#^' . preg_quote($routePath, '#') . '$#';
+            $pattern = str_replace('\\(\\.\\*\\)', '(.*)', $pattern);
+            if (preg_match($pattern, $requestPath, $matches)) {
+                array_shift($matches); // remove full match
+                return $matches; // return captured groups
+            }
+            return false;
+        }
+
+        // Exact match fallback
+        return $routePath === $requestPath ? [] : false;
     }
 
     

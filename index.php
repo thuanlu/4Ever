@@ -6,8 +6,50 @@ require_once 'config/database.php';
 require_once 'app/Router.php';
 require_once 'app/controllers/BaseController.php';
 
+// Bắt đầu session (nếu chưa có) để kiểm tra quyền truy cập
+if (session_status() === PHP_SESSION_NONE) {
+	session_start();
+}
+
 // Khởi tạo router
 $router = new Router();
+
+// Kiểm tra truy cập toàn cục: nếu chưa đăng nhập thì redirect về trang login
+// Chỉ cho phép một số route công khai (whitelist) như trang login, tài nguyên tĩnh, trang home
+$requestPathForAuth = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+$basePath = '/4Ever';
+if (strpos($requestPathForAuth, $basePath) === 0) {
+	$requestPathForAuth = substr($requestPathForAuth, strlen($basePath));
+}
+if ($requestPathForAuth === '' || $requestPathForAuth === '/') {
+	$requestPathForAuth = '/home';
+}
+
+$publicPrefixes = [
+	'/login', // trang và POST login
+	'/public', // thư mục tài nguyên công khai
+	'/assets', // css/js/images
+	'/home'
+];
+
+$isPublic = false;
+foreach ($publicPrefixes as $p) {
+	if ($p === $requestPathForAuth || strpos($requestPathForAuth, $p) === 0) {
+		$isPublic = true;
+		break;
+	}
+}
+
+if (!$isPublic && empty($_SESSION['user_id'])) {
+	// Nếu là AJAX request, trả về 401
+	if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+		http_response_code(401);
+		echo json_encode(['error' => 'Unauthorized']);
+		exit;
+	}
+	header('Location: ' . BASE_URL . 'login');
+	exit;
+}
 
 // Định nghĩa các routes
 $router->addRoute('GET', '/home', 'HomeController', 'index');
@@ -72,6 +114,8 @@ $router->addRoute('GET', '/employees', 'EmployeeController', 'index');
 $router->addRoute('GET', '/attendance', 'AttendanceController', 'index');
 $router->addRoute('POST', '/attendance/checkin', 'AttendanceController', 'checkIn');
 $router->addRoute('POST', '/attendance/checkout', 'AttendanceController', 'checkOut');
+$router->addRoute('GET', '/totruong/phancalamviec', 'ToTruongController', 'index');
+
 
 // Routes cho báo cáo
 $router->addRoute('GET', '/reports', 'ReportController', 'index');

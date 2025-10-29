@@ -228,9 +228,13 @@ class KeHoachSanXuatController extends BaseController {
         // 1. Tải Kế hoạch chính
         // Giả định hàm getByIdWithNguoiLap JOIN với NhanVien
         $data['kehoach'] = $this->loadModel('KeHoachSanXuat')->getByIdWithNguoiLap($maKeHoach);
-        if (!$data['kehoach']) { 
-            $_SESSION['error'] = 'Không tìm thấy kế hoạch.';
-            $this->redirect('kehoachsanxuat');
+        // Log debug kế hoạch lấy được
+        error_log('DEBUG: KeHoachSanXuatController::loadEditView - $kehoach = ' . print_r($data['kehoach'], true));
+        if (empty($data['kehoach']) || !is_array($data['kehoach'])) {
+            $data['error_message'] = 'Không tìm thấy kế hoạch hoặc dữ liệu bị lỗi.';
+            // Vẫn truyền sang view để hiển thị lỗi cụ thể
+            $view_name = $is_view_only ? 'kehoachsanxuat/view' : 'kehoachsanxuat/edit';
+            $this->loadView($view_name, $data);
             return;
         }
         

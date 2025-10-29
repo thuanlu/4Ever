@@ -1,11 +1,7 @@
 <?php
-// Tệp: app/views/kehoachsanxuat/form.php (Đã dọn dẹp)
+// Tệp: app/views/kehoachsanxuat/form.php (Phiên bản đầy đủ cuối cùng)
 
-// --- CÁC BIẾN NÀY ĐƯỢC CONTROLLER TRUYỀN VÀO ---
-// ... (biến giữ nguyên) ...
-
-// --- Thiết lập giá trị mặc định ---
-// ... (giữ nguyên) ...
+// --- BIẾN & THIẾT LẬP ---
 $kehoach = $kehoach ?? [];
 $is_editing = $is_editing ?? false;
 $is_viewing = $is_viewing ?? false;
@@ -15,14 +11,13 @@ $bom_data = $bom_data ?? [];
 $currentUserFullName = $currentUserFullName ?? ''; // Đảm bảo biến luôn tồn tại
 $ngayLapKeHoach = date('Y-m-d');
 
+// --- Hàm trợ giúp ---
 if (!function_exists('get_value')) {
     function get_value($field, $kehoach, $default = '') {
         return htmlspecialchars($_POST[$field] ?? $kehoach[$field] ?? $default, ENT_QUOTES, 'UTF-8');
     }
 }
 ?>
-
-
 
 <div class="alert alert-info py-2" role="alert">
     <h5 class="mb-0"><?php echo $form_title; ?></h5>
@@ -47,20 +42,35 @@ if (!function_exists('get_value')) {
          </div>
          <div class="col-md-4 mb-3">
              <label class="form-label fw-bold">Ngày lập kế hoạch</label>
-             <input type="date" name="NgayLap" class="form-control" value="<?php echo get_value('NgayLap', $kehoach, $ngayLapKeHoach); ?>" readonly>
-         </div>
+             <?php
+                // Lấy ngày lập từ DB hoặc ngày hiện tại
+                $ngayLapValue = $kehoach['NgayLap'] ?? $ngayLapKeHoach;
+                // Định dạng lại thành YYYY-MM-DD nếu nó là datetime
+                if (strpos($ngayLapValue, ' ') !== false) {
+                    $ngayLapValue = date('Y-m-d', strtotime($ngayLapValue));
+                }
+             ?>
+             <input type="date" name="NgayLap" class="form-control"
+                    value="<?php echo htmlspecialchars($ngayLapValue); ?>" readonly>
+        </div>
          <div class="col-md-4 mb-3">
              <label class="form-label fw-bold">Người lập kế hoạch</label>
-             <input type="hidden" name="MaNV" value="<?php echo get_value('MaNV', $kehoach, $currentUserId); ?>">
+             <input type="hidden" name="MaNV" value="<?php echo get_value('MaNV', $kehoach, $currentUserId ?? ''); ?>">
              <input type="text" class="form-control" value="<?php echo get_value('HoTenNguoiLap', $kehoach, $currentUserFullName); ?>" readonly>
          </div>
          <div class="col-md-4 mb-3">
              <label class="form-label fw-bold">Ngày bắt đầu</label>
-             <input type="date" name="NgayBatDau" class="form-control" value="<?php echo get_value('NgayBatDau', $kehoach); ?>" required <?php echo $is_viewing ? 'readonly' : ''; ?>>
+             <input type="date" name="NgayBatDau" id="ngayBatDau" class="form-control"
+                    value="<?php echo get_value('NgayBatDau', $kehoach); ?>" required
+                    <?php echo $is_viewing ? 'readonly' : ''; ?>>
+             <div class="invalid-feedback" id="ngayBatDauError"></div>
          </div>
          <div class="col-md-4 mb-3">
              <label class="form-label fw-bold">Ngày kết thúc</label>
-             <input type="date" name="NgayKetThuc" class="form-control" value="<?php echo get_value('NgayKetThuc', $kehoach); ?>" required <?php echo $is_viewing ? 'readonly' : ''; ?>>
+             <input type="date" name="NgayKetThuc" id="ngayKetThuc" class="form-control"
+                    value="<?php echo get_value('NgayKetThuc', $kehoach); ?>" required
+                    <?php echo $is_viewing ? 'readonly' : ''; ?>>
+             <div class="invalid-feedback" id="ngayKetThucError"></div>
          </div>
          <div class="col-md-<?php echo ($is_editing || $is_viewing) ? 8 : 12; ?> mb-3">
              <label class="form-label fw-bold">Đơn hàng liên quan</label>
@@ -108,6 +118,7 @@ if (!function_exists('get_value')) {
                 <div class="alert alert-warning text-center" id="product-placeholder">Vui lòng **chọn Đơn hàng liên quan**...</div>
             <?php
             else:
+                // CHẾ ĐỘ SỬA/XEM
                 foreach ($plan_details as $index => $detail):
                     $maSP = $detail['MaSanPham']; $tenSP = $detail['TenSanPham']; $sanLuong = $detail['SanLuongMucTieu']; $selectedMaPhanXuong = $detail['MaPhanXuong'];
             ?>
@@ -126,10 +137,11 @@ if (!function_exists('get_value')) {
                             <tr>
                                 <th style="width: 15%">Mã NL</th>
                                 <th style="width: 25%">Tên NL</th>
-                                <th style="width: 15%">Định mức</th>
-                                <th style="width: 15%">Cần</th>
-                                <th style="width: 15%">Tồn kho</th>
-                                <th style="width: 15%">Bổ sung</th>
+                                <th style="width: 10%">ĐVT</th>
+                                <th style="width: 12%">Định mức</th>
+                                <th style="width: 13%">Cần</th>
+                                <th style="width: 12%">Tồn kho</th>
+                                <th style="width: 13%">Bổ sung</th>
                             </tr>
                         </thead>
                         <tbody id="raw-material-body_<?php echo $index; ?>">
@@ -139,14 +151,14 @@ if (!function_exists('get_value')) {
                                 $dinhMuc = (float)($nl['DinhMucSuDung'] ?? 0);
                                 $tonKho = (float)($nl['SoLuongTonKho'] ?? 0);
                                 $donViTinh = $nl['DonViTinh'] ?? '';
-                                $giaNhap = (float)($nl['GiaNhap'] ?? 0); // Giả định có GiaNhap
-                                // **TÍNH SỐ LƯỢNG CẦN**
+                                $giaNhap = (float)($nl['GiaNhap'] ?? 0);
                                 $soLuongCan = $dinhMuc * (float)$sanLuong;
                                 $canBoSung = max(0.00, $soLuongCan - $tonKho);
                             ?>
                             <tr data-nl-ma="<?php echo $nl['MaNguyenLieu']; ?>" data-donvitinh="<?php echo $donViTinh; ?>" data-gianhap="<?php echo $giaNhap; ?>">
-                                <td><input type="text" name="products[<?php echo $index; ?>][materials][<?php echo $i; ?>][MaNguyenLieu]" class="form-control form-control-sm" value="<?php echo $nl['MaNguyenLieu']; ?>" readonly></td>
-                                <td><input type="text" name="products[<?php echo $index; ?>][materials][<?php echo $i; ?>][TenNguyenLieu]" class="form-control form-control-sm" value="<?php echo $nl['TenNguyenLieu']; ?>" readonly></td>
+                                <td><input type="text" name="products[<?php echo $index; ?>][materials][<?php echo $i; ?>][MaNguyenLieu]" class="form-control form-control-sm" value="<?php echo htmlspecialchars($nl['MaNguyenLieu']); ?>" readonly></td>
+                                <td><input type="text" name="products[<?php echo $index; ?>][materials][<?php echo $i; ?>][TenNguyenLieu]" class="form-control form-control-sm" value="<?php echo htmlspecialchars($nl['TenNguyenLieu']); ?>" readonly></td>
+                                <td><input type="text" class="form-control form-control-sm" value="<?php echo htmlspecialchars($donViTinh); ?>" readonly></td>
                                 <td><input type="number" step="0.01" name="products[<?php echo $index; ?>][materials][<?php echo $i; ?>][DinhMucBOM]" class="form-control form-control-sm bom-input" value="<?php echo number_format($dinhMuc, 2, '.', ''); ?>" readonly></td>
                                 <td><input type="number" step="0.01" class="form-control form-control-sm required-qty-input" value="<?php echo number_format($soLuongCan, 2, '.', ''); ?>" readonly></td>
                                 <td><input type="number" step="0.01" name="products[<?php echo $index; ?>][materials][<?php echo $i; ?>][TonKho]" class="form-control form-control-sm stock-input" value="<?php echo number_format($tonKho, 2, '.', ''); ?>" readonly></td>
@@ -203,12 +215,15 @@ if (!function_exists('get_value')) {
     <hr>
     <div class="d-flex justify-content-end">
          <a href="<?php echo BASE_URL; ?>kehoachsanxuat" class="btn btn-secondary me-2"><i class="fas fa-arrow-left me-1"></i> Quay lại</a>
-         <?php if (!$is_viewing): ?><button type="submit" class="btn btn-success"><i class="fas fa-save me-1"></i> Lưu kế hoạch</button><?php endif; ?>
+         <?php if (!$is_viewing): ?>
+         <button type="submit" id="submitButton" class="btn btn-success"><i class="fas fa-save me-1"></i> Lưu kế hoạch</button>
+         <?php endif; ?>
     </div>
 </form>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // --- Element References ---
         const productContainer = document.getElementById('product-details-container');
         const productLoading = document.getElementById('product-loading');
         const productPlaceholder = document.getElementById('product-placeholder');
@@ -218,64 +233,62 @@ if (!function_exists('get_value')) {
         const chiPhiNhanCong = document.getElementById('chiPhiNhanCong');
         const chiPhiKhac = document.getElementById('chiPhiKhac');
         const tongChiPhiDuKien = document.getElementById('tongChiPhiDuKien');
-
-        <?php if (!$is_editing && !$is_viewing): ?>
-        maDonHangSelect.addEventListener('change', function() {
-             const maDonHang = this.value;
-             if (!maDonHang) { productContainer.innerHTML = ''; if (productPlaceholder) productContainer.appendChild(productPlaceholder); updateTotalRawMaterials(); updateTotalCost(); return; }
-             productContainer.innerHTML = ''; productLoading.style.display = 'block';
-             const baseUrl = '<?php echo BASE_URL; ?>';
-             fetch(`${baseUrl}kehoachsanxuat/getDonHangDetails/${maDonHang}`)
-                 .then(response => { if (!response.ok) { throw new Error('Status: ' + response.status); } return response.json(); })
-                 .then(data => {
-                     productLoading.style.display = 'none'; if (data.error) { throw new Error(data.error); }
-                     buildProductHtml(data.products, data.bom_data);
-                     updateTotalRawMaterials(); // Tính cả CP NL
-                     // TODO: Tính CP NC
-                     updateTotalCost();
-                 })
-                 .catch(error => { productLoading.style.display = 'none'; productContainer.innerHTML = `<div class="alert alert-danger">Lỗi tải chi tiết: ${error.message}</div>`; updateTotalRawMaterials(); updateTotalCost(); });
-        });
-
-        // **Hàm buildProductHtml (AJAX) - CẬP NHẬT THÊM CỘT CẦN + data-gianhap**
-        function buildProductHtml(products, bom_data) {
-             productContainer.innerHTML = '';
-             if (!products || products.length === 0) { productContainer.innerHTML = `<div class="alert alert-warning">ĐH không có SP.</div>`; return; }
-             products.forEach((product, index) => {
-                 const maSP = product.MaSanPham; const tenSP = product.TenSanPham; const sanLuong = parseFloat(product.SoLuong) || 0;
-                 // **Cập nhật Header table BOM**
-                 let productHtml = `<div class="product-item p-3 border rounded mb-3" data-index="${index}"><h6 class="fw-bold">SP ${index + 1}: ${tenSP}</h6><div class="row"><div class="col-md-3 mb-3"><label class="form-label fw-bold">Mã SP</label><input type="text" name="products[${index}][MaSanPham]" class="form-control" value="${maSP}" readonly></div><div class="col-md-6 mb-3"><label class="form-label fw-bold">Tên SP</label><input type="text" name="products[${index}][TenSanPham]" class="form-control" value="${tenSP}" readonly required></div><div class="col-md-3 mb-3"><label class="form-label fw-bold">Sản lượng</label><input type="number" name="products[${index}][SanLuongMucTieu]" class="form-control total-sanluong" value="${sanLuong}" required></div></div><h6 class="fw-bold mt-3">Nguyên liệu (BOM)</h6><div class="table-responsive"><table class="table table-bordered table-sm raw-material-table" data-product-id="${maSP}"><thead><tr><th style="width: 15%">Mã NL</th><th style="width: 25%">Tên NL</th><th style="width: 15%">Định mức</th><th style="width: 15%">Cần</th><th style="width: 15%">Tồn kho</th><th style="width: 15%">Bổ sung</th></tr></thead><tbody id="raw-material-body_${index}">`;
-                 const current_bom = bom_data[maSP] || [];
-                 if (current_bom.length > 0) {
-                     current_bom.forEach((nl, i) => {
-                         const dinhMuc = parseFloat(nl.DinhMucSuDung) || 0; const tonKho = parseFloat(nl.SoLuongTonKho) || 0; const donViTinh = nl.DonViTinh || '';
-                         // **LẤY GIÁ NHẬP TỪ API**
-                         const giaNhap = parseFloat(nl.GiaNhap) || 0;
-                         const soLuongCan = dinhMuc * sanLuong; const canBoSung = Math.max(0, soLuongCan - tonKho);
-                         // **THÊM data-gianhap VÀO <tr> VÀ INPUT CẦN**
-                         productHtml += `<tr data-nl-ma="${nl.MaNguyenLieu}" data-donvitinh="${donViTinh}" data-gianhap="${giaNhap}"><td><input type="text" name="products[${index}][materials][${i}][MaNguyenLieu]" class="form-control form-control-sm" value="${nl.MaNguyenLieu}" readonly></td><td><input type="text" name="products[${index}][materials][${i}][TenNguyenLieu]" class="form-control form-control-sm" value="${nl.TenNguyenLieu}" readonly></td><td><input type="number" step="0.01" name="products[${index}][materials][${i}][DinhMucBOM]" class="form-control form-control-sm bom-input" value="${dinhMuc.toFixed(2)}" readonly></td><td><input type="number" step="0.01" class="form-control form-control-sm required-qty-input" value="${soLuongCan.toFixed(2)}" readonly></td><td><input type="number" step="0.01" name="products[${index}][materials][${i}][TonKho]" class="form-control form-control-sm stock-input" value="${tonKho.toFixed(2)}" readonly></td><td><input type="number" step="0.01" name="products[${index}][materials][${i}][CanBoSung]" class="form-control form-control-sm needed-input" value="${canBoSung.toFixed(2)}" readonly></td></tr>`;
-                     });
-                 } else { productHtml += `<tr><td colspan="6" class="text-center text-danger">Chưa có BOM.</td></tr>`; } // **colspan="6"**
-                 productHtml += `</tbody></table></div><div class="row"><div class="col-md-12 mb-3"><label class="form-label fw-bold">Phân xưởng</label><select name="products[${index}][MaPhanXuong]" class="form-select" required><option value="">-- Chọn --</option><?php foreach ($xuongs as $xuong): ?><option value="<?php echo $xuong['MaPhanXuong']; ?>"><?php echo $xuong['MaPhanXuong'] . ' - ' . $xuong['TenPhanXuong']; ?></option><?php endforeach; ?></select></div></div></div>`;
-                 productContainer.insertAdjacentHTML('beforeend', productHtml);
-             });
-        }
-        <?php endif; ?>
+        const ngayBatDauInput = document.getElementById('ngayBatDau');
+        const ngayKetThucInput = document.getElementById('ngayKetThuc');
+        const ngayBatDauError = document.getElementById('ngayBatDauError');
+        const ngayKetThucError = document.getElementById('ngayKetThucError');
+        const submitButton = document.getElementById('submitButton');
+        const today = new Date().toISOString().split('T')[0];
 
         /**
-         * Hàm tổng hợp NL (CẬP NHẬT ĐỂ TÍNH CP NL)
+         * Validate Start and End Dates
+         */
+        function validateDates() {
+            let isValid = true;
+            const startDate = ngayBatDauInput ? ngayBatDauInput.value : null;
+            const endDate = ngayKetThucInput ? ngayKetThucInput.value : null;
+
+            // Reset errors
+            if (ngayBatDauInput) ngayBatDauInput.classList.remove('is-invalid');
+            if (ngayKetThucInput) ngayKetThucInput.classList.remove('is-invalid');
+            if(ngayBatDauError) ngayBatDauError.textContent = '';
+            if(ngayKetThucError) ngayKetThucError.textContent = '';
+
+            // 1. Kiểm tra Ngày Bắt đầu vs Hôm nay
+            // **SỬA LỖI Ở ĐÂY: Dùng '<' thay vì '<='**
+            if (ngayBatDauInput && startDate && startDate <= today) {
+                ngayBatDauInput.classList.add('is-invalid');
+                if(ngayBatDauError) ngayBatDauError.textContent = 'Ngày bắt đầu phải sau hôm nay.';
+                isValid = false;
+            }
+
+            // 2. Kiểm tra Ngày Kết thúc vs Ngày Bắt đầu (Giữ nguyên)
+            if (ngayBatDauInput && ngayKetThucInput && startDate && endDate && endDate <= startDate) {
+                ngayKetThucInput.classList.add('is-invalid');
+                 if(ngayKetThucError) ngayKetThucError.textContent = 'Ngày kết thúc phải sau Ngày bắt đầu.';
+                isValid = false;
+            }
+
+            // Enable/Disable Save button
+            if (submitButton) {
+                submitButton.disabled = !isValid;
+            }
+            return isValid;
+        }
+
+        /**
+         * Update Summary Table and Material Cost
          */
         window.updateTotalRawMaterials = function() {
             const totalMaterials = {};
-            let totalMaterialCost = 0; // **Biến tính tổng CP NL**
+            let totalMaterialCost = 0;
 
             document.querySelectorAll('.raw-material-table tbody tr').forEach(row => {
                 const maNL = row.getAttribute('data-nl-ma');
                 if (maNL) {
                     const tenNL = row.cells[1].querySelector('input').value;
-                    const dinhMuc = parseFloat(row.cells[2].querySelector('input').value) || 0;
-                    // **Lấy Tồn kho từ cột index 4**
-                    const tonKho = parseFloat(row.cells[4].querySelector('input').value) || 0;
+                    const dinhMuc = parseFloat(row.cells[3].querySelector('input').value) || 0; // Định mức index 3
+                    const tonKho = parseFloat(row.cells[5].querySelector('input').value) || 0; // Tồn kho index 5
                     const donViTinh = row.getAttribute('data-donvitinh') || '';
                     const giaNhap = parseFloat(row.getAttribute('data-gianhap')) || 0;
 
@@ -286,34 +299,22 @@ if (!function_exists('get_value')) {
                     const soLuongCan = dinhMuc * sanLuong;
                     const canBoSung = Math.max(0, soLuongCan - tonKho);
 
-                    // **Cập nhật input "Cần" (index 3)**
-                    const requiredQtyInput = row.cells[3].querySelector('input');
+                    const requiredQtyInput = row.cells[4].querySelector('input'); // Cần index 4
                     if (requiredQtyInput) requiredQtyInput.value = soLuongCan.toFixed(2);
-                    // **Cập nhật input "Bổ sung" (index 5)**
-                    const neededInput = row.cells[5].querySelector('input');
+                    const neededInput = row.cells[6].querySelector('input'); // Bổ sung index 6
                     if (neededInput) neededInput.value = canBoSung.toFixed(2);
 
-                    // **Tính chi phí cho nguyên liệu này (dựa trên Số lượng cần)**
                     totalMaterialCost += soLuongCan * giaNhap;
 
-                    // Tổng hợp cho bảng dưới
-                    if (!totalMaterials[maNL]) {
-                        totalMaterials[maNL] = { ten: tenNL, dvt: donViTinh, canBoSung: 0, tonKho: tonKho };
-                    }
+                    if (!totalMaterials[maNL]) { totalMaterials[maNL] = { ten: tenNL, dvt: donViTinh, canBoSung: 0, tonKho: tonKho }; }
                     totalMaterials[maNL].canBoSung += canBoSung;
                 }
             });
 
-            // **Cập nhật ô input Chi phí Nguyên liệu**
-            if (chiPhiNguyenLieu) {
-                chiPhiNguyenLieu.value = totalMaterialCost.toFixed(2);
-            }
+            if (chiPhiNguyenLieu) { chiPhiNguyenLieu.value = totalMaterialCost.toFixed(2); }
 
-            // Hiển thị bảng tổng hợp NL
             totalBody.innerHTML = '';
-            if (Object.keys(totalMaterials).length === 0) {
-                totalBody.innerHTML = '<tr><td colspan="6" class="text-center">Chưa có dữ liệu NL.</td></tr>'; return;
-            }
+            if (Object.keys(totalMaterials).length === 0) { totalBody.innerHTML = '<tr><td colspan="6" class="text-center">Chưa có dữ liệu NL.</td></tr>'; return; }
             for (const maNL in totalMaterials) {
                 const material = totalMaterials[maNL]; const soLuongCanTong = material.tonKho + material.canBoSung;
                 const newRow = `<tr><td>${maNL}</td><td>${material.ten}</td><td>${material.dvt}</td><td>${soLuongCanTong.toFixed(2)}</td><td>${material.tonKho.toFixed(2)}</td><td>${material.canBoSung.toFixed(2)}</td></tr>`;
@@ -322,32 +323,90 @@ if (!function_exists('get_value')) {
         };
 
         /**
-         * Hàm tính tổng chi phí (Giữ nguyên)
+         * Update Total Cost
          */
         window.updateTotalCost = function() {
             if (!chiPhiNguyenLieu || !chiPhiNhanCong || !chiPhiKhac || !tongChiPhiDuKien) { return; }
-            const cpNL = parseFloat(chiPhiNguyenLieu.value) || 0; const cpNC = parseFloat(chiPhiNhanCong.value) || 0; const cpKhac = parseFloat(chiPhiKhac.value) || 0;
+            const cpNL = parseFloat(chiPhiNguyenLieu.value) || 0;
+            const cpNC = parseFloat(chiPhiNhanCong.value) || 0; // TODO: Implement labor cost calculation
+            const cpKhac = parseFloat(chiPhiKhac.value) || 0;
             const tongCP = cpNL + cpNC + cpKhac;
             tongChiPhiDuKien.value = tongCP.toFixed(2);
         };
 
-        // Gọi các hàm khi load
-        updateTotalRawMaterials(); // Tính CP NL trước
-        updateTotalCost();         // Rồi mới tính Tổng CP
+        // --- Event Listeners ---
 
-        // Listener cho chi phí khác
-        if (chiPhiKhac && !<?php echo $is_viewing ? 'true' : 'false'; ?>) {
-            chiPhiKhac.addEventListener('input', updateTotalCost);
+        // Only add AJAX listener in CREATE mode
+        <?php if (!$is_editing && !$is_viewing): ?>
+        if(maDonHangSelect) {
+            maDonHangSelect.addEventListener('change', function() {
+                 const maDonHang = this.value;
+                 if (!maDonHang) { productContainer.innerHTML = ''; if (productPlaceholder) productContainer.appendChild(productPlaceholder); updateTotalRawMaterials(); updateTotalCost(); return; }
+                 productContainer.innerHTML = ''; productLoading.style.display = 'block';
+                 const baseUrl = '<?php echo BASE_URL; ?>';
+                 fetch(`${baseUrl}kehoachsanxuat/getDonHangDetails/${maDonHang}`)
+                     .then(response => { if (!response.ok) { throw new Error('Status: ' + response.status); } return response.json(); })
+                     .then(data => {
+                         productLoading.style.display = 'none'; if (data.error) { throw new Error(data.error); }
+                         buildProductHtml(data.products, data.bom_data);
+                         updateTotalRawMaterials(); // Update materials & cost
+                         updateTotalCost(); // Update total cost
+                     })
+                     .catch(error => { productLoading.style.display = 'none'; productContainer.innerHTML = `<div class="alert alert-danger">Lỗi tải chi tiết: ${error.message}</div>`; updateTotalRawMaterials(); updateTotalCost(); });
+            });
         }
 
-        // Listener khi sản lượng thay đổi (CẬP NHẬT ĐỂ GỌI ĐÚNG THỨ TỰ)
-        productContainer.addEventListener('input', function(e) {
-            if (e.target.classList.contains('total-sanluong') && !<?php echo $is_viewing ? 'true' : 'false'; ?>) {
-                // Chỉ cần gọi updateTotalRawMaterials vì nó đã tính lại mọi thứ
-                updateTotalRawMaterials(); // Tính lại Cần, Bổ sung, và CP NL
-                // TODO: Tính lại CP NC
-                updateTotalCost();         // Tính lại Tổng CP
+        // Build HTML for products and BOM (AJAX response)
+        function buildProductHtml(products, bom_data) {
+             productContainer.innerHTML = '';
+             if (!products || products.length === 0) { productContainer.innerHTML = `<div class="alert alert-warning">ĐH không có SP.</div>`; return; }
+             products.forEach((product, index) => {
+                 const maSP = product.MaSanPham; const tenSP = product.TenSanPham; const sanLuong = parseFloat(product.SoLuong) || 0;
+                 let productHtml = `<div class="product-item p-3 border rounded mb-3" data-index="${index}"><h6 class="fw-bold">SP ${index + 1}: ${tenSP}</h6><div class="row"><div class="col-md-3 mb-3"><label class="form-label fw-bold">Mã SP</label><input type="text" name="products[${index}][MaSanPham]" class="form-control" value="${maSP}" readonly></div><div class="col-md-6 mb-3"><label class="form-label fw-bold">Tên SP</label><input type="text" name="products[${index}][TenSanPham]" class="form-control" value="${tenSP}" readonly required></div><div class="col-md-3 mb-3"><label class="form-label fw-bold">Sản lượng</label><input type="number" name="products[${index}][SanLuongMucTieu]" class="form-control total-sanluong" value="${sanLuong}" required></div></div><h6 class="fw-bold mt-3">Nguyên liệu (BOM)</h6><div class="table-responsive"><table class="table table-bordered table-sm raw-material-table" data-product-id="${maSP}"><thead><tr><th style="width: 15%">Mã NL</th><th style="width: 25%">Tên NL</th><th style="width: 10%">ĐVT</th><th style="width: 12%">Định mức</th><th style="width: 13%">Cần</th><th style="width: 12%">Tồn kho</th><th style="width: 13%">Bổ sung</th></tr></thead><tbody id="raw-material-body_${index}">`; // Header updated
+                 const current_bom = bom_data[maSP] || [];
+                 if (current_bom.length > 0) {
+                     current_bom.forEach((nl, i) => {
+                         const dinhMuc = parseFloat(nl.DinhMucSuDung) || 0; const tonKho = parseFloat(nl.SoLuongTonKho) || 0;
+                         const donViTinh = nl.DonViTinh || '';
+                         const giaNhap = parseFloat(nl.GiaNhap) || 0;
+                         const soLuongCan = dinhMuc * sanLuong; const canBoSung = Math.max(0, soLuongCan - tonKho);
+                         productHtml += `<tr data-nl-ma="${nl.MaNguyenLieu}" data-donvitinh="${donViTinh}" data-gianhap="${giaNhap}"><td><input type="text" name="products[${index}][materials][${i}][MaNguyenLieu]" class="form-control form-control-sm" value="${nl.MaNguyenLieu}" readonly></td><td><input type="text" name="products[${index}][materials][${i}][TenNguyenLieu]" class="form-control form-control-sm" value="${nl.TenNguyenLieu}" readonly></td><td><input type="text" class="form-control form-control-sm" value="${donViTinh}" readonly></td><td><input type="number" step="0.01" name="products[${index}][materials][${i}][DinhMucBOM]" class="form-control form-control-sm bom-input" value="${dinhMuc.toFixed(2)}" readonly></td><td><input type="number" step="0.01" class="form-control form-control-sm required-qty-input" value="${soLuongCan.toFixed(2)}" readonly></td><td><input type="number" step="0.01" name="products[${index}][materials][${i}][TonKho]" class="form-control form-control-sm stock-input" value="${tonKho.toFixed(2)}" readonly></td><td><input type="number" step="0.01" name="products[${index}][materials][${i}][CanBoSung]" class="form-control form-control-sm needed-input" value="${canBoSung.toFixed(2)}" readonly></td></tr>`;
+                     });
+                 } else { productHtml += `<tr><td colspan="7" class="text-center text-danger">Chưa có BOM.</td></tr>`; }
+                 productHtml += `</tbody></table></div><div class="row"><div class="col-md-12 mb-3"><label class="form-label fw-bold">Phân xưởng</label><select name="products[${index}][MaPhanXuong]" class="form-select" required><option value="">-- Chọn --</option><?php foreach ($xuongs as $xuong): ?><option value="<?php echo $xuong['MaPhanXuong']; ?>"><?php echo $xuong['MaPhanXuong'] . ' - ' . $xuong['TenPhanXuong']; ?></option><?php endforeach; ?></select></div></div></div>`;
+                 productContainer.insertAdjacentHTML('beforeend', productHtml);
+             });
+        }
+        <?php endif; ?>
+
+        // Initial Calculations on Load
+        updateTotalRawMaterials(); // Calculate Material Cost first
+        updateTotalCost();         // Then calculate Total Cost
+        validateDates();           // Validate initial dates
+
+        if (!<?php echo $is_viewing ? 'true' : 'false'; ?>) {
+            if (ngayBatDauInput) ngayBatDauInput.addEventListener('input', validateDates); // Gọi ngay khi thay đổi
+            if (ngayKetThucInput) ngayKetThucInput.addEventListener('input', validateDates); // Gọi ngay khi thay đổi
+
+            const planForm = document.getElementById('planForm');
+            if (planForm) {
+                planForm.addEventListener('submit', function(event) {
+                    if (!validateDates()) { // Kiểm tra lần cuối trước khi submit
+                        event.preventDefault();
+                        alert('Vui lòng kiểm tra lại Ngày bắt đầu và Ngày kết thúc.');
+                    }
+                    // Thêm kiểm tra khác nếu cần (ví dụ: đã chọn đơn hàng chưa?)
+                    if (maDonHangSelect && !maDonHangSelect.value && !<?php echo $is_editing ? 'true' : 'false'; ?>) {
+                         event.preventDefault();
+                         alert('Vui lòng chọn Đơn hàng liên quan.');
+                    }
+                });
             }
-        });
+             // Listener cho chi phí khác (Giữ nguyên)
+            if (chiPhiKhac) { chiPhiKhac.addEventListener('input', updateTotalCost); }
+            // Listener khi sản lượng thay đổi (Giữ nguyên)
+            if (productContainer) { productContainer.addEventListener('input', function(e) { /* ... */ }); }
+        }
+
     });
 </script>

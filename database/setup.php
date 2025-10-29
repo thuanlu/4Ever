@@ -21,7 +21,7 @@ try {
     echo "<p>✓ Kết nối MySQL thành công</p>";
     
     // Đọc file SQL tạo database
-    $sqlFile = '../database/factory_management.sql';
+    $sqlFile = '../database/qlsx_4ever.sql';
     if (!file_exists($sqlFile)) {
         throw new Exception("Không tìm thấy file SQL: $sqlFile");
     }
@@ -83,7 +83,7 @@ try {
     }
     
     // Kiểm tra dữ liệu
-    $conn->exec("USE factory_management");
+    $conn->exec("USE qlsx_4ever");
     
     $tables = [
         'roles' => 'Vai trò người dùng',

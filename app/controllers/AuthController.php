@@ -38,6 +38,11 @@ class AuthController extends BaseController {
                 $_SESSION['user_role'] = $user['ChucVu'];
                 $_SESSION['bo_phan'] = $user['BoPhan'];
 
+                // if (strtoupper($user['ChucVu']) === 'QC') {
+                //     $_SESSION['MaNV_QC'] = $user['MaNV'];
+                //     $_SESSION['TenNV_QC'] = $user['HoTen'];
+                // }
+
                 $_SESSION['success'] = 'Đăng nhập thành công! Chào mừng ' . $user['HoTen'] . ' (' . $user['ChucVu'] . ')';
                 // Chuyển hướng theo vai trò
                 switch (strtoupper($user['ChucVu'])) {

@@ -2,14 +2,11 @@
     <a class="nav-link" href="<?php echo BASE_URL; ?>dashboard/qc">
         <i class="fas fa-tachometer-alt me-2"></i>Dashboard
     </a>
-    <a class="nav-link" href="<?php echo BASE_URL; ?>qc/batches">
-        <i class="fas fa-boxes me-2"></i>Lô hàng cần QC
+    <a class="nav-link" href="<?php echo BASE_URL; ?>qc">
+        <i class="fas fa-check-double me-2"></i> Ghi nhận kết quả kiểm định
     </a>
-    <a class="nav-link" href="<?php echo BASE_URL; ?>qc/inspection">
-        <i class="fas fa-clipboard-check me-2"></i>Phiếu kiểm định
-    </a>
-    <a class="nav-link" href="<?php echo BASE_URL; ?>qc/results">
-        <i class="fas fa-check-double me-2"></i>Kết quả kiểm định
+    <a class="nav-link" href="<?php echo BASE_URL; ?>qc/history">
+        <i class="fas fas fa-boxes me-2"></i> Lịch sử ghi nhận kết quả kiểm định
     </a>
     <a class="nav-link" href="<?php echo BASE_URL; ?>qc/report">
         <i class="fas fa-file-alt me-2"></i>Báo cáo chất lượng

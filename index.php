@@ -58,6 +58,7 @@ $router->addRoute('GET', '/login', 'AuthController', 'showLogin');
 $router->addRoute('POST', '/login', 'AuthController', 'processLogin');
 $router->addRoute('GET', '/logout', 'AuthController', 'logout');
 
+
 // Routes cho dashboard các vai trò
 $router->addRoute('GET', '/giamdoc/dashboard', 'DashboardController', 'bgd');
 $router->addRoute('GET', '/kehoachsanxuat/dashboard', 'DashboardController', 'kh');
@@ -122,11 +123,21 @@ $router->addRoute('GET', '/reports', 'ReportController', 'index');
 $router->addRoute('GET', '/reports/production', 'ReportController', 'production');
 $router->addRoute('GET', '/reports/attendance', 'ReportController', 'attendance');
 
+
 // Routes cho Nhập Kho Thành Phẩm
 $router->addRoute('GET', '/nhapkho', 'NhapKhoController', 'index');
 $router->addRoute('POST', '/nhapkho/confirm', 'NhapKhoController', 'confirmImport');
 $router->addRoute('POST', '/nhapkho/confirm-multi', 'NhapKhoController', 'confirmImportMulti');
 $router->addRoute('GET', '/nhapkho/detail', 'NhapKhoController', 'getDetail');
+
+
+
+//Routes cho QC
+$router->addRoute('GET', '/qc', 'KetQuaKiemDinhController', 'index');
+$router->addRoute('GET', '/qc/view/(.*)', 'KetQuaKiemDinhController', 'view');
+$router->addRoute('POST', '/qc/view/(.*)', 'KetQuaKiemDinhController', 'view');  
+$router->addRoute('POST', '/qc/save', 'KetQuaKiemDinhController', 'save');
+$router->addRoute('GET', '/qc/history', 'KetQuaKiemDinhController', 'history');
 
 
 // Xử lý request

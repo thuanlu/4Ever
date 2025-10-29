@@ -34,14 +34,33 @@ class Router {
         }
 
         
+        // foreach ($this->routes as $route) {
+        //     if ($route['method'] === $requestMethod && $this->matchPath($route['path'], $requestPath)) {
+        //         $controllerName = $route['controller'];
+        //         $actionName = $route['action'];
+                
+        //         // Kiểm tra file controller có tồn tại
+        //         $controllerFile = APP_PATH . '/controllers/' . $controllerName . '.php';
+        //         if (file_exists($controllerFile)) {
+        //             require_once $controllerFile;
+                    
+        //             $controller = new $controllerName();
+        //             if (method_exists($controller, $actionName)) {
+        //                 $controller->$actionName();
+        //                 return;
+        //             }
+        //         }
+        //     }
+        // }
         foreach ($this->routes as $route) {
+
             // matchPath now returns false (no match) or an array of captured params (may be empty)
             $matchResult = $this->matchPath($route['path'], $requestPath);
             if ($route['method'] === $requestMethod && $matchResult !== false) {
                 $controllerName = $route['controller'];
                 $actionName = $route['action'];
 
-                // Kiểm tra file controller có tồn tại
+
                 $controllerFile = APP_PATH . '/controllers/' . $controllerName . '.php';
                 if (file_exists($controllerFile)) {
                     require_once $controllerFile;
@@ -54,7 +73,6 @@ class Router {
                         } else {
                             $controller->$actionName();
                         }
-
                         return;
                     }
                 }
@@ -86,6 +104,7 @@ class Router {
 
         // Exact match fallback
         return $routePath === $requestPath ? [] : false;
+
     }
 
     

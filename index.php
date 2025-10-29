@@ -84,6 +84,16 @@ $router->addRoute('POST', '/kehoachsanxuat/edit/(.*)', 'KeHoachSanXuatController
 $router->addRoute('GET', '/kehoachsanxuat/delete/(.*)', 'KeHoachSanXuatController', 'delete');
 $router->addRoute('GET', '/kehoachsanxuat/view/(.*)', 'KeHoachSanXuatController', 'view');
 
+// Routes cho quản lý phiếu nhập nguyên vật liệu (PhieuNhap)
+$router->addRoute('GET', '/kehoachsanxuat/phieu-nhap', 'PhieuNhapController', 'index');
+$router->addRoute('GET', '/kehoachsanxuat/phieu-nhap/create', 'PhieuNhapController', 'create');
+$router->addRoute('POST', '/kehoachsanxuat/phieu-nhap/store', 'PhieuNhapController', 'store');
+$router->addRoute('GET', '/kehoachsanxuat/phieu-nhap/show/(.*)', 'PhieuNhapController', 'show');
+$router->addRoute('GET', '/kehoachsanxuat/phieu-nhap/get-chi-tiet-nvl', 'PhieuNhapController', 'getChiTietNVL');
+$router->addRoute('GET', '/kehoachsanxuat/phieu-nhap/get-nha-cung-cap', 'PhieuNhapController', 'getNhaCungCap');
+$router->addRoute('POST', '/kehoachsanxuat/phieu-nhap/calculate-total', 'PhieuNhapController', 'calculateTotal');
+$router->addRoute('POST', '/kehoachsanxuat/phieu-nhap/duyet/(.*)', 'PhieuNhapController', 'duyet');
+$router->addRoute('POST', '/kehoachsanxuat/phieu-nhap/huy/(.*)', 'PhieuNhapController', 'huy');
 // 
 // ===== DÒNG BỊ THIẾU GÂY LỖI 404 ĐÃ ĐƯỢC THÊM VÀO ĐÂY =====
 //

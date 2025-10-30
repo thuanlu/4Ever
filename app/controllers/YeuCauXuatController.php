@@ -8,7 +8,6 @@ class YeuCauXuatController extends BaseController {
     public function index() {
         $this->requireRole(['XT']);
         $model = $this->loadModel('YeuCauXuat');
-        $model->ensureTables();
 
         $plans = $model->getPlans();
         $selectedMaKH = $_GET['ma_kehoach'] ?? ($plans[0]['ma_kehoach'] ?? '');
@@ -93,7 +92,7 @@ class YeuCauXuatController extends BaseController {
     public function list() {
         $this->requireRole(['XT']);
         $model = $this->loadModel('YeuCauXuat');
-        $model->ensureTables();
+        // Không gọi ensureTables() ở đây để sử dụng dữ liệu thực từ database (không tự tạo/seed)
         $status = $_GET['status'] ?? '';
         $keyword = trim($_GET['q'] ?? '');
         $rows = $model->listRequests($status, $keyword);
@@ -106,13 +105,30 @@ class YeuCauXuatController extends BaseController {
     }
 
     /**
+     * API: trả về danh sách kế hoạch sản xuất dạng JSON
+     * GET /yeucauxuat/api/plans
+     */
+    public function apiPlans() {
+        $this->requireRole(['XT']);
+        $model = $this->loadModel('YeuCauXuat');
+        $plans = $model->getPlans();
+
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode([
+            'success' => true,
+            'data' => $plans
+        ], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    /**
      * Tạo một phiếu mẫu tự động (không cần thao tác tay)
      * GET /yeucauxuat/demo?kh=KH001&status=send|draft
      */
     public function demo() {
         $this->requireRole(['XT']);
         $model = $this->loadModel('YeuCauXuat');
-        $model->ensureTables();
+        // Không gọi ensureTables() nữa — model không tự tạo/seed bảng. Demo sẽ chỉ tạo phiếu mẫu nếu dữ liệu kế hoạch tồn tại trong DB.
 
         // Chọn kế hoạch: ưu tiên tham số ?kh=, nếu không có lấy kế hoạch mới nhất
         $plans = $model->getPlans();

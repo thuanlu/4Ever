@@ -40,7 +40,7 @@
           <strong>Thông tin kế hoạch:</strong>
           <div class="row mt-2">
             <div class="col-md-3"><small>Mã kế hoạch:</small><br><strong><?php echo htmlspecialchars($selectedPlan['ma_kehoach']); ?></strong></div>
-            <div class="col-md-3"><small>Mã phân xưởng:</small><br><strong><?php echo htmlspecialchars($selectedPlan['ma_px']); ?></strong></div>
+            <div class="col-md-3"><small>Mã phân xưởng:</small><br><strong><?php echo htmlspecialchars($selectedPlan['ma_px'] ?? 'Không xác định'); ?></strong></div>
             <div class="col-md-3"><small>Sản phẩm:</small><br><strong><?php echo htmlspecialchars($selectedPlan['sanpham']); ?></strong></div>
             <div class="col-md-3"><small>Số lượng SP:</small><br><strong><?php echo (int)$selectedPlan['soluong']; ?></strong></div>
           </div>
@@ -143,15 +143,15 @@
           <?php else: ?>
             <?php foreach ($requests as $r): ?>
               <tr>
-                <td><?php echo htmlspecialchars($r['ma_phieu']); ?></td>
-                <td><?php echo htmlspecialchars($r['ma_kehoach']); ?></td>
-                <td><?php echo htmlspecialchars($r['ngay_yeucau']); ?></td>
+                <td><?php echo htmlspecialchars($r['ma_phieu'] ?? ''); ?></td>
+                <td><?php echo htmlspecialchars($r['ma_kehoach'] ?? ''); ?></td>
+                <td><?php echo htmlspecialchars($r['ngay_yeucau'] ?? ''); ?></td>
                 <td>
                   <?php $badge = ($r['trangthai']==='Nháp'?'secondary':($r['trangthai']==='Chờ xử lý'?'warning text-dark':($r['trangthai']==='Đã duyệt'?'success':'danger'))); ?>
-                  <span class="badge bg-<?php echo $badge; ?>"><?php echo htmlspecialchars($r['trangthai']); ?></span>
+                  <span class="badge bg-<?php echo $badge; ?>"><?php echo htmlspecialchars($r['trangthai'] ?? ''); ?></span>
                 </td>
                 <td><?php echo htmlspecialchars($r['ghichu'] ?? ''); ?></td>
-                <td><?php echo htmlspecialchars($r['ngay_tao']); ?></td>
+                <td><?php echo htmlspecialchars($r['ngay_tao'] ?? ''); ?></td>
               </tr>
             <?php endforeach; ?>
           <?php endif; ?>

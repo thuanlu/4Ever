@@ -25,6 +25,7 @@ class NhapKho {
      * @return array Danh sách lô hàng với thông tin sản phẩm
      */
     public function getLoHangCanNhap() {
+        // Lấy lô hàng có KQKD mới nhất là "Đạt" và chưa nhập kho
         $query = "SELECT 
                     lh.MaLoHang, 
                     lh.MaSanPham, 
@@ -33,18 +34,64 @@ class NhapKho {
                     sp.Mau,
                     lh.SoLuong, 
                     lh.TrangThaiQC,
-                    lh.TrangThaiKho
+                    kq_latest.KetQua AS KetQuaKiemDinh,
+                    CASE 
+                        WHEN EXISTS (SELECT 1 FROM PhieuNhapSanPham p WHERE p.MaLoHang = lh.MaLoHang)
+                            THEN 'Đã nhập kho'
+                        ELSE 'Chưa nhập kho'
+                    END AS TrangThaiKho
                   FROM LoHang lh
                   INNER JOIN SanPham sp ON lh.MaSanPham = sp.MaSanPham
-                  WHERE lh.TrangThaiQC = 'Đạt'
+                  INNER JOIN (
+                        SELECT kq.MaLoHang, kq.KetQua, kq.NgayLap
+                        FROM KetQuaKiemDinh kq
+                        INNER JOIN (
+                            SELECT MaLoHang, MAX(NgayLap) AS LatestNgayLap
+                            FROM KetQuaKiemDinh
+                            GROUP BY MaLoHang
+                        ) last ON last.MaLoHang = kq.MaLoHang AND last.LatestNgayLap = kq.NgayLap
+                  ) kq_latest ON kq_latest.MaLoHang = lh.MaLoHang
+                  WHERE NOT EXISTS (SELECT 1 FROM PhieuNhapSanPham pns WHERE pns.MaLoHang = lh.MaLoHang)
+                    AND (
+                        kq_latest.KetQua = 'Đạt' OR
+                        UPPER(TRIM(kq_latest.KetQua)) = 'ĐẠT' OR
+                        UPPER(TRIM(kq_latest.KetQua)) = 'DAT'
+                    )
                   ORDER BY lh.MaLoHang DESC";
         
         try {
             $stmt = $this->conn->prepare($query);
             $stmt->execute();
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            // Nếu không có kết quả, thử query không có điều kiện KetQua để debug
+            if (count($results) == 0) {
+                $debugQuery = "SELECT 
+                    COUNT(*) as total_lohang,
+                    (SELECT COUNT(*) FROM KetQuaKiemDinh) as total_kq,
+                    (SELECT COUNT(*) FROM KetQuaKiemDinh WHERE KetQua LIKE '%Đạt%' OR KetQua LIKE '%Dat%') as kq_dat,
+                    (SELECT COUNT(*) FROM PhieuNhapSanPham) as total_phieu_nhap
+                FROM LoHang";
+                $debugStmt = $this->conn->prepare($debugQuery);
+                $debugStmt->execute();
+                $debugInfo = $debugStmt->fetch(PDO::FETCH_ASSOC);
+                error_log("Debug Info - Total LoHang: " . ($debugInfo['total_lohang'] ?? 0) . 
+                          ", Total KQ: " . ($debugInfo['total_kq'] ?? 0) . 
+                          ", KQ Đạt: " . ($debugInfo['kq_dat'] ?? 0) . 
+                          ", Total PhieuNhap: " . ($debugInfo['total_phieu_nhap'] ?? 0));
+                
+                // Lấy mẫu các giá trị KetQua có trong DB
+                $sampleQuery = "SELECT DISTINCT KetQua FROM KetQuaKiemDinh LIMIT 10";
+                $sampleStmt = $this->conn->prepare($sampleQuery);
+                $sampleStmt->execute();
+                $sampleResults = $sampleStmt->fetchAll(PDO::FETCH_COLUMN);
+                error_log("Sample KetQua values: " . implode(', ', $sampleResults));
+            }
+            
+            return $results;
         } catch(PDOException $e) {
             error_log("Error getting lo hang can nhap: " . $e->getMessage());
+            error_log("SQL Query: " . $query);
             return [];
         }
     }
@@ -57,13 +104,31 @@ class NhapKho {
      */
     public function getLoHangById($maLoHang) {
         $query = "SELECT 
-                    lh.*, 
+                    lh.MaLoHang,
+                    lh.MaSanPham,
+                    lh.SoLuong,
+                    lh.TrangThaiQC,
                     sp.TenSanPham,
                     sp.Size,
                     sp.Mau,
-                    sp.GiaXuat
+                    sp.GiaXuat,
+                    kq_latest.KetQua AS KetQuaKiemDinh,
+                    CASE 
+                        WHEN EXISTS (SELECT 1 FROM PhieuNhapSanPham p WHERE p.MaLoHang = lh.MaLoHang)
+                            THEN 'Đã nhập kho'
+                        ELSE 'Chưa nhập kho'
+                    END AS TrangThaiKho
                   FROM LoHang lh
                   INNER JOIN SanPham sp ON lh.MaSanPham = sp.MaSanPham
+                  LEFT JOIN (
+                        SELECT kq.MaLoHang, kq.KetQua, kq.NgayLap
+                        FROM KetQuaKiemDinh kq
+                        INNER JOIN (
+                            SELECT MaLoHang, MAX(NgayLap) AS LatestNgayLap
+                            FROM KetQuaKiemDinh
+                            GROUP BY MaLoHang
+                        ) last ON last.MaLoHang = kq.MaLoHang AND last.LatestNgayLap = kq.NgayLap
+                  ) kq_latest ON kq_latest.MaLoHang = lh.MaLoHang
                   WHERE lh.MaLoHang = :maLoHang";
         
         try {
@@ -83,17 +148,60 @@ class NhapKho {
      * @param string $maLoHang Mã lô hàng
      * @return bool True nếu thành công, False nếu thất bại
      */
-    public function updateTrangThaiLoHang($maLoHang) {
-        $query = "UPDATE LoHang 
-                  SET TrangThaiKho = 'Đã nhập kho'
-                  WHERE MaLoHang = :maLoHang AND TrangThaiQC = 'Đạt'";
-        
+    // Không cập nhật trạng thái trên bảng LoHang vì không có cột. Trạng thái kho được suy ra từ PhieuNhapSanPham.
+    private function daNhapKho($maLoHang) {
+        $query = "SELECT 1 FROM PhieuNhapSanPham WHERE MaLoHang = :maLoHang LIMIT 1";
         try {
             $stmt = $this->conn->prepare($query);
             $stmt->bindParam(':maLoHang', $maLoHang);
-            return $stmt->execute();
-        } catch(PDOException $e) {
-            error_log("Error updating trang thai lo hang: " . $e->getMessage());
+            $stmt->execute();
+            return (bool)$stmt->fetchColumn();
+        } catch (PDOException $e) {
+            error_log("Error checking daNhapKho: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Lấy kết quả QC mới nhất của lô hàng
+     */
+    private function getKetQuaLatest($maLoHang) {
+        $query = "SELECT KetQua FROM KetQuaKiemDinh 
+                  WHERE MaLoHang = :maLoHang 
+                  ORDER BY NgayLap DESC 
+                  LIMIT 1";
+        try {
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':maLoHang', $maLoHang);
+            $stmt->execute();
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $row['KetQua'] ?? null;
+        } catch (PDOException $e) {
+            error_log("Error getKetQuaLatest: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Kiểm tra lô hàng có bất kỳ kết quả 'Đạt' nào không (an toàn hơn kiểm tra bản ghi mới nhất)
+     */
+    private function isLoHangDatQC($maLoHang) {
+        $query = "SELECT 1 FROM KetQuaKiemDinh 
+                  WHERE MaLoHang = :maLoHang 
+                    AND (
+                        KetQua = 'Đạt' OR
+                        KetQua LIKE '%Đạt%' OR
+                        KetQua LIKE '%Dat%' OR
+                        UPPER(REPLACE(TRIM(KetQua),'Đ','D')) = 'DAT'
+                    )
+                  ORDER BY NgayLap DESC LIMIT 1";
+        try {
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':maLoHang', $maLoHang);
+            $stmt->execute();
+            return (bool)$stmt->fetchColumn();
+        } catch (PDOException $e) {
+            error_log("Error isLoHangDatQC: " . $e->getMessage());
             return false;
         }
     }
@@ -106,26 +214,76 @@ class NhapKho {
      * @param string $ghiChu Ghi chú
      * @return string|null Mã phiếu nhập hoặc null nếu thất bại
      */
-    public function insertPhieuNhapKho($maLoHang, $maNV, $ghiChu = '') {
+    public function insertPhieuNhapKho($maLoHang, $maNV, $ghiChu = '', $maKD = null) {
         // Tạo mã phiếu nhập tự động
         $maPhieuNhap = 'PNTP' . date('YmdHis') . rand(100, 999);
         
-        $query = "INSERT INTO PhieuNhapSanPham 
-                  (MaPhieuNhap, MaLoHang, MaNhanVien, NgayNhap)
-                  VALUES (:maPhieuNhap, :maLoHang, :maNV, NOW())";
+        // Nếu mã nhân viên không tồn tại trong bảng NhanVien, dùng NULL để tránh lỗi FK
+        $maNVToUse = null;
+        if (!empty($maNV)) {
+            try {
+                $check = $this->conn->prepare("SELECT 1 FROM NhanVien WHERE MaNV = :maNV LIMIT 1");
+                $check->bindParam(':maNV', $maNV);
+                $check->execute();
+                if ($check->fetchColumn()) {
+                    $maNVToUse = $maNV;
+                }
+            } catch (PDOException $e) {
+                error_log("Error checking MaNV: " . $e->getMessage());
+            }
+        }
+
+        // Kiểm tra MaKD có tồn tại không (nếu được cung cấp)
+        $maKDToUse = null;
+        if (!empty($maKD)) {
+            try {
+                $checkKD = $this->conn->prepare("SELECT 1 FROM KetQuaKiemDinh WHERE MaKD = :maKD LIMIT 1");
+                $checkKD->bindParam(':maKD', $maKD);
+                $checkKD->execute();
+                if ($checkKD->fetchColumn()) {
+                    $maKDToUse = $maKD;
+                } else {
+                    error_log("Warning: MaKD $maKD does not exist in KetQuaKiemDinh");
+                }
+            } catch (PDOException $e) {
+                error_log("Error checking MaKD: " . $e->getMessage());
+            }
+        }
+
+        // Nếu có MaKD thì insert với MaKD, không thì bỏ qua
+        if ($maKDToUse) {
+            $query = "INSERT INTO PhieuNhapSanPham 
+                      (MaPhieuNhap, MaKD, MaLoHang, MaNhanVien, NgayNhap)
+                      VALUES (:maPhieuNhap, :maKD, :maLoHang, :maNV, NOW())";
+        } else {
+            $query = "INSERT INTO PhieuNhapSanPham 
+                      (MaPhieuNhap, MaLoHang, MaNhanVien, NgayNhap)
+                      VALUES (:maPhieuNhap, :maLoHang, :maNV, NOW())";
+        }
         
         try {
             $stmt = $this->conn->prepare($query);
             $stmt->bindParam(':maPhieuNhap', $maPhieuNhap);
+            if ($maKDToUse) {
+                $stmt->bindParam(':maKD', $maKDToUse);
+            }
             $stmt->bindParam(':maLoHang', $maLoHang);
-            $stmt->bindParam(':maNV', $maNV);
+            if ($maNVToUse === null) {
+                $stmt->bindValue(':maNV', null, PDO::PARAM_NULL);
+            } else {
+                $stmt->bindParam(':maNV', $maNVToUse);
+            }
             
             if ($stmt->execute()) {
+                error_log("Successfully inserted PhieuNhapSanPham: $maPhieuNhap for LoHang: $maLoHang");
                 return $maPhieuNhap;
             }
+            error_log("Failed to execute insert PhieuNhapSanPham query for LoHang: $maLoHang");
             return null;
         } catch(PDOException $e) {
-            error_log("Error inserting phieu nhap kho: " . $e->getMessage());
+            error_log("Error inserting phieu nhap kho for LoHang $maLoHang: " . $e->getMessage());
+            error_log("SQL Error Code: " . $e->getCode());
+            error_log("Query: " . $query);
             return null;
         }
     }
@@ -139,6 +297,19 @@ class NhapKho {
      * @return bool True nếu thành công, False nếu thất bại
      */
     public function updateTonKho($maSanPham, $soLuong) {
+        // Đảm bảo bảng TonKho tồn tại (trong một số môi trường chưa chạy migration)
+        try {
+            $this->conn->exec("CREATE TABLE IF NOT EXISTS TonKho (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                MaSanPham VARCHAR(10) UNIQUE,
+                SoLuongHienTai INT NOT NULL DEFAULT 0,
+                ViTriKho VARCHAR(50),
+                NgayCapNhat DATETIME NOT NULL,
+                GhiChu TEXT
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+        } catch (PDOException $e) {
+            error_log("Error ensuring TonKho table: " . $e->getMessage());
+        }
         // Kiểm tra xem đã có tồn kho chưa
         $checkQuery = "SELECT COUNT(*) FROM TonKho WHERE MaSanPham = :maSanPham";
         $checkStmt = $this->conn->prepare($checkQuery);
@@ -194,26 +365,24 @@ class NhapKho {
                 throw new Exception("Không tìm thấy lô hàng!");
             }
 
-            if ($loHang['TrangThaiQC'] !== 'Đạt') {
-                throw new Exception("Lô hàng chưa được QC duyệt!");
+            // Kiểm tra QC: chỉ cần có bất kỳ kết quả 'Đạt' nào
+            if (!$this->isLoHangDatQC($maLoHang)) {
+                $ketQuaLatest = $this->getKetQuaLatest($maLoHang);
+                throw new Exception("Lô hàng chưa đạt QC! (KQ gần nhất: " . ($ketQuaLatest ?? 'NULL') . ")");
             }
 
-            if ($loHang['TrangThaiKho'] === 'Đã nhập kho') {
+            if ($this->daNhapKho($maLoHang)) {
                 throw new Exception("Lô hàng đã được nhập kho rồi!");
             }
 
-            // 2. Cập nhật trạng thái lô hàng
-            if (!$this->updateTrangThaiLoHang($maLoHang)) {
-                throw new Exception("Lỗi cập nhật trạng thái lô hàng!");
-            }
-
-            // 3. Tạo phiếu nhập kho
-            $maPhieuNhap = $this->insertPhieuNhapKho($maLoHang, $maNV);
+            // 2. Tạo phiếu nhập kho (đồng thời là mốc đánh dấu đã nhập)
+            $maKDLatest = $this->getMaKDLatest($maLoHang);
+            $maPhieuNhap = $this->insertPhieuNhapKho($maLoHang, $maNV, '', $maKDLatest);
             if (!$maPhieuNhap) {
                 throw new Exception("Lỗi tạo phiếu nhập kho!");
             }
 
-            // 4. Cập nhật tồn kho
+            // 3. Cập nhật tồn kho
             if (!$this->updateTonKho($loHang['MaSanPham'], $loHang['SoLuong'])) {
                 throw new Exception("Lỗi cập nhật tồn kho!");
             }
@@ -247,16 +416,24 @@ class NhapKho {
      * @return array Kết quả tổng hợp
      */
     public function nhapKhoNhieuLoHang($danhSachLoHang, $maNV) {
+        error_log("nhapKhoNhieuLoHang called with " . count($danhSachLoHang) . " lots: " . implode(', ', $danhSachLoHang));
+        
         $results = [];
         $successCount = 0;
         $failCount = 0;
+        $failedLots = [];
 
-        foreach ($danhSachLoHang as $maLoHang) {
+        foreach ($danhSachLoHang as $index => $maLoHang) {
+            error_log("Processing lot $index: $maLoHang");
             $result = $this->nhapKhoLoHang($maLoHang, $maNV);
             if ($result['success']) {
                 $successCount++;
+                error_log("Lot $maLoHang: Success");
             } else {
                 $failCount++;
+                $errorMsg = $result['message'] ?? 'Unknown error';
+                $failedLots[] = $maLoHang . ': ' . $errorMsg;
+                error_log("Lot $maLoHang: Failed - $errorMsg");
             }
             $results[] = [
                 'maLoHang' => $maLoHang,
@@ -264,13 +441,59 @@ class NhapKho {
             ];
         }
 
+        $success = $successCount > 0; // coi là thành công nếu có ít nhất 1 lô nhập được
+        $message = "Đã nhập $successCount lô";
+        if ($failCount > 0) {
+            $message .= ", thất bại $failCount lô";
+            if (!empty($failedLots)) {
+                $message .= ". Chi tiết: " . implode('; ', array_slice($failedLots, 0, 3)); // Chỉ hiện 3 lỗi đầu
+                if (count($failedLots) > 3) {
+                    $message .= " ...";
+                }
+            }
+        }
+
+        error_log("nhapKhoNhieuLoHang result: success=$success, successCount=$successCount, failCount=$failCount");
+
         return [
-            'success' => $failCount === 0,
+            'success' => $success,
             'successCount' => $successCount,
             'failCount' => $failCount,
+            'message' => $message,
             'details' => $results
         ];
     }
+
+    /**
+     * Lấy mã kết quả kiểm định mới nhất của lô hàng
+     * 
+     * @param string $maLoHang Mã lô hàng
+     * @return string|null Mã KD hoặc null
+     */
+    private function getMaKDLatest($maLoHang) {
+        $query = "SELECT MaKD 
+                  FROM KetQuaKiemDinh 
+                  WHERE MaLoHang = :maLoHang 
+                    AND NgayLap = (
+                        SELECT MAX(NgayLap) 
+                        FROM KetQuaKiemDinh 
+                        WHERE MaLoHang = :maLoHang2
+                    )
+                  LIMIT 1";
+        
+        try {
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':maLoHang', $maLoHang);
+            $stmt->bindParam(':maLoHang2', $maLoHang);
+            $stmt->execute();
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $result ? $result['MaKD'] : null;
+        } catch(PDOException $e) {
+            error_log("Error getting MaKD latest: " . $e->getMessage());
+            return null;
+        }
+    }
+
 }
 ?>
 

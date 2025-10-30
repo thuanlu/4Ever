@@ -12,88 +12,78 @@ class YeuCauXuat {
         $this->pdo = $db->getConnection();
     }
 
-    public function ensureTables(): void {
-        // create sample tables as per requirement
-        $this->pdo->exec("CREATE TABLE IF NOT EXISTS kehoach_sanxuat (
-          ma_kehoach VARCHAR(20) PRIMARY KEY,
-          ma_px VARCHAR(20) NOT NULL,
-          sanpham VARCHAR(100) NOT NULL,
-          soluong INT NOT NULL,
-          ngay_batdau DATE NOT NULL
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
-
-        $this->pdo->exec("CREATE TABLE IF NOT EXISTS dinhmuc_nguyenlieu (
-          id INT AUTO_INCREMENT PRIMARY KEY,
-          ma_nguyenlieu VARCHAR(20) NOT NULL,
-          ten VARCHAR(100) NOT NULL,
-          so_luong_dinhmuc DECIMAL(12,2) NOT NULL,
-          ma_kehoach VARCHAR(20) NOT NULL,
-          INDEX idx_kh (ma_kehoach)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
-
-        $this->pdo->exec("CREATE TABLE IF NOT EXISTS phieu_yeu_cau_xuat (
-          ma_phieu VARCHAR(30) PRIMARY KEY,
-          ma_kehoach VARCHAR(20) NOT NULL,
-          ngay_yeucau DATE NOT NULL,
-          trangthai VARCHAR(30) NOT NULL DEFAULT 'Nháp',
-          ghichu TEXT,
-          ngay_tao TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
-
-        $this->pdo->exec("CREATE TABLE IF NOT EXISTS phieu_yeu_cau_xuat_ct (
-          id INT AUTO_INCREMENT PRIMARY KEY,
-          ma_phieu VARCHAR(30) NOT NULL,
-          ma_nguyenlieu VARCHAR(20) NOT NULL,
-          ten_nguyenlieu VARCHAR(100) NOT NULL,
-          so_luong DECIMAL(12,2) NOT NULL,
-          so_luong_toi_da DECIMAL(12,2) NOT NULL,
-          CONSTRAINT fk_ct_phieu FOREIGN KEY (ma_phieu) REFERENCES phieu_yeu_cau_xuat(ma_phieu)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
-
-        // seed demo data if empty
-        $countKH = (int)$this->pdo->query('SELECT COUNT(*) FROM kehoach_sanxuat')->fetchColumn();
-        if ($countKH === 0) {
-            $this->pdo->exec("INSERT INTO kehoach_sanxuat (ma_kehoach, ma_px, sanpham, soluong, ngay_batdau) VALUES
-                ('KH001','PX01','Giày Sneaker A',1000, CURDATE()),
-                ('KH002','PX02','Giày Sandal B', 600,  DATE_SUB(CURDATE(), INTERVAL 2 DAY)),
-                ('KH003','PX03','Giày Boot C',   350,  DATE_ADD(CURDATE(), INTERVAL 5 DAY))");
-        }
-
-        $countDM = (int)$this->pdo->query('SELECT COUNT(*) FROM dinhmuc_nguyenlieu')->fetchColumn();
-        if ($countDM === 0) {
-            $this->pdo->exec("INSERT INTO dinhmuc_nguyenlieu (ma_nguyenlieu, ten, so_luong_dinhmuc, ma_kehoach) VALUES
-                ('NL001','Da PU',       1.20,'KH001'),
-                ('NL002','Đế cao su',   1.00,'KH001'),
-                ('NL003','Keo dán',     0.05,'KH001'),
-                ('NL004','Chỉ may',     0.02,'KH001'),
-                ('NL001','Da PU',       0.90,'KH002'),
-                ('NL002','Đế cao su',   1.10,'KH002'),
-                ('NL005','Khóa dán',    0.08,'KH002'),
-                ('NL006','Da bò',       1.50,'KH003'),
-                ('NL007','Lót nỉ',      0.30,'KH003'),
-                ('NL002','Đế cao su',   1.20,'KH003')");
-        }
-    }
-
     public function getPlans(): array {
-        $sql = 'SELECT ma_kehoach, ma_px, sanpham, soluong, ngay_batdau FROM kehoach_sanxuat ORDER BY ngay_batdau DESC';
-        return $this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+        $sql = "
+            SELECT
+                k.MaKeHoach AS ma_kehoach,
+                (SELECT kc.MaPhanXuong FROM kehoachcapxuong kc WHERE kc.MaKeHoach = k.MaKeHoach LIMIT 1) AS ma_px,
+                k.TenKeHoach AS sanpham,
+                COALESCE(kcx.total_qty, cts.total_ct_qty, 0) AS soluong,
+                k.NgayBatDau AS ngay_batdau
+            FROM kehoachsanxuat k
+            LEFT JOIN (
+                SELECT MaKeHoach, SUM(SoLuong) AS total_qty FROM kehoachcapxuong GROUP BY MaKeHoach
+            ) kcx ON kcx.MaKeHoach = k.MaKeHoach
+            LEFT JOIN (
+                SELECT MaKeHoach, SUM(SanLuongMucTieu) AS total_ct_qty FROM chitietkehoach GROUP BY MaKeHoach
+            ) cts ON cts.MaKeHoach = k.MaKeHoach
+            WHERE k.TrangThai = 'Đã duyệt'
+            ORDER BY k.NgayBatDau DESC
+        ";
+
+        $stmt = $this->pdo->query($sql);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $rows;
     }
 
     public function getPlan(string $maKeHoach): ?array {
-        $stmt = $this->pdo->prepare('SELECT * FROM kehoach_sanxuat WHERE ma_kehoach = :id');
+        // Lấy thông tin kế hoạch kèm một MaPhanXuong (nếu có) và tổng số lượng
+        $sql = "
+            SELECT
+                k.MaKeHoach AS ma_kehoach,
+                (SELECT kc.MaPhanXuong FROM kehoachcapxuong kc WHERE kc.MaKeHoach = k.MaKeHoach LIMIT 1) AS ma_px,
+                k.TenKeHoach AS sanpham,
+                COALESCE(kcx.total_qty, cts.total_ct_qty, 0) AS soluong,
+                k.NgayBatDau AS ngay_batdau,
+                k.GhiChu AS ghichu
+            FROM kehoachsanxuat k
+            LEFT JOIN (
+                SELECT MaKeHoach, SUM(SoLuong) AS total_qty FROM kehoachcapxuong GROUP BY MaKeHoach
+            ) kcx ON kcx.MaKeHoach = k.MaKeHoach
+            LEFT JOIN (
+                SELECT MaKeHoach, SUM(SanLuongMucTieu) AS total_ct_qty FROM chitietkehoach GROUP BY MaKeHoach
+            ) cts ON cts.MaKeHoach = k.MaKeHoach
+                        WHERE k.MaKeHoach = :id
+                            AND k.TrangThai = 'Đã duyệt'
+            LIMIT 1
+        ";
+
+        $stmt = $this->pdo->prepare($sql);
         $stmt->execute([':id' => $maKeHoach]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         return $row ?: null;
     }
 
     public function getMaterialsForPlan(string $maKeHoach, int $sanLuong): array {
-        $stmt = $this->pdo->prepare('SELECT ma_nguyenlieu, ten, so_luong_dinhmuc FROM dinhmuc_nguyenlieu WHERE ma_kehoach = :kh');
+        // Tính tổng nguyên liệu cho toàn bộ kế hoạch bằng cách tổng hợp DinhMucSuDung * SanLuongMucTieu từ chitietkehoach và dinhmucnguyenlieu
+        $sql = "
+            SELECT
+                dm.MaNguyenLieu AS ma_nguyenlieu,
+                nl.TenNguyenLieu AS ten,
+                SUM(dm.DinhMucSuDung * ct.SanLuongMucTieu) AS required_qty
+            FROM chitietkehoach ct
+            JOIN dinhmucnguyenlieu dm ON ct.MaSanPham = dm.MaSanPham
+            JOIN nguyenlieu nl ON dm.MaNguyenLieu = nl.MaNguyenLieu
+            WHERE ct.MaKeHoach = :kh
+            GROUP BY dm.MaNguyenLieu
+        ";
+
+        $stmt = $this->pdo->prepare($sql);
         $stmt->execute([':kh' => $maKeHoach]);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $out = [];
         foreach ($rows as $r) {
-            $base = (float)$r['so_luong_dinhmuc'] * max($sanLuong, 0);
+            $base = (float)$r['required_qty'];
             $max  = $base * 1.05;
             $out[] = [
                 'ma_nguyenlieu' => $r['ma_nguyenlieu'],
@@ -106,38 +96,53 @@ class YeuCauXuat {
     }
 
     public function saveRequest(string $ma_kehoach, string $ngay_yeucau, string $ghichu, array $materials, string $status): string {
+        // Lưu vào các bảng thực tế của schema: phieuyeucauxuatnguyenlieu + chitietphieuyeucauxuatnguyenlieu
         $this->pdo->beginTransaction();
         try {
+            // Sinh mã phiếu yêu cầu (MaPhieuYC)
             $prefix = 'PYC' . date('Ymd');
-            $stmt = $this->pdo->prepare('SELECT COUNT(*) FROM phieu_yeu_cau_xuat WHERE ma_phieu LIKE :pfx');
+            $stmt = $this->pdo->prepare('SELECT COUNT(*) FROM phieuyeucauxuatnguyenlieu WHERE MaPhieuYC LIKE :pfx');
             $like = $prefix . '%';
             $stmt->execute([':pfx' => $like]);
             $seq = (int)$stmt->fetchColumn() + 1;
-            $ma_phieu = $prefix . '-' . str_pad((string)$seq, 4, '0', STR_PAD_LEFT);
+            $ma_phieu = $prefix . str_pad((string)$seq, 3, '0', STR_PAD_LEFT); // PYC20251029001
 
-            $stmt = $this->pdo->prepare('INSERT INTO phieu_yeu_cau_xuat (ma_phieu, ma_kehoach, ngay_yeucau, trangthai, ghichu) VALUES (:m,:kh,:d,:st,:g)');
-            $stmt->execute([
-                ':m' => $ma_phieu,
+            // Lấy phân xưởng liên quan từ kế hoạch (nếu có)
+            $ma_px = null;
+            $plan = $this->getPlan($ma_kehoach);
+            if ($plan && !empty($plan['ma_px'])) $ma_px = $plan['ma_px'];
+
+            // Người lập (= maNV) lấy từ session nếu có, fallback 'SYSTEM'
+            $maNV = $_SESSION['user_id'] ?? ($_SESSION['username'] ?? 'SYSTEM');
+
+            // Chuẩn hóa trạng thái sang giá trị phù hợp với DB
+            $dbStatus = $status;
+            if ($dbStatus === 'Chờ xử lý') $dbStatus = 'Chờ duyệt';
+
+            $ins = $this->pdo->prepare('INSERT INTO phieuyeucauxuatnguyenlieu (MaPhieuYC, MaKeHoach, MaPhanXuong, NgayLap, MaNV, TrangThai) VALUES (:id, :kh, :mx, :nl, :nv, :st)');
+            $ins->execute([
+                ':id' => $ma_phieu,
                 ':kh' => $ma_kehoach,
-                ':d' => $ngay_yeucau,
-                ':st' => $status,
-                ':g' => $ghichu,
+                ':mx' => $ma_px,
+                ':nl' => $ngay_yeucau . ' 00:00:00',
+                ':nv' => $maNV,
+                ':st' => $dbStatus,
             ]);
 
-            $insertCt = $this->pdo->prepare('INSERT INTO phieu_yeu_cau_xuat_ct (ma_phieu, ma_nguyenlieu, ten_nguyenlieu, so_luong, so_luong_toi_da) VALUES (:m,:nl,:ten,:sl,:max)');
+            // Chi tiết phiếu — dùng bảng có trong dump: chitietphieuyeucauxuatnguyenlieu
+            $insertCt = $this->pdo->prepare('INSERT INTO chitietphieuyeucauxuatnguyenlieu (MaCTNL, MaPhieuYC, MaNguyenLieu, SoLuong) VALUES (:id, :pyc, :nl, :sl)');
+            $ctSeq = 1;
             foreach ($materials as $m) {
-                $ma_nl = trim($m['ma_nguyenlieu'] ?? '');
-                $ten   = trim($m['ten'] ?? '');
-                $sl    = (float)($m['so_luong'] ?? 0);
-                $slmax = (float)($m['so_luong_max'] ?? 0);
-                if ($ma_nl === '' || $ten === '' || $sl <= 0 || $slmax <= 0) continue;
-                if ($sl > $slmax) $sl = $slmax;
+                $ma_nl = trim($m['ma_nguyenlieu'] ?? ($m['ma_nguyenlieu'] ?? ''));
+                $sl    = (float)($m['so_luong'] ?? $m['base'] ?? 0);
+                if ($ma_nl === '' || $sl <= 0) continue;
+                $ma_ct = 'CTNL' . date('Ymd') . str_pad((string)$ctSeq, 3, '0', STR_PAD_LEFT);
+                $ctSeq++;
                 $insertCt->execute([
-                    ':m' => $ma_phieu,
+                    ':id' => $ma_ct,
+                    ':pyc' => $ma_phieu,
                     ':nl' => $ma_nl,
-                    ':ten' => $ten,
                     ':sl' => $sl,
-                    ':max' => $slmax,
                 ]);
             }
 
@@ -150,16 +155,27 @@ class YeuCauXuat {
     }
 
     public function listRequests(string $status = '', string $keyword = ''): array {
-        $where = [];
-        $params = [];
-        if ($status !== '') { $where[] = 'trangthai = :st'; $params[':st'] = $status; }
-        if ($keyword !== '') { $where[] = '(ma_phieu LIKE :kw OR ma_kehoach LIKE :kw OR ghichu LIKE :kw)'; $params[':kw'] = "%$keyword%"; }
-        $sql = 'SELECT ma_phieu, ma_kehoach, ngay_yeucau, trangthai, ghichu, ngay_tao FROM phieu_yeu_cau_xuat';
-        if ($where) $sql .= ' WHERE ' . implode(' AND ', $where);
-        $sql .= ' ORDER BY ngay_tao DESC';
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute($params);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+                // Truy vấn theo schema thực tế (phieuyeucauxuatnguyenlieu + chitiet...)
+                $where = [];
+                $params = [];
+                if ($status !== '') { $where[] = 'p.TrangThai = :st'; $params[':st'] = $status; }
+                if ($keyword !== '') { $where[] = '(p.MaPhieuYC LIKE :kw OR p.MaPhanXuong LIKE :kw)'; $params[':kw'] = "%$keyword%"; }
+
+                $sql = "SELECT
+                        p.MaPhieuYC AS ma_phieu,
+                        p.MaKeHoach AS ma_kehoach,
+                        DATE(p.NgayLap) AS ngay_yeucau,
+                        p.TrangThai AS trangthai,
+                        NULL AS ghichu,
+                        p.NgayLap AS ngay_tao
+                    FROM phieuyeucauxuatnguyenlieu p";
+
+                if ($where) $sql .= ' WHERE ' . implode(' AND ', $where);
+                $sql .= ' ORDER BY p.NgayLap DESC';
+
+                $stmt = $this->pdo->prepare($sql);
+                $stmt->execute($params);
+                return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
 ?>

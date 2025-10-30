@@ -2,7 +2,7 @@
     <a class="nav-link" href="<?php echo BASE_URL; ?>dashboard/tt">
         <i class="fas fa-tachometer-alt me-2"></i>Dashboard
     </a>
-    <a class="nav-link" href="<?php echo BASE_URL; ?>shift/assign">
+    <a class="nav-link" href="<?php echo BASE_URL; ?>totruong/phancalamviec">
         <i class="fas fa-users-cog me-2"></i>Phân ca làm việc
     </a>
     <a class="nav-link" href="<?php echo BASE_URL; ?>attendance/by-product">

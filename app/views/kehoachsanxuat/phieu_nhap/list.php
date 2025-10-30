@@ -16,7 +16,7 @@ ob_start();
                     <div class="row align-items-center">
                         <div class="col">
                             <h3 class="card-title">
-                                <i class="fas fa-list"></i> Danh sách Phiếu Nhập Nguyên Vật Liệu
+                                <i class="fas fa-list"></i> Danh sách Phiếu Đặt Nguyên Vật Liệu
                             </h3>
                         </div>
                         <div class="col-auto">

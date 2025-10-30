@@ -89,16 +89,17 @@ if (!function_exists('get_value')) {
          <?php if ($is_editing || $is_viewing): ?>
          <div class="col-md-4 mb-3">
              <label class="form-label fw-bold">Trạng thái kế hoạch</label>
-             <?php if ($is_viewing): ?>
-                 <input type="text" class="form-control" value="<?php echo get_value('TrangThai', $kehoach); ?>" readonly>
-             <?php else: ?>
-                 <select name="TrangThai" class="form-select">
-                     <?php $currentStatus = get_value('TrangThai', $kehoach, 'Chờ duyệt'); $statuses = ['Chờ duyệt', 'Đã duyệt', 'Đang thực hiện', 'Hoàn thành', 'Hủy bỏ']; foreach ($statuses as $status): ?>
-                         <option value="<?php echo $status; ?>" <?php echo $currentStatus === $status ? 'selected' : ''; ?>>
-                             <?php echo $status; ?>
-                         </option>
-                     <?php endforeach; ?>
-                 </select>
+             <?php
+                // SỬA: Luôn ở chế độ chỉ đọc (readonly) cho cả View và Edit
+                $currentStatus = get_value('TrangThai', $kehoach, 'Chờ duyệt');
+             ?>
+             <input type="text" class="form-control" value="<?php echo $currentStatus; ?>" readonly>
+             
+             <?php
+             // Gửi giá trị trạng thái đi ngầm khi chỉnh sửa,
+             // để logic POST trong Controller không làm mất trạng thái
+             if ($is_editing): ?>
+                <input type="hidden" name="TrangThai" value="<?php echo $currentStatus; ?>">
              <?php endif; ?>
          </div>
          <?php endif; ?>
@@ -203,11 +204,31 @@ if (!function_exists('get_value')) {
         <div class="col-12 mb-3">
             <h6 class="fw-bold mt-3">Chi phí dự kiến (VND)</h6>
             <div class="row">
-                <div class="col-md-3 mb-3"><label for="chiPhiNguyenLieu" class="form-label fw-bold">CP Nguyên liệu (Tổng)</label><input type="number" step="0.01" name="ChiPhiNguyenLieu" id="chiPhiNguyenLieu" class="form-control" value="<?php echo get_value('ChiPhiNguyenLieu', $kehoach, '0'); ?>" readonly></div>
-                <div class="col-md-3 mb-3"><label for="chiPhiNhanCong" class="form-label fw-bold">CP Nhân công (Xưởng)</label><input type="number" step="0.01" name="ChiPhiNhanCong" id="chiPhiNhanCong" class="form-control" value="<?php echo get_value('ChiPhiNhanCong', $kehoach, '0'); ?>" readonly></div>
-                <div class="col-md-3 mb-3"><label for="chiPhiKhac" class="form-label fw-bold">Chi phí khác</label><input type="number" step="0.01" name="ChiPhiKhac" id="chiPhiKhac" class="form-control" value="<?php echo get_value('ChiPhiKhac', $kehoach, '0'); ?>" <?php echo $is_viewing ? 'readonly' : ''; ?>></div>
-                <div class="col-md-3 mb-3"><label for="tongChiPhiDuKien" class="form-label fw-bold">Tổng chi phí</label><input type="number" step="0.01" name="TongChiPhiDuKien" id="tongChiPhiDuKien" class="form-control" value="<?php echo get_value('TongChiPhiDuKien', $kehoach, '0'); ?>" readonly></div>
-            </div>
+    <div class="col-md-3 mb-3">
+        <label for="chiPhiNguyenLieu" class="form-label fw-bold">CP Nguyên liệu (Tổng)</label>
+        <?php $cpnl_value = (float)get_value('ChiPhiNguyenLieu', $kehoach, '0'); ?>
+        <input type="text" id="chiPhiNguyenLieuDisplay" class="form-control text-end" value="<?php echo number_format($cpnl_value, 0, ',', '.'); ?>" readonly>
+        <input type="hidden" name="ChiPhiNguyenLieu" id="chiPhiNguyenLieu" value="<?php echo $cpnl_value; ?>">
+    </div>
+    <div class="col-md-3 mb-3">
+        <label for="chiPhiNhanCong" class="form-label fw-bold">CP Nhân công (Xưởng)</label>
+        <?php $cpnc_value = (float)get_value('ChiPhiNhanCong', $kehoach, '0'); ?>
+        <input type="text" id="chiPhiNhanCongDisplay" class="form-control text-end" value="<?php echo number_format($cpnc_value, 0, ',', '.'); ?>" readonly>
+        <input type="hidden" name="ChiPhiNhanCong" id="chiPhiNhanCong" value="<?php echo $cpnc_value; ?>">
+    </div>
+    <div class="col-md-3 mb-3">
+        <label for="chiPhiKhac" class="form-label fw-bold">Chi phí khác</label>
+        <?php $cpk_value = (float)get_value('ChiPhiKhac', $kehoach, '0'); ?>
+        <input type="text" id="chiPhiKhacDisplay" class="form-control text-end" value="<?php echo number_format($cpk_value, 0, ',', '.'); ?>" readonly>
+        <input type="hidden" name="ChiPhiKhac" id="chiPhiKhac" value="<?php echo $cpk_value; ?>">
+    </div>
+    <div class="col-md-3 mb-3">
+        <label for="tongChiPhiDuKien" class="form-label fw-bold">Tổng chi phí</label>
+        <?php $tcp_value = (float)get_value('TongChiPhiDuKien', $kehoach, '0'); ?>
+        <input type="text" id="tongChiPhiDuKienDisplay" class="form-control text-end fw-bold" value="<?php echo number_format($tcp_value, 0, ',', '.'); ?>" readonly>
+        <input type="hidden" name="TongChiPhiDuKien" id="tongChiPhiDuKien" value="<?php echo $tcp_value; ?>">
+    </div>
+</div>
         </div>
 
         <div class="col-12 mb-3"><label class="form-label fw-bold">Ghi chú (chung)</label><textarea name="GhiChu" class="form-control" rows="3" <?php echo $is_viewing ? 'readonly' : ''; ?>><?php echo get_value('GhiChu', $kehoach); ?></textarea></div>
@@ -229,24 +250,41 @@ if (!function_exists('get_value')) {
         const productPlaceholder = document.getElementById('product-placeholder');
         const maDonHangSelect = document.getElementById('MaDonHangSelect');
         const totalBody = document.getElementById('total-raw-material-body');
+
+        // --- References to HIDDEN number inputs ---
         const chiPhiNguyenLieu = document.getElementById('chiPhiNguyenLieu');
         const chiPhiNhanCong = document.getElementById('chiPhiNhanCong');
         const chiPhiKhac = document.getElementById('chiPhiKhac');
         const tongChiPhiDuKien = document.getElementById('tongChiPhiDuKien');
+
+        // --- References to VISIBLE text inputs for display ---
+        const chiPhiNguyenLieuDisplay = document.getElementById('chiPhiNguyenLieuDisplay');
+        const chiPhiNhanCongDisplay = document.getElementById('chiPhiNhanCongDisplay');
+        const chiPhiKhacDisplay = document.getElementById('chiPhiKhacDisplay');
+        const tongChiPhiDuKienDisplay = document.getElementById('tongChiPhiDuKienDisplay');
+
         const ngayBatDauInput = document.getElementById('ngayBatDau');
         const ngayKetThucInput = document.getElementById('ngayKetThuc');
         const ngayBatDauError = document.getElementById('ngayBatDauError');
         const ngayKetThucError = document.getElementById('ngayKetThucError');
         const submitButton = document.getElementById('submitButton');
-        const today = new Date().toISOString().split('T')[0];
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Đặt về đầu ngày để so sánh
+
+        /**
+         * Format number to Vietnamese currency string
+         */
+        function formatCurrency(number) {
+            return parseFloat(number).toLocaleString('vi-VN');
+        }
 
         /**
          * Validate Start and End Dates
          */
         function validateDates() {
             let isValid = true;
-            const startDate = ngayBatDauInput ? ngayBatDauInput.value : null;
-            const endDate = ngayKetThucInput ? ngayKetThucInput.value : null;
+            const startDateValue = ngayBatDauInput ? ngayBatDauInput.value : null;
+            const endDateValue = ngayKetThucInput ? ngayKetThucInput.value : null;
 
             // Reset errors
             if (ngayBatDauInput) ngayBatDauInput.classList.remove('is-invalid');
@@ -255,21 +293,22 @@ if (!function_exists('get_value')) {
             if(ngayKetThucError) ngayKetThucError.textContent = '';
 
             // 1. Kiểm tra Ngày Bắt đầu vs Hôm nay
-            // **SỬA LỖI Ở ĐÂY: Dùng '<' thay vì '<='**
-            if (ngayBatDauInput && startDate && startDate <= today) {
-                ngayBatDauInput.classList.add('is-invalid');
-                if(ngayBatDauError) ngayBatDauError.textContent = 'Ngày bắt đầu phải sau hôm nay.';
-                isValid = false;
+            if (ngayBatDauInput && startDateValue) {
+                const startDate = new Date(startDateValue);
+                if (startDate < today) {
+                    ngayBatDauInput.classList.add('is-invalid');
+                    if(ngayBatDauError) ngayBatDauError.textContent = 'Ngày bắt đầu không được là ngày trong quá khứ.';
+                    isValid = false;
+                }
             }
 
-            // 2. Kiểm tra Ngày Kết thúc vs Ngày Bắt đầu (Giữ nguyên)
-            if (ngayBatDauInput && ngayKetThucInput && startDate && endDate && endDate <= startDate) {
+            // 2. Kiểm tra Ngày Kết thúc vs Ngày Bắt đầu
+            if (ngayBatDauInput && ngayKetThucInput && startDateValue && endDateValue && endDateValue < startDateValue) {
                 ngayKetThucInput.classList.add('is-invalid');
-                 if(ngayKetThucError) ngayKetThucError.textContent = 'Ngày kết thúc phải sau Ngày bắt đầu.';
+                 if(ngayKetThucError) ngayKetThucError.textContent = 'Ngày kết thúc phải sau hoặc bằng Ngày bắt đầu.';
                 isValid = false;
             }
 
-            // Enable/Disable Save button
             if (submitButton) {
                 submitButton.disabled = !isValid;
             }
@@ -277,7 +316,7 @@ if (!function_exists('get_value')) {
         }
 
         /**
-         * Update Summary Table and Material Cost
+         * Update Summary Table and Material Cost (Đã sửa định dạng tiền)
          */
         window.updateTotalRawMaterials = function() {
             const totalMaterials = {};
@@ -287,8 +326,8 @@ if (!function_exists('get_value')) {
                 const maNL = row.getAttribute('data-nl-ma');
                 if (maNL) {
                     const tenNL = row.cells[1].querySelector('input').value;
-                    const dinhMuc = parseFloat(row.cells[3].querySelector('input').value) || 0; // Định mức index 3
-                    const tonKho = parseFloat(row.cells[5].querySelector('input').value) || 0; // Tồn kho index 5
+                    const dinhMuc = parseFloat(row.cells[3].querySelector('input').value) || 0;
+                    const tonKho = parseFloat(row.cells[5].querySelector('input').value) || 0;
                     const donViTinh = row.getAttribute('data-donvitinh') || '';
                     const giaNhap = parseFloat(row.getAttribute('data-gianhap')) || 0;
 
@@ -299,49 +338,118 @@ if (!function_exists('get_value')) {
                     const soLuongCan = dinhMuc * sanLuong;
                     const canBoSung = Math.max(0, soLuongCan - tonKho);
 
-                    const requiredQtyInput = row.cells[4].querySelector('input'); // Cần index 4
+                    const requiredQtyInput = row.cells[4].querySelector('input');
                     if (requiredQtyInput) requiredQtyInput.value = soLuongCan.toFixed(2);
-                    const neededInput = row.cells[6].querySelector('input'); // Bổ sung index 6
+                    const neededInput = row.cells[6].querySelector('input');
                     if (neededInput) neededInput.value = canBoSung.toFixed(2);
 
                     totalMaterialCost += soLuongCan * giaNhap;
 
-                    if (!totalMaterials[maNL]) { totalMaterials[maNL] = { ten: tenNL, dvt: donViTinh, canBoSung: 0, tonKho: tonKho }; }
+                    if (!totalMaterials[maNL]) {
+                        totalMaterials[maNL] = { ten: tenNL, dvt: donViTinh, canTong: 0, canBoSung: 0, tonKho: tonKho };
+                    }
+                    totalMaterials[maNL].canTong += soLuongCan;
                     totalMaterials[maNL].canBoSung += canBoSung;
                 }
             });
 
-            if (chiPhiNguyenLieu) { chiPhiNguyenLieu.value = totalMaterialCost.toFixed(2); }
+            // Cập nhật chi phí nguyên liệu
+            if (chiPhiNguyenLieu) { chiPhiNguyenLieu.value = totalMaterialCost; } // Hidden input (số)
+            if (chiPhiNguyenLieuDisplay) { chiPhiNguyenLieuDisplay.value = formatCurrency(totalMaterialCost); } // Display input (text)
+
 
             totalBody.innerHTML = '';
-            if (Object.keys(totalMaterials).length === 0) { totalBody.innerHTML = '<tr><td colspan="6" class="text-center">Chưa có dữ liệu NL.</td></tr>'; return; }
+            if (Object.keys(totalMaterials).length === 0) {
+                totalBody.innerHTML = '<tr><td colspan="6" class="text-center">Chưa có dữ liệu NL.</td></tr>';
+                return;
+            }
+
             for (const maNL in totalMaterials) {
-                const material = totalMaterials[maNL]; const soLuongCanTong = material.tonKho + material.canBoSung;
-                const newRow = `<tr><td>${maNL}</td><td>${material.ten}</td><td>${material.dvt}</td><td>${soLuongCanTong.toFixed(2)}</td><td>${material.tonKho.toFixed(2)}</td><td>${material.canBoSung.toFixed(2)}</td></tr>`;
+                const material = totalMaterials[maNL];
+                const newRow = `<tr>
+                                    <td>${maNL}</td>
+                                    <td>${material.ten}</td>
+                                    <td>${material.dvt}</td>
+                                    <td>${material.canTong.toFixed(2)}</td>
+                                    <td>${material.tonKho.toFixed(2)}</td>
+                                    <td>${material.canBoSung.toFixed(2)}</td>
+                                </tr>`;
                 totalBody.insertAdjacentHTML('beforeend', newRow);
             }
         };
 
         /**
-         * Update Total Cost
+         * Tính toán chi phí nhân công (Đã sửa định dạng tiền)
+         */
+        window.updateLaborCost = function() {
+            if (!chiPhiNhanCong || !ngayBatDauInput || !ngayKetThucInput) {
+                return;
+            }
+
+            const startDate = ngayBatDauInput.value;
+            const endDate = ngayKetThucInput.value;
+            let soNgaySanXuat = 0;
+
+            if (startDate && endDate && endDate >= startDate) {
+                const start = new Date(startDate);
+                const end = new Date(endDate);
+                const diffTime = end.getTime() - start.getTime();
+                soNgaySanXuat = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+            }
+
+            const xuongSet = new Set();
+            document.querySelectorAll('select[name^="products["][name$="][MaPhanXuong]"]').forEach(select => {
+                if (select.value) {
+                    xuongSet.add(select.value);
+                }
+            });
+            const soLuongXuong = xuongSet.size;
+
+            const GIA_TIEN_MOT_NGUOI_MOT_CA = 500000;
+            const totalLaborCost = soNgaySanXuat * soLuongXuong * 2 * 120 * GIA_TIEN_MOT_NGUOI_MOT_CA;
+
+            // Cập nhật chi phí nhân công
+            if (chiPhiNhanCong) { chiPhiNhanCong.value = totalLaborCost; } // Hidden input (số)
+            if (chiPhiNhanCongDisplay) { chiPhiNhanCongDisplay.value = formatCurrency(totalLaborCost); } // Display input (text)
+        };
+
+        /**
+         * Update Total Cost (Đã sửa định dạng tiền)
          */
         window.updateTotalCost = function() {
             if (!chiPhiNguyenLieu || !chiPhiNhanCong || !chiPhiKhac || !tongChiPhiDuKien) { return; }
+
+            // Lấy giá trị SỐ từ các ô ẩn
             const cpNL = parseFloat(chiPhiNguyenLieu.value) || 0;
-            const cpNC = parseFloat(chiPhiNhanCong.value) || 0; // TODO: Implement labor cost calculation
-            const cpKhac = parseFloat(chiPhiKhac.value) || 0;
-            const tongCP = cpNL + cpNC + cpKhac;
-            tongChiPhiDuKien.value = tongCP.toFixed(2);
+            const cpNC = parseFloat(chiPhiNhanCong.value) || 0;
+
+            // Tính CP Khác và Tổng CP
+            const cpKhacValue = (cpNL + cpNC) * 0.05;
+            const tongCP = cpNL + cpNC + cpKhacValue;
+
+            // Cập nhật CP Khác
+            if (chiPhiKhac) { chiPhiKhac.value = cpKhacValue; } // Ô ẩn
+            if (chiPhiKhacDisplay) { chiPhiKhacDisplay.value = formatCurrency(cpKhacValue); } // Ô hiển thị
+
+            // Cập nhật Tổng Chi Phí
+            if (tongChiPhiDuKien) { tongChiPhiDuKien.value = tongCP; } // Ô ẩn
+            if (tongChiPhiDuKienDisplay) { tongChiPhiDuKienDisplay.value = formatCurrency(tongCP); } // Ô hiển thị
         };
 
         // --- Event Listeners ---
 
-        // Only add AJAX listener in CREATE mode
         <?php if (!$is_editing && !$is_viewing): ?>
         if(maDonHangSelect) {
             maDonHangSelect.addEventListener('change', function() {
                  const maDonHang = this.value;
-                 if (!maDonHang) { productContainer.innerHTML = ''; if (productPlaceholder) productContainer.appendChild(productPlaceholder); updateTotalRawMaterials(); updateTotalCost(); return; }
+                 if (!maDonHang) {
+                     productContainer.innerHTML = '';
+                     if (productPlaceholder) productContainer.appendChild(productPlaceholder);
+                     updateTotalRawMaterials();
+                     window.updateLaborCost();
+                     updateTotalCost();
+                     return;
+                 }
                  productContainer.innerHTML = ''; productLoading.style.display = 'block';
                  const baseUrl = '<?php echo BASE_URL; ?>';
                  fetch(`${baseUrl}kehoachsanxuat/getDonHangDetails/${maDonHang}`)
@@ -349,10 +457,17 @@ if (!function_exists('get_value')) {
                      .then(data => {
                          productLoading.style.display = 'none'; if (data.error) { throw new Error(data.error); }
                          buildProductHtml(data.products, data.bom_data);
-                         updateTotalRawMaterials(); // Update materials & cost
-                         updateTotalCost(); // Update total cost
+                         updateTotalRawMaterials(); // 1. Tính NL
+                         window.updateLaborCost();    // 2. Tính Nhân công
+                         updateTotalCost();         // 3. Tính Tổng
                      })
-                     .catch(error => { productLoading.style.display = 'none'; productContainer.innerHTML = `<div class="alert alert-danger">Lỗi tải chi tiết: ${error.message}</div>`; updateTotalRawMaterials(); updateTotalCost(); });
+                     .catch(error => {
+                         productLoading.style.display = 'none';
+                         productContainer.innerHTML = `<div class="alert alert-danger">Lỗi tải chi tiết: ${error.message}</div>`;
+                         updateTotalRawMaterials();
+                         window.updateLaborCost();
+                         updateTotalCost();
+                     });
             });
         }
 
@@ -362,7 +477,7 @@ if (!function_exists('get_value')) {
              if (!products || products.length === 0) { productContainer.innerHTML = `<div class="alert alert-warning">ĐH không có SP.</div>`; return; }
              products.forEach((product, index) => {
                  const maSP = product.MaSanPham; const tenSP = product.TenSanPham; const sanLuong = parseFloat(product.SoLuong) || 0;
-                 let productHtml = `<div class="product-item p-3 border rounded mb-3" data-index="${index}"><h6 class="fw-bold">SP ${index + 1}: ${tenSP}</h6><div class="row"><div class="col-md-3 mb-3"><label class="form-label fw-bold">Mã SP</label><input type="text" name="products[${index}][MaSanPham]" class="form-control" value="${maSP}" readonly></div><div class="col-md-6 mb-3"><label class="form-label fw-bold">Tên SP</label><input type="text" name="products[${index}][TenSanPham]" class="form-control" value="${tenSP}" readonly required></div><div class="col-md-3 mb-3"><label class="form-label fw-bold">Sản lượng</label><input type="number" name="products[${index}][SanLuongMucTieu]" class="form-control total-sanluong" value="${sanLuong}" required></div></div><h6 class="fw-bold mt-3">Nguyên liệu (BOM)</h6><div class="table-responsive"><table class="table table-bordered table-sm raw-material-table" data-product-id="${maSP}"><thead><tr><th style="width: 15%">Mã NL</th><th style="width: 25%">Tên NL</th><th style="width: 10%">ĐVT</th><th style="width: 12%">Định mức</th><th style="width: 13%">Cần</th><th style="width: 12%">Tồn kho</th><th style="width: 13%">Bổ sung</th></tr></thead><tbody id="raw-material-body_${index}">`; // Header updated
+                 let productHtml = `<div class="product-item p-3 border rounded mb-3" data-index="${index}"><h6 class="fw-bold">SP ${index + 1}: ${tenSP}</h6><div class="row"><div class="col-md-3 mb-3"><label class="form-label fw-bold">Mã SP</label><input type="text" name="products[${index}][MaSanPham]" class="form-control" value="${maSP}" readonly></div><div class="col-md-6 mb-3"><label class="form-label fw-bold">Tên SP</label><input type="text" name="products[${index}][TenSanPham]" class="form-control" value="${tenSP}" readonly required></div><div class="col-md-3 mb-3"><label class="form-label fw-bold">Sản lượng</label><input type="number" name="products[${index}][SanLuongMucTieu]" class="form-control total-sanluong" value="${sanLuong}" required></div></div><h6 class="fw-bold mt-3">Nguyên liệu (BOM)</h6><div class="table-responsive"><table class="table table-bordered table-sm raw-material-table" data-product-id="${maSP}"><thead><tr><th style="width: 15%">Mã NL</th><th style="width: 25%">Tên NL</th><th style="width: 10%">ĐVT</th><th style="width: 12%">Định mức</th><th style="width: 13%">Cần</th><th style="width: 12%">Tồn kho</th><th style="width: 13%">Bổ sung</th></tr></thead><tbody id="raw-material-body_${index}">`;
                  const current_bom = bom_data[maSP] || [];
                  if (current_bom.length > 0) {
                      current_bom.forEach((nl, i) => {
@@ -379,33 +494,56 @@ if (!function_exists('get_value')) {
         }
         <?php endif; ?>
 
-        // Initial Calculations on Load
-        updateTotalRawMaterials(); // Calculate Material Cost first
-        updateTotalCost();         // Then calculate Total Cost
-        validateDates();           // Validate initial dates
+        // Initial Calculations on Load (Thứ tự rất quan trọng)
+        updateTotalRawMaterials(); // 1. Tính NL
+        window.updateLaborCost();    // 2. Tính Nhân công
+        updateTotalCost();         // 3. Tính Tổng
+        validateDates();           // 4. Validate
 
         if (!<?php echo $is_viewing ? 'true' : 'false'; ?>) {
-            if (ngayBatDauInput) ngayBatDauInput.addEventListener('input', validateDates); // Gọi ngay khi thay đổi
-            if (ngayKetThucInput) ngayKetThucInput.addEventListener('input', validateDates); // Gọi ngay khi thay đổi
+            // Listener cho Ngày
+            if (ngayBatDauInput) ngayBatDauInput.addEventListener('input', function() {
+                validateDates();
+                window.updateLaborCost();
+                window.updateTotalCost();
+            });
+            if (ngayKetThucInput) ngayKetThucInput.addEventListener('input', function() {
+                validateDates();
+                window.updateLaborCost();
+                window.updateTotalCost();
+            });
 
+            // Submit validation
             const planForm = document.getElementById('planForm');
             if (planForm) {
                 planForm.addEventListener('submit', function(event) {
-                    if (!validateDates()) { // Kiểm tra lần cuối trước khi submit
+                    if (!validateDates()) {
                         event.preventDefault();
                         alert('Vui lòng kiểm tra lại Ngày bắt đầu và Ngày kết thúc.');
                     }
-                    // Thêm kiểm tra khác nếu cần (ví dụ: đã chọn đơn hàng chưa?)
                     if (maDonHangSelect && !maDonHangSelect.value && !<?php echo $is_editing ? 'true' : 'false'; ?>) {
                          event.preventDefault();
                          alert('Vui lòng chọn Đơn hàng liên quan.');
                     }
                 });
             }
-             // Listener cho chi phí khác (Giữ nguyên)
-            if (chiPhiKhac) { chiPhiKhac.addEventListener('input', updateTotalCost); }
-            // Listener khi sản lượng thay đổi (Giữ nguyên)
-            if (productContainer) { productContainer.addEventListener('input', function(e) { /* ... */ }); }
+
+            // Listener cho thay đổi trong Product Container
+            if (productContainer) {
+                productContainer.addEventListener('input', function(e) {
+                    // Nếu là ô Sản lượng
+                    if (e.target.classList.contains('total-sanluong')) {
+                        window.updateTotalRawMaterials();
+                        window.updateTotalCost();
+                    }
+
+                    // Nếu là dropdown Phân xưởng
+                    if (e.target.tagName === 'SELECT' && e.target.name.includes('[MaPhanXuong]')) {
+                        window.updateLaborCost();
+                        window.updateTotalCost();
+                    }
+                });
+            }
         }
 
     });

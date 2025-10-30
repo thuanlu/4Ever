@@ -69,6 +69,20 @@ ob_start();
             <div class="border-top pt-4 mt-2">
                 <form method="POST" action="<?= BASE_URL ?>xuongtruong/lapkehoachcapxuong/store" id="form-lapkehoach">
                     <input type="hidden" name="ma_kehoach" value="<?= $kehoach['MaKeHoach'] ?>">
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="ngay_lap" class="form-label fw-semibold">Ngày lập kế hoạch cấp xưởng</label>
+                            <input type="date" class="form-control" name="ngay_lap" id="ngay_lap" value="<?= date('Y-m-d') ?>" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="ngay_bat_dau" class="form-label fw-semibold">Ngày bắt đầu</label>
+                            <input type="date" class="form-control" name="ngay_bat_dau" id="ngay_bat_dau" value="<?= isset($kehoach['NgayBatDau']) ? date('Y-m-d', strtotime($kehoach['NgayBatDau'])) : '' ?>" readonly>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="ngay_ket_thuc" class="form-label fw-semibold">Ngày kết thúc</label>
+                            <input type="date" class="form-control" name="ngay_ket_thuc" id="ngay_ket_thuc" value="<?= isset($kehoach['NgayKetThuc']) ? date('Y-m-d', strtotime($kehoach['NgayKetThuc'])) : '' ?>" readonly>
+                        </div>
+                    </div>
                     <div id="ca-list">
                         <!-- Ca làm việc động -->
                     </div>
@@ -86,43 +100,41 @@ ob_start();
         </div>
     </div>
     <script>
-    // Dữ liệu mẫu, sẽ lấy từ backend
-    const dayChuyenList = [
-        { value: 'DC01', text: 'DC01' },
-        { value: 'DC02', text: 'DC02' }
-    ];
-    const toTruongList = [
-        { value: 'TT01', text: 'TT01' },
-        { value: 'TT02', text: 'TT02' }
-    ];
-    const caList = ['Sáng', 'Tối'];
-
+    // Dữ liệu lấy từ backend (PHP)
+    const dayChuyenList = <?php echo json_encode($dayChuyenList ?? []); ?>;
+    // Map dây chuyền -> tổ trưởng
+    const dayChuyenToTruongMap = {};
+    dayChuyenList.forEach(dc => {
+        // Nếu controller chưa truyền HoTenToTruong, thử lấy từ toTruongList
+        if (dc.MaToTruong) {
+            let hoTen = dc.HoTenToTruong;
+            if (!hoTen && typeof toTruongList !== 'undefined') {
+                const found = toTruongList.find(tt => tt.MaNV === dc.MaToTruong);
+                hoTen = found ? found.HoTen : '';
+            }
+            dayChuyenToTruongMap[dc.MaDayChuyen] = { MaNV: dc.MaToTruong, HoTen: hoTen };
+        }
+    });
     let caIndex = 0;
     function addCa() {
         caIndex++;
+        const dcOptions = dayChuyenList.map(dc => `<option value='${dc.MaDayChuyen}'>${dc.TenDayChuyen}</option>`).join('');
         const caHtml = `<div class="card mb-2" id="ca-item-${caIndex}">
             <div class="card-body row align-items-end">
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <label>Dây chuyền</label>
-                    <select name="ca[${caIndex}][day_chuyen]" class="form-control">
-                        ${dayChuyenList.map(dc => `<option value='${dc.value}'>${dc.text}</option>`).join('')}
+                    <select name="ca[${caIndex}][day_chuyen]" class="form-control" onchange="updateToTruong(${caIndex})" id="daychuyen-${caIndex}">
+                        ${dcOptions}
                     </select>
                 </div>
-                <div class="col-md-2">
-                    <label>Ca làm việc</label>
-                    <select name="ca[${caIndex}][ca]" class="form-control">
-                        ${caList.map(ca => `<option value='${ca}'>${ca}</option>`).join('')}
-                    </select>
-                </div>
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <label>Sản lượng mục tiêu</label>
-                    <input type="number" name="ca[${caIndex}][san_luong]" class="form-control" min="0" required oninput="updateProgress()">
+                    <input type="number" name="ca[${caIndex}][san_luong]" class="form-control" min="0" required oninput="updateProgress(); this.setCustomValidity('');" oninvalid="this.setCustomValidity('Vui lòng nhập sản lượng mục tiêu')">
                 </div>
                 <div class="col-md-3">
                     <label>Tổ trưởng phụ trách</label>
-                    <select name="ca[${caIndex}][to_truong]" class="form-control">
-                        ${toTruongList.map(tt => `<option value='${tt.value}'>${tt.text}</option>`).join('')}
-                    </select>
+                    <input type="text" name="ca[${caIndex}][to_truong_name]" class="form-control" id="totruong-name-${caIndex}" readonly>
+                    <input type="hidden" name="ca[${caIndex}][to_truong]" id="totruong-id-${caIndex}">
                 </div>
                 <div class="col-md-1 text-end">
                     <button type="button" class="btn btn-danger" onclick="removeCa(${caIndex})"><i class="fa fa-trash"></i></button>
@@ -130,7 +142,16 @@ ob_start();
             </div>
         </div>`;
         document.getElementById('ca-list').insertAdjacentHTML('beforeend', caHtml);
+        updateToTruong(caIndex);
         updateProgress();
+    }
+
+    function updateToTruong(idx) {
+        const dcSelect = document.getElementById('daychuyen-' + idx);
+        const selectedDC = dcSelect.value;
+        const toTruong = dayChuyenToTruongMap[selectedDC];
+        document.getElementById('totruong-name-' + idx).value = toTruong && toTruong.HoTen ? toTruong.HoTen : 'Không có tổ trưởng';
+        document.getElementById('totruong-id-' + idx).value = toTruong && toTruong.MaNV ? toTruong.MaNV : '';
     }
     function removeCa(idx) {
         const el = document.getElementById('ca-item-' + idx);
@@ -142,12 +163,26 @@ ob_start();
         document.querySelectorAll('#ca-list input[type=number]').forEach(input => {
             total += parseInt(input.value) || 0;
         });
-        // Giả sử mục tiêu tổng là 1000
-        const goal = 1000;
-        let percent = Math.min(100, Math.round(total / goal * 100));
-        document.getElementById('progress-bar').style.width = percent + '%';
-        document.getElementById('progress-bar').textContent = percent + '%';
-        document.getElementById('progress-bar').className = 'progress-bar ' + (percent >= 100 ? 'bg-success' : 'bg-warning');
+        // Lấy sản lượng tổng từ PHP
+        const goal = <?= (int)($kehoach['SanLuongTong'] ?? $kehoach['SanLuong'] ?? 0) ?>;
+        let percent = goal > 0 ? Math.round(total / goal * 100) : 0;
+        percent = Math.min(100, percent);
+        let bar = document.getElementById('progress-bar');
+        let submitBtn = document.querySelector('button[type=submit]');
+        if (total > goal) {
+            bar.className = 'progress-bar bg-danger';
+            bar.textContent = percent + '% (Vượt tổng)';
+            if (submitBtn) submitBtn.disabled = true;
+        } else if (total === goal) {
+            bar.className = 'progress-bar bg-success';
+            bar.textContent = percent + '%';
+            if (submitBtn) submitBtn.disabled = false;
+        } else {
+            bar.className = 'progress-bar bg-warning';
+            bar.textContent = percent + '%';
+            if (submitBtn) submitBtn.disabled = false;
+        }
+        bar.style.width = percent + '%';
     }
     // Tự động thêm 1 ca khi mở form
     window.onload = function() { addCa(); };

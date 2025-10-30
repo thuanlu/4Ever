@@ -24,39 +24,6 @@ ob_start();
         <button type="button" class="btn-close" onclick="closeAlert()"></button>
     </div>
 
-    <!-- Form tìm kiếm -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <div class="row g-3">
-                <div class="col-md-4">
-                    <label class="form-label">Tìm kiếm theo mã lô hàng</label>
-                    <input type="text" class="form-control" id="search-input" placeholder="Nhập mã lô hàng...">
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Lọc theo sản phẩm</label>
-                    <select class="form-select" id="filter-sanpham">
-                        <option value="">Tất cả sản phẩm</option>
-                        <?php 
-                        $uniqueProducts = [];
-                        foreach ($loHangs as $lh) {
-                            if (!in_array($lh['TenSanPham'], $uniqueProducts)) {
-                                $uniqueProducts[] = $lh['TenSanPham'];
-                                echo "<option value='{$lh['TenSanPham']}'>{$lh['TenSanPham']}</option>";
-                            }
-                        }
-                        ?>
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Thao tác</label><br>
-                    <button type="button" class="btn btn-secondary" onclick="resetFilter()">
-                        <i class="fas fa-redo me-1"></i>Làm mới
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Danh sách lô hàng -->
     <div class="card">
         <div class="card-header">
@@ -94,9 +61,7 @@ ob_start();
                                 <th>Tên Sản Phẩm</th>
                                 <th>Size / Màu</th>
                                 <th>Số Lượng</th>
-                                <th>Trạng Thái QC</th>
                                 <th>Trạng Thái Kho</th>
-                                <th width="150">Thao Tác</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -121,9 +86,6 @@ ob_start();
                                     </span>
                                 </td>
                                 <td>
-                                    <span class="badge bg-success"><?php echo htmlspecialchars($lh['TrangThaiQC']); ?></span>
-                                </td>
-                                <td>
                                     <?php 
                                     $trangThaiKho = $lh['TrangThaiKho'] ?? 'Chưa nhập kho';
                                     if ($trangThaiKho === 'Đã nhập kho') {
@@ -132,17 +94,6 @@ ob_start();
                                         echo '<span class="badge bg-warning text-dark">Chưa nhập kho</span>';
                                     }
                                     ?>
-                                </td>
-                                <td>
-                                    <?php if (!isset($lh['TrangThaiKho']) || $lh['TrangThaiKho'] !== 'Đã nhập kho'): ?>
-                                    <button type="button" 
-                                            class="btn btn-sm btn-primary"
-                                            onclick="confirmImportSingle('<?php echo htmlspecialchars($lh['MaLoHang']); ?>')">
-                                        <i class="fas fa-arrow-down me-1"></i>Nhập Kho
-                                    </button>
-                                    <?php else: ?>
-                                    <span class="text-muted">Đã nhập kho</span>
-                                    <?php endif; ?>
                                 </td>
                             </tr>
                             <?php endforeach; ?>
@@ -153,59 +104,7 @@ ob_start();
         </div>
     </div>
 
-    <!-- Thống kê -->
-    <div class="row mt-4">
-        <div class="col-md-4">
-            <div class="card bg-primary text-white">
-                <div class="card-body">
-                    <h5 class="card-title">
-                        <i class="fas fa-boxes me-2"></i>Tổng Lô Hàng
-                    </h5>
-                    <h2 class="mb-0" id="tong-lo-hang"><?php echo count($loHangs); ?></h2>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card bg-success text-white">
-                <div class="card-body">
-                    <h5 class="card-title">
-                        <i class="fas fa-check-circle me-2"></i>Đã Nhập Kho
-                    </h5>
-                    <h2 class="mb-0" id="da-nhap-kho">
-                        <?php 
-                        $count = 0;
-                        foreach ($loHangs as $lh) {
-                            if (isset($lh['TrangThaiKho']) && $lh['TrangThaiKho'] === 'Đã nhập kho') {
-                                $count++;
-                            }
-                        }
-                        echo $count;
-                        ?>
-                    </h2>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card bg-warning text-dark">
-                <div class="card-body">
-                    <h5 class="card-title">
-                        <i class="fas fa-clock me-2"></i>Chờ Nhập Kho
-                    </h5>
-                    <h2 class="mb-0" id="cho-nhap-kho">
-                        <?php 
-                        $count = 0;
-                        foreach ($loHangs as $lh) {
-                            if (!isset($lh['TrangThaiKho']) || $lh['TrangThaiKho'] !== 'Đã nhập kho') {
-                                $count++;
-                            }
-                        }
-                        echo $count;
-                        ?>
-                    </h2>
-                </div>
-            </div>
-        </div>
-    </div>
+    
 </div>
 
 <!-- Confirm Modal -->
@@ -231,6 +130,7 @@ ob_start();
         </div>
     </div>
 </div>
+
 
 <script>
 // ==========================================
@@ -276,25 +176,7 @@ function toggleSelectAll() {
     });
 }
 
-/**
- * Nhập kho một lô hàng
- */
-function confirmImportSingle(maLoHang) {
-    selectedLoHang = maLoHang;
-    
-    // Hiển thị modal xác nhận
-    const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
-    document.getElementById('modal-lohang-info').innerHTML = 
-        `<p class="fw-bold">Mã Lô Hàng: ${maLoHang}</p>`;
-    
-    // Xử lý khi nhấn nút xác nhận
-    document.getElementById('btn-confirm-import').onclick = function() {
-        performImport([maLoHang]);
-        modal.hide();
-    };
-    
-    modal.show();
-}
+// (Đã xóa chức năng nhập kho từng lô riêng lẻ - chỉ còn nhập hàng loạt)
 
 /**
  * Nhập kho các lô hàng đã chọn
@@ -345,9 +227,13 @@ function performImport(danhSachLoHang) {
         formData.append('danhSachLoHang[]', lh);
     });
     
+    // Debug log
+    console.log('Sending lots:', danhSachLoHang);
+    
     fetch('<?php echo BASE_URL; ?>nhapkho/confirm-multi', {
         method: 'POST',
-        body: formData
+        body: formData,
+        credentials: 'same-origin'
     })
     .then(response => response.json())
     .then(data => {
@@ -377,51 +263,7 @@ function performImport(danhSachLoHang) {
     });
 }
 
-/**
- * Tìm kiếm trong bảng
- */
-document.getElementById('search-input').addEventListener('keyup', function(e) {
-    const value = this.value.toLowerCase();
-    const table = document.getElementById('table-lohang');
-    const rows = table.querySelectorAll('tbody tr');
-    
-    rows.forEach(row => {
-        const text = row.textContent.toLowerCase();
-        row.style.display = text.includes(value) ? '' : 'none';
-    });
-});
 
-/**
- * Lọc theo sản phẩm
- */
-document.getElementById('filter-sanpham').addEventListener('change', function() {
-    const value = this.value;
-    const table = document.getElementById('table-lohang');
-    const rows = table.querySelectorAll('tbody tr');
-    
-    rows.forEach(row => {
-        if (!value) {
-            row.style.display = '';
-        } else {
-            const text = row.textContent;
-            row.style.display = text.includes(value) ? '' : 'none';
-        }
-    });
-});
-
-/**
- * Làm mới bộ lọc
- */
-function resetFilter() {
-    document.getElementById('search-input').value = '';
-    document.getElementById('filter-sanpham').value = '';
-    
-    const table = document.getElementById('table-lohang');
-    const rows = table.querySelectorAll('tbody tr');
-    rows.forEach(row => {
-        row.style.display = '';
-    });
-}
 </script>
 
 <?php

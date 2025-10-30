@@ -8,10 +8,20 @@ class LapKeHoachCapXuongController extends BaseController {
         $selectedKeHoach = null;
         if (isset($_GET['kehoach'])) {
             $selectedKeHoach = $kehoachModel->getById($_GET['kehoach']);
+            $sanLuongTong = $kehoachModel->getSanLuongTong($_GET['kehoach']);
+            $selectedKeHoach['SanLuongTong'] = $sanLuongTong;
         }
+        // Truy vấn danh sách dây chuyền
+        $dayChuyenModel = $this->loadModel('DayChuyen');
+        $dayChuyenList = $dayChuyenModel->getAll(); // [{MaDayChuyen, TenDayChuyen}]
+        // Truy vấn danh sách tổ trưởng
+        $nhanVienModel = $this->loadModel('NhanVien');
+        $toTruongList = $nhanVienModel->getToTruongList(); // [{MaNV, HoTen}]
         $this->loadView('xuongtruong/lapkehoachcapxuong', [
             'kehoachs' => $kehoachs,
             'kehoach' => $selectedKeHoach,
+            'dayChuyenList' => $dayChuyenList,
+            'toTruongList' => $toTruongList,
             'pageTitle' => 'Lập kế hoạch cấp xưởng'
         ]);
     }

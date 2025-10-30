@@ -5,6 +5,15 @@
 require_once APP_PATH . '/models/BaseModel.php';
 
 class KeHoachSanXuat extends BaseModel {
+    /**
+     * Lấy tổng sản lượng mục tiêu của kế hoạch
+     */
+    public function getSanLuongTong($maKeHoach) {
+        $sql = "SELECT SUM(SanLuongMucTieu) AS TongSanLuong FROM chitietkehoach WHERE MaKeHoach = ?";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$maKeHoach]);
+        return $stmt->fetchColumn() ?: 0;
+    }
 
     /**
      * Lấy danh sách kế hoạch đã duyệt

@@ -28,6 +28,12 @@ class NhapKhoController extends BaseController {
             // Lấy danh sách lô hàng cần nhập
             $loHangs = $this->model->getLoHangCanNhap();
 
+            // Debug: Log số lượng lô hàng tìm được
+            error_log("NhapKhoController::index - Found " . count($loHangs) . " lo hang");
+            if (count($loHangs) == 0) {
+                error_log("No lo hang found - may need to check database data");
+            }
+
             // Lấy thông tin user hiện tại
             $currentUser = $this->getCurrentUser();
 
@@ -35,7 +41,8 @@ class NhapKhoController extends BaseController {
             $data = [
                 'loHangs' => $loHangs,
                 'currentUser' => $currentUser,
-                'pageTitle' => 'Nhập Kho Thành Phẩm'
+                'pageTitle' => 'Nhập Kho Thành Phẩm',
+                'debug_count' => count($loHangs) // Thêm để debug
             ];
 
             // Hiển thị view
@@ -118,17 +125,25 @@ class NhapKhoController extends BaseController {
         }
 
         try {
-            // Lấy dữ liệu từ request
-            $danhSachLoHang = $_POST['danhSachLoHang'] ?? [];
+            // Lấy dữ liệu từ request - FormData gửi dưới dạng danhSachLoHang[]
+            $danhSachLoHang = [];
+            
+            // Kiểm tra cả danhSachLoHang[] (mảng từ FormData) và danhSachLoHang (nếu có)
+            if (isset($_POST['danhSachLoHang']) && is_array($_POST['danhSachLoHang'])) {
+                $danhSachLoHang = $_POST['danhSachLoHang'];
+            }
             
             // Validate dữ liệu
             if (empty($danhSachLoHang) || !is_array($danhSachLoHang)) {
+                error_log("NhapKhoController::confirmImportMulti - Empty or invalid danhSachLoHang. POST data: " . print_r($_POST, true));
                 $this->json([
                     'success' => false,
                     'message' => 'Vui lòng chọn ít nhất một lô hàng!'
                 ]);
                 return;
             }
+            
+            error_log("NhapKhoController::confirmImportMulti - Processing " . count($danhSachLoHang) . " lots: " . implode(', ', $danhSachLoHang));
 
             // Lấy thông tin user hiện tại
             $currentUser = $this->getCurrentUser();
@@ -196,6 +211,7 @@ class NhapKhoController extends BaseController {
             ]);
         }
     }
+
 }
 ?>
 

@@ -206,23 +206,47 @@ body {
     box-shadow: 0 10px 25px rgba(0,0,0,0.15);
 }
 
-.modal-header {
-    background: var(--primary-gradient);
-    color: white;
-    border: none;
-    border-radius: var(--border-radius) var(--border-radius) 0 0;
+/* Buttons placed on colored headers/panels should be high-contrast and blue */
+.card-header .btn,
+.panel-colored .btn,
+.bg-primary .btn {
+    color: #ffffff !important;
+    border-color: transparent !important;
+    background: linear-gradient(135deg, #2b6cb0 0%, #2c7be5 100%) !important;
+    box-shadow: 0 6px 14px rgba(43,108,176,0.22);
+}
+.card-header .btn:hover,
+.panel-colored .btn:hover,
+.bg-primary .btn:hover {
+    background: linear-gradient(135deg, #245a9a 0%, #1f6fe0 100%) !important;
+    transform: translateY(-1px);
 }
 
-.modal-footer {
-    border: none;
-    border-radius: 0 0 var(--border-radius) var(--border-radius);
-}
-
-/* Dropdown */
-.dropdown-menu {
+/* Make small primary buttons more prominent and blue */
+.btn-sm.btn-primary {
+    padding: 0.5rem 0.85rem;
+    font-weight: 600;
+    color: #fff;
+    background: linear-gradient(135deg, #2b6cb0 0%, #2c7be5 100%);
+    border-color: transparent;
     border: none;
     border-radius: var(--border-radius);
     box-shadow: var(--shadow-medium);
+}
+
+/* Ensure 'Mở trang quản lý' and similar header buttons use blue even when header background is purple */
+.card .card-header .btn-primary,
+.card-header .btn-primary,
+.card-header a.btn.btn-primary {
+    background: linear-gradient(135deg, #2b6cb0 0%, #2c7be5 100%) !important;
+    color: #ffffff !important;
+    border-color: transparent !important;
+    box-shadow: 0 6px 14px rgba(43,108,176,0.18) !important;
+}
+.card .card-header .btn-primary:hover,
+.card-header .btn-primary:hover,
+.card-header a.btn.btn-primary:hover {
+    background: linear-gradient(135deg, #245a9a 0%, #1f6fe0 100%) !important;
 }
 
 .dropdown-item {

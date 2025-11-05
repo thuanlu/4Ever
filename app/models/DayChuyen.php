@@ -3,7 +3,7 @@ class DayChuyen extends BaseModel {
     protected $tableName = 'daychuyen';
     protected $primaryKey = 'MaDayChuyen';
     public function getAll() {
-        $sql = "SELECT d.MaDayChuyen, d.TenDayChuyen, d.MaToTruong, n.HoTen AS HoTenToTruong
+        $sql = "SELECT d.MaDayChuyen, d.TenDayChuyen, d.MaPhanXuong, d.MaToTruong, n.HoTen AS HoTenToTruong
                 FROM daychuyen d
                 LEFT JOIN nhanvien n ON d.MaToTruong = n.MaNV
                 ORDER BY d.TenDayChuyen ASC";

@@ -74,6 +74,11 @@ $router->addRoute('GET', '/xuongtruong/lapkehoachcapxuong', 'LapKeHoachCapXuongC
 $router->addRoute('GET', '/xuongtruong/lapkehoachcapxuong/create/(.*)', 'LapKeHoachCapXuongController', 'create');
 $router->addRoute('POST', '/xuongtruong/lapkehoachcapxuong/store', 'LapKeHoachCapXuongController', 'store');
 
+// Theo dõi tiến độ sản xuất (Xưởng trưởng)
+$router->addRoute('GET', '/xuongtruong/tien-do', 'TienDoController', 'index');
+$router->addRoute('GET', '/xuongtruong/tien-do/show/(.*)', 'TienDoController', 'show');
+$router->addRoute('GET', '/xuongtruong/tien-do/show', 'TienDoController', 'show');
+
 
 // Routes cho quản lý kế hoạch sản xuất (KeHoachSanXuat)
 $router->addRoute('GET', '/kehoachsanxuat', 'KeHoachSanXuatController', 'index');
@@ -107,6 +112,18 @@ $router->addRoute('POST', '/workshops/assign', 'WorkshopController', 'assign');
 $router->addRoute('GET', '/yeucauxuat', 'YeuCauXuatController', 'index');
 $router->addRoute('POST', '/yeucauxuat/save', 'YeuCauXuatController', 'save');
 $router->addRoute('GET', '/yeucauxuat/list', 'YeuCauXuatController', 'list');
+// Route xem chi tiết phiếu yêu cầu
+$router->addRoute('GET', '/yeucauxuat/view/(.*)', 'YeuCauXuatController', 'view');
+// Accept /yeucauxuat/view with querystring ?ma=... as well
+$router->addRoute('GET', '/yeucauxuat/view', 'YeuCauXuatController', 'view');
+
+// Routes cho Phiếu Kiểm Tra Lô/Sản Phẩm
+$router->addRoute('GET', '/phieu-kiem-tra/create', 'PhieuKiemTraSPController', 'create');
+$router->addRoute('POST', '/phieu-kiem-tra/store', 'PhieuKiemTraSPController', 'store');
+$router->addRoute('GET', '/phieu-kiem-tra/index', 'PhieuKiemTraSPController', 'index');
+// View ticket detail (with or without path param)
+$router->addRoute('GET', '/phieu-kiem-tra/view/(.*)', 'PhieuKiemTraSPController', 'view');
+$router->addRoute('GET', '/phieu-kiem-tra/view', 'PhieuKiemTraSPController', 'view');
 
 // Routes cho quản lý nguyên vật liệu
 $router->addRoute('GET', '/materials', 'MaterialController', 'index');

@@ -8,18 +8,29 @@ class YeuCauXuatController extends BaseController {
     public function index() {
         $this->requireRole(['XT']);
         $model = $this->loadModel('YeuCauXuat');
+        // Xác định phân xưởng của xưởng trưởng đang đăng nhập (nếu có) để lọc kế hoạch
+        $maPX = '';
+        $maNV = $_SESSION['user_id'] ?? ($_SESSION['username'] ?? null);
+        if ($maNV) {
+            $maPX = $model->getPhanXuongForUser($maNV) ?? '';
+        }
 
-        $plans = $model->getPlans();
+        $plans = $model->getPlans($maPX);
         $selectedMaKH = $_GET['ma_kehoach'] ?? ($plans[0]['ma_kehoach'] ?? '');
         $selectedPlan = $selectedMaKH ? $model->getPlan($selectedMaKH) : null;
         $materials = $selectedPlan ? $model->getMaterialsForPlan($selectedPlan['ma_kehoach'], (int)$selectedPlan['soluong']) : [];
+
+        // Preserve form values after redirect on validation errors
+        $oldDate = $_GET['ngay_yeucau'] ?? '';
+        $oldGhichu = $_GET['ghichu'] ?? '';
 
         // Filters for embedded list
         $status = $_GET['status'] ?? '';
         $keyword = trim($_GET['q'] ?? '');
         $requests = $model->listRequests($status, $keyword);
 
-        $minDate = (new DateTime('today', new DateTimeZone('Asia/Ho_Chi_Minh')))->format('Y-m-d');
+    // Use system default timezone / server date for default date (format YYYY-MM-DD for HTML date input)
+    $minDate = (new DateTime('today'))->format('Y-m-d');
 
         $this->loadView('xuongtruong/yeucauxuat_create', [
             'pageTitle' => 'Tạo phiếu yêu cầu xuất nguyên liệu',
@@ -31,6 +42,8 @@ class YeuCauXuatController extends BaseController {
             'filterStatus' => $status,
             'filterKeyword' => $keyword,
             'minDate' => $minDate,
+            'oldDate' => $oldDate,
+            'oldGhichu' => $oldGhichu,
         ]);
     }
 
@@ -54,11 +67,12 @@ class YeuCauXuatController extends BaseController {
 
         if ($ma_kehoach === '' || $ngay_yeucau === '' || empty($materials)) {
             $_SESSION['error'] = 'Thiếu dữ liệu yêu cầu. Vui lòng kiểm tra lại.';
-            $this->redirect('yeucauxuat?ma_kehoach=' . urlencode($ma_kehoach));
+            $qs = 'yeucauxuat?ma_kehoach=' . urlencode($ma_kehoach) . '&ngay_yeucau=' . urlencode($ngay_yeucau) . '&ghichu=' . urlencode($ghichu);
+            $this->redirect($qs);
         }
 
         try {
-            $today = new DateTime('today', new DateTimeZone('Asia/Ho_Chi_Minh'));
+            $today = new DateTime('today');
             $dReq  = DateTime::createFromFormat('Y-m-d', $ngay_yeucau, new DateTimeZone('Asia/Ho_Chi_Minh'));
             if (!$dReq) throw new Exception('Định dạng ngày không hợp lệ');
             $dReq->setTime(0,0,0);
@@ -68,7 +82,8 @@ class YeuCauXuatController extends BaseController {
             }
         } catch (Exception $e) {
             $_SESSION['error'] = 'Ngày yêu cầu không hợp lệ: ' . $e->getMessage();
-            $this->redirect('yeucauxuat?ma_kehoach=' . urlencode($ma_kehoach));
+            $qs = 'yeucauxuat?ma_kehoach=' . urlencode($ma_kehoach) . '&ngay_yeucau=' . urlencode($ngay_yeucau) . '&ghichu=' . urlencode($ghichu);
+            $this->redirect($qs);
         }
 
         $status = ($action === 'draft') ? 'Nháp' : 'Chờ xử lý';
@@ -84,8 +99,10 @@ class YeuCauXuatController extends BaseController {
             $this->redirect('yeucauxuat?ma_kehoach=' . urlencode($ma_kehoach));
         } catch (Throwable $e) {
             error_log('[YeuCauXuatController.save] ' . $e->getMessage());
-            $_SESSION['error'] = 'Không thể lưu phiếu, vui lòng thử lại';
-            $this->redirect('yeucauxuat?ma_kehoach=' . urlencode($ma_kehoach));
+            // Truyền thông báo lỗi chi tiết để dễ debug trong môi trường dev
+            $_SESSION['error'] = 'Không thể lưu phiếu: ' . $e->getMessage();
+            $qs = 'yeucauxuat?ma_kehoach=' . urlencode($ma_kehoach) . '&ngay_yeucau=' . urlencode($ngay_yeucau) . '&ghichu=' . urlencode($ghichu);
+            $this->redirect($qs);
         }
     }
 
@@ -96,7 +113,8 @@ class YeuCauXuatController extends BaseController {
         $status = $_GET['status'] ?? '';
         $keyword = trim($_GET['q'] ?? '');
         $rows = $model->listRequests($status, $keyword);
-        $this->loadView('yeucauxuat/list', [
+        // The view file has been moved under xuongtruong namespace
+        $this->loadView('xuongtruong/yeucauxuat_list', [
             'pageTitle' => 'Danh sách phiếu yêu cầu xuất',
             'rows' => $rows,
             'status' => $status,
@@ -111,7 +129,10 @@ class YeuCauXuatController extends BaseController {
     public function apiPlans() {
         $this->requireRole(['XT']);
         $model = $this->loadModel('YeuCauXuat');
-        $plans = $model->getPlans();
+        $maPX = '';
+        $maNV = $_SESSION['user_id'] ?? ($_SESSION['username'] ?? null);
+        if ($maNV) $maPX = $model->getPhanXuongForUser($maNV) ?? '';
+        $plans = $model->getPlans($maPX);
 
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode([
@@ -131,7 +152,10 @@ class YeuCauXuatController extends BaseController {
         // Không gọi ensureTables() nữa — model không tự tạo/seed bảng. Demo sẽ chỉ tạo phiếu mẫu nếu dữ liệu kế hoạch tồn tại trong DB.
 
         // Chọn kế hoạch: ưu tiên tham số ?kh=, nếu không có lấy kế hoạch mới nhất
-        $plans = $model->getPlans();
+        $maPX = '';
+        $maNV = $_SESSION['user_id'] ?? ($_SESSION['username'] ?? null);
+        if ($maNV) $maPX = $model->getPhanXuongForUser($maNV) ?? '';
+        $plans = $model->getPlans($maPX);
         if (empty($plans)) {
             $_SESSION['error'] = 'Chưa có kế hoạch sản xuất để tạo phiếu mẫu.';
             $this->redirect('yeucauxuat');
@@ -156,7 +180,7 @@ class YeuCauXuatController extends BaseController {
         }
 
         $status = (($_GET['status'] ?? 'send') === 'draft') ? 'Nháp' : 'Chờ xử lý';
-        $ngay = (new DateTime('today', new DateTimeZone('Asia/Ho_Chi_Minh')))->format('Y-m-d');
+    $ngay = (new DateTime('today'))->format('Y-m-d');
         $ghichu = 'Phiếu mẫu tạo tự động từ demo';
 
         try {
@@ -167,6 +191,38 @@ class YeuCauXuatController extends BaseController {
             error_log('[YeuCauXuatController.demo] ' . $e->getMessage());
             $_SESSION['error'] = 'Không thể tạo phiếu mẫu: ' . $e->getMessage();
             $this->redirect('yeucauxuat');
+        }
+    }
+
+    /**
+     * Hiển thị chi tiết một phiếu yêu cầu (truy cập từ nút Xem trong danh sách)
+     * URL: /yeucauxuat/view/{MaPhieu}
+     */
+    public function view($ma = null) {
+        $this->requireRole(['XT']);
+        $id = $ma ?? ($_GET['ma'] ?? null);
+        if (!$id) {
+            $_SESSION['error'] = 'Thiếu tham số mã phiếu';
+            $this->redirect('yeucauxuat/list');
+        }
+
+        $model = $this->loadModel('YeuCauXuat');
+        try {
+            $data = $model->getRequestDetails($id);
+            if (!$data) {
+                $_SESSION['error'] = 'Không tìm thấy phiếu yêu cầu: ' . htmlspecialchars($id);
+                $this->redirect('yeucauxuat/list');
+            }
+
+            $this->loadView('xuongtruong/yeucauxuat_view', [
+                'pageTitle' => 'Chi tiết phiếu yêu cầu ' . $id,
+                'request' => $data['header'],
+                'lines' => $data['lines'],
+            ]);
+        } catch (Throwable $e) {
+            error_log('[YeuCauXuatController.view] ' . $e->getMessage());
+            $_SESSION['error'] = 'Lỗi khi lấy chi tiết phiếu: ' . $e->getMessage();
+            $this->redirect('yeucauxuat/list');
         }
     }
 }

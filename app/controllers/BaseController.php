@@ -54,10 +54,40 @@ class BaseController {
     protected function requireRole($allowedRoles) {
         $this->requireAuth();
         
-        if (!in_array($_SESSION['user_role'], $allowedRoles)) {
-            $this->loadView('errors/403', ['message' => 'Bạn không có quyền truy cập tính năng này']);
-            exit();
-        }
+            // Normalize short role codes from session to canonical role names
+            $roleMap = [
+                'KH' => 'nhan_vien_ke_hoach',
+                'BGD' => 'ban_giam_doc',
+                'XT' => 'xuong_truong',
+                'TT' => 'to_truong',
+                'QC' => 'nhan_vien_qc',
+                'NVK' => 'nhan_vien_kho_nl',
+                'CN' => 'cong_nhan',
+                'ADMIN' => 'admin'
+            ];
+
+            $current = $_SESSION['user_role'] ?? '';
+            $currentNorm = $roleMap[$current] ?? $current;
+
+            $normalizedAllowed = array_map(function($r) use ($roleMap) {
+                return $roleMap[$r] ?? $r;
+            }, $allowedRoles);
+
+            if (!in_array($currentNorm, $normalizedAllowed)) {
+                // If a dedicated error view exists, use it; otherwise render a simple 403 message
+                $errorView = APP_PATH . '/views/errors/403.php';
+                http_response_code(403);
+                $message = 'Bạn không có quyền truy cập tính năng này';
+                if (file_exists($errorView)) {
+                    // Use existing view if present
+                    $this->loadView('errors/403', ['message' => $message]);
+                } else {
+                    // Minimal inline rendering using the main layout so look-and-feel is consistent
+                    $content = '<div class="container mt-5"><div class="text-center"><h1 class="display-6">403 — Không được phép</h1><p class="lead text-muted">' . htmlspecialchars($message) . '</p><p><a href="' . BASE_URL . '" class="btn btn-primary">Về trang chủ</a></p></div></div>';
+                    include APP_PATH . '/views/layouts/main.php';
+                }
+                exit();
+            }
     }
     
     protected function getCurrentUser() {

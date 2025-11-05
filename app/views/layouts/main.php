@@ -196,12 +196,16 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
-    // Auto-dismiss alerts after 5 seconds
+    // Auto-dismiss only dismissible alerts after 5 seconds (keep informational cards persistent)
     setTimeout(function() {
-        var alerts = document.querySelectorAll('.alert');
+        var alerts = document.querySelectorAll('.alert-dismissible');
         alerts.forEach(function(alert) {
-            var bsAlert = new bootstrap.Alert(alert);
-            bsAlert.close();
+            try {
+                var bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            } catch (e) {
+                console.error('Error closing alert:', e);
+            }
         });
     }, 5000);
     

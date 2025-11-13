@@ -258,7 +258,11 @@ function performImport(danhSachLoHang) {
     })
     .catch(error => {
         buttons.forEach(btn => btn.disabled = false);
+<<<<<<< HEAD
         showAlert('Lỗi kết nối! Vui lòng thử lại sau.', 'danger');
+=======
+        showAlert('Nhập Kho Thành Công', 'danger');
+>>>>>>> 846529c2f597edacc8365b20a207f0deb2f52c10
         console.error('Error:', error);
     });
 }

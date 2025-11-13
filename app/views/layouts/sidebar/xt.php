@@ -17,6 +17,20 @@
      <a class="nav-link" href="<?php echo BASE_URL; ?>xuongtruong/quanlycongnhan">
         <i class="fas fa-file-alt me-2"></i>Quản lý công nhân
     </a>
+<<<<<<< HEAD
+=======
+    
+    <!-- QC ticket links for Xưởng trưởng -->
+    <a class="nav-link" href="<?php echo BASE_URL; ?>phieu-kiem-tra/create">
+        <i class="fas fa-vials me-2"></i>Tạo phiếu kiểm tra
+    </a>
+    <a class="nav-link" href="<?php echo BASE_URL; ?>phieu-kiem-tra/index">
+        <i class="fas fa-clipboard-list me-2"></i>Quản lý phiếu kiểm tra
+    </a>
+    <a class="nav-link" href="<?php echo BASE_URL; ?>xuongtruong/tien-do">
+        <i class="fas fa-chart-bar me-2"></i>Thống kê & Tiến độ
+    </a>
+>>>>>>> 846529c2f597edacc8365b20a207f0deb2f52c10
     <hr class="border-light">
     <a class="nav-link" href="<?php echo BASE_URL; ?>logout">
         <i class="fas fa-sign-out-alt me-2"></i>Đăng xuất

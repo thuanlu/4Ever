@@ -1,3 +1,4 @@
+<?php $pageTitle = "Kế hoạch Sản xuất"; ?>
 <?php
 // Tệp: app/views/kehoachsanxuat/form.php (Phiên bản đầy đủ cuối cùng)
 
@@ -128,8 +129,13 @@ if (!function_exists('get_value')) {
                 <div class="row">
                     <div class="col-md-3 mb-3"><label class="form-label fw-bold">Mã sản phẩm</label><input type="text" name="products[<?php echo $index; ?>][MaSanPham]" class="form-control" value="<?php echo $maSP; ?>" readonly></div>
                     <div class="col-md-6 mb-3"><label class="form-label fw-bold">Tên sản phẩm</label><input type="text" name="products[<?php echo $index; ?>][TenSanPham]" class="form-control" value="<?php echo $tenSP; ?>" readonly required></div>
-                    <div class="col-md-3 mb-3"><label class="form-label fw-bold">Tổng sản lượng (ĐH)</label><input type="number" name="products[<?php echo $index; ?>][SanLuongMucTieu]" class="form-control total-sanluong" value="<?php echo $sanLuong; ?>" <?php echo $is_viewing ? 'readonly' : 'required'; ?>></div>
-                </div>
+<div class="col-md-3 mb-3">
+    <label class="form-label fw-bold">Tổng sản lượng (ĐH)</label>
+    <input type="number" name="products[<?php echo $index; ?>][SanLuongMucTieu]" class="form-control total-sanluong" value="<?php echo $sanLuong; ?>" <?php echo $is_viewing ? 'readonly' : 'required'; ?>>
+    
+    <input type="hidden" class="dinh-muc-gio-cong" value="<?php echo htmlspecialchars($detail['DinhMucGioCong'] ?? 2); ?>">
+    </div>                
+</div>
 
                 <h6 class="fw-bold mt-3">Nguyên liệu chi tiết (BOM)</h6>
                 <div class="table-responsive">
@@ -150,20 +156,17 @@ if (!function_exists('get_value')) {
                             $current_bom = $bom_data[$maSP] ?? [];
                             foreach($current_bom as $i => $nl):
                                 $dinhMuc = (float)($nl['DinhMucSuDung'] ?? 0);
-                                $tonKho = (float)($nl['SoLuongTonKho'] ?? 0);
+                                $tonKho = round((float)($nl['SoLuongTonKho'] ?? 0)); // SỬA 1: làm tròn Tồn kho
                                 $donViTinh = $nl['DonViTinh'] ?? '';
                                 $giaNhap = (float)($nl['GiaNhap'] ?? 0);
-                                $soLuongCan = $dinhMuc * (float)$sanLuong;
-                                $canBoSung = max(0.00, $soLuongCan - $tonKho);
+                                $soLuongCan = ceil($dinhMuc * (float)$sanLuong); // SỬA 2: làm tròn lên
+                                $canBoSung = max(0, $soLuongCan - $tonKho);
                             ?>
                             <tr data-nl-ma="<?php echo $nl['MaNguyenLieu']; ?>" data-donvitinh="<?php echo $donViTinh; ?>" data-gianhap="<?php echo $giaNhap; ?>">
-                                <td><input type="text" name="products[<?php echo $index; ?>][materials][<?php echo $i; ?>][MaNguyenLieu]" class="form-control form-control-sm" value="<?php echo htmlspecialchars($nl['MaNguyenLieu']); ?>" readonly></td>
-                                <td><input type="text" name="products[<?php echo $index; ?>][materials][<?php echo $i; ?>][TenNguyenLieu]" class="form-control form-control-sm" value="<?php echo htmlspecialchars($nl['TenNguyenLieu']); ?>" readonly></td>
-                                <td><input type="text" class="form-control form-control-sm" value="<?php echo htmlspecialchars($donViTinh); ?>" readonly></td>
-                                <td><input type="number" step="0.01" name="products[<?php echo $index; ?>][materials][<?php echo $i; ?>][DinhMucBOM]" class="form-control form-control-sm bom-input" value="<?php echo number_format($dinhMuc, 2, '.', ''); ?>" readonly></td>
-                                <td><input type="number" step="0.01" class="form-control form-control-sm required-qty-input" value="<?php echo number_format($soLuongCan, 2, '.', ''); ?>" readonly></td>
-                                <td><input type="number" step="0.01" name="products[<?php echo $index; ?>][materials][<?php echo $i; ?>][TonKho]" class="form-control form-control-sm stock-input" value="<?php echo number_format($tonKho, 2, '.', ''); ?>" readonly></td>
-                                <td><input type="number" step="0.01" name="products[<?php echo $index; ?>][materials][<?php echo $i; ?>][CanBoSung]" class="form-control form-control-sm needed-input" value="<?php echo number_format($canBoSung, 2, '.', ''); ?>" readonly></td>
+                                <td><input type="number" step="0" name="products[<?php echo $index; ?>][materials][<?php echo $i; ?>][DinhMucBOM]" class="form-control form-control-sm bom-input" value="<?php echo number_format($dinhMuc, 2, '.', ''); ?>" readonly></td>
+                                <td><input type="number" step="0" class="form-control form-control-sm required-qty-input" value="<?php echo $soLuongCan; ?>" readonly></td>
+                                <td><input type="number" step="0" name="products[<?php echo $index; ?>][materials][<?php echo $i; ?>][TonKho]" class="form-control form-control-sm stock-input" value="<?php echo $tonKho; ?>" readonly></td>
+                                <td><input type="number" step="0" name="products[<?php echo $index; ?>][materials][<?php echo $i; ?>][CanBoSung]" class="form-control form-control-sm needed-input" value="<?php echo $canBoSung; ?>" readonly></td>
                             </tr>
                             <?php endforeach; ?>
                         </tbody>
@@ -244,6 +247,7 @@ if (!function_exists('get_value')) {
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        const xuongList = <?php echo json_encode($xuongs ?? []); ?>; // <-- THÊM DÒNG NÀY
         // --- Element References ---
         const productContainer = document.getElementById('product-details-container');
         const productLoading = document.getElementById('product-loading');
@@ -379,38 +383,36 @@ if (!function_exists('get_value')) {
         };
 
         /**
-         * Tính toán chi phí nhân công (Đã sửa định dạng tiền)
+         * Tính toán chi phí nhân công (THEO ĐỊNH MỨC GIỜ CÔNG)
          */
         window.updateLaborCost = function() {
-            if (!chiPhiNhanCong || !ngayBatDauInput || !ngayKetThucInput) {
-                return;
-            }
+            if (!chiPhiNhanCong) return;
 
-            const startDate = ngayBatDauInput.value;
-            const endDate = ngayKetThucInput.value;
-            let soNgaySanXuat = 0;
+            // 1. Đặt đơn giá của bạn ở đây (ví dụ: 30,000 VND/giờ)
+            const DON_GIA_MOT_GIO_CONG = 30000;
+            
+            let tongGioCong = 0;
 
-            if (startDate && endDate && endDate >= startDate) {
-                const start = new Date(startDate);
-                const end = new Date(endDate);
-                const diffTime = end.getTime() - start.getTime();
-                soNgaySanXuat = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-            }
+            // 2. Duyệt qua từng "product-item"
+            document.querySelectorAll('.product-item').forEach(item => {
+                const sanLuongInput = item.querySelector('.total-sanluong');
+                const dinhMucInput = item.querySelector('.dinh-muc-gio-cong');
 
-            const xuongSet = new Set();
-            document.querySelectorAll('select[name^="products["][name$="][MaPhanXuong]"]').forEach(select => {
-                if (select.value) {
-                    xuongSet.add(select.value);
-                }
+                const sanLuong = sanLuongInput ? (parseFloat(sanLuongInput.value) || 0) : 0;
+                
+                // Chỗ này sẽ tự động đọc value="2" từ input ẩn
+                const dinhMuc = dinhMucInput ? (parseFloat(dinhMucInput.value) || 0) : 0; 
+                
+                // 3. Cộng dồn TỔNG GIỜ CÔNG (Sản Lượng * 2)
+                tongGioCong += sanLuong * dinhMuc;
             });
-            const soLuongXuong = xuongSet.size;
 
-            const GIA_TIEN_MOT_NGUOI_MOT_CA = 500000;
-            const totalLaborCost = soNgaySanXuat * soLuongXuong * 2 * 120 * GIA_TIEN_MOT_NGUOI_MOT_CA;
+            // 4. Tính tổng chi phí
+            const totalLaborCost = tongGioCong * DON_GIA_MOT_GIO_CONG;
 
-            // Cập nhật chi phí nhân công
-            if (chiPhiNhanCong) { chiPhiNhanCong.value = totalLaborCost; } // Hidden input (số)
-            if (chiPhiNhanCongDisplay) { chiPhiNhanCongDisplay.value = formatCurrency(totalLaborCost); } // Display input (text)
+            // 5. Cập nhật chi phí nhân công (cả ô ẩn và ô hiển thị)
+            if (chiPhiNhanCong) { chiPhiNhanCong.value = totalLaborCost; } 
+            if (chiPhiNhanCongDisplay) { chiPhiNhanCongDisplay.value = formatCurrency(totalLaborCost); } 
         };
 
         /**
@@ -475,9 +477,46 @@ if (!function_exists('get_value')) {
         function buildProductHtml(products, bom_data) {
              productContainer.innerHTML = '';
              if (!products || products.length === 0) { productContainer.innerHTML = `<div class="alert alert-warning">ĐH không có SP.</div>`; return; }
+             
              products.forEach((product, index) => {
-                 const maSP = product.MaSanPham; const tenSP = product.TenSanPham; const sanLuong = parseFloat(product.SoLuong) || 0;
-                 let productHtml = `<div class="product-item p-3 border rounded mb-3" data-index="${index}"><h6 class="fw-bold">SP ${index + 1}: ${tenSP}</h6><div class="row"><div class="col-md-3 mb-3"><label class="form-label fw-bold">Mã SP</label><input type="text" name="products[${index}][MaSanPham]" class="form-control" value="${maSP}" readonly></div><div class="col-md-6 mb-3"><label class="form-label fw-bold">Tên SP</label><input type="text" name="products[${index}][TenSanPham]" class="form-control" value="${tenSP}" readonly required></div><div class="col-md-3 mb-3"><label class="form-label fw-bold">Sản lượng</label><input type="number" name="products[${index}][SanLuongMucTieu]" class="form-control total-sanluong" value="${sanLuong}" required></div></div><h6 class="fw-bold mt-3">Nguyên liệu (BOM)</h6><div class="table-responsive"><table class="table table-bordered table-sm raw-material-table" data-product-id="${maSP}"><thead><tr><th style="width: 15%">Mã NL</th><th style="width: 25%">Tên NL</th><th style="width: 10%">ĐVT</th><th style="width: 12%">Định mức</th><th style="width: 13%">Cần</th><th style="width: 12%">Tồn kho</th><th style="width: 13%">Bổ sung</th></tr></thead><tbody id="raw-material-body_${index}">`;
+                 const maSP = product.MaSanPham; 
+                 const tenSP = product.TenSanPham; 
+                 const sanLuong = parseFloat(product.SoLuong) || 0;
+                 
+                 // Lấy DinhMucGioCong từ JSON, nếu không có thì dùng 2
+                 const dinhMucGioCong = parseFloat(product.DinhMucGioCong) || 2; 
+
+                 let productHtml = `
+                    <div class="product-item p-3 border rounded mb-3" data-index="${index}">
+                        <h6 class="fw-bold">SP ${index + 1}: ${tenSP}</h6>
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label fw-bold">Mã SP</label>
+                                <input type="text" name="products[${index}][MaSanPham]" class="form-control" value="${maSP}" readonly>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Tên SP</label>
+                                <input type="text" name="products[${index}][TenSanPham]" class="form-control" value="${tenSP}" readonly required>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label fw-bold">Sản lượng</label>
+                                <input type="number" name="products[${index}][SanLuongMucTieu]" class="form-control total-sanluong" value="${sanLuong}" required>
+                                
+                                <input type="hidden" class="dinh-muc-gio-cong" value="${dinhMucGioCong}">
+                            </div>
+                        </div>
+                        <h6 class="fw-bold mt-3">Nguyên liệu (BOM)</h6>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-sm raw-material-table" data-product-id="${maSP}">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 15%">Mã NL</th><th style="width: 25%">Tên NL</th><th style="width: 10%">ĐVT</th>
+                                        <th style="width: 12%">Định mức</th><th style="width: 13%">Cần</th>
+                                        <th style="width: 12%">Tồn kho</th><th style="width: 13%">Bổ sung</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="raw-material-body_${index}">`;
+                 
                  const current_bom = bom_data[maSP] || [];
                  if (current_bom.length > 0) {
                      current_bom.forEach((nl, i) => {
@@ -485,10 +524,34 @@ if (!function_exists('get_value')) {
                          const donViTinh = nl.DonViTinh || '';
                          const giaNhap = parseFloat(nl.GiaNhap) || 0;
                          const soLuongCan = dinhMuc * sanLuong; const canBoSung = Math.max(0, soLuongCan - tonKho);
-                         productHtml += `<tr data-nl-ma="${nl.MaNguyenLieu}" data-donvitinh="${donViTinh}" data-gianhap="${giaNhap}"><td><input type="text" name="products[${index}][materials][${i}][MaNguyenLieu]" class="form-control form-control-sm" value="${nl.MaNguyenLieu}" readonly></td><td><input type="text" name="products[${index}][materials][${i}][TenNguyenLieu]" class="form-control form-control-sm" value="${nl.TenNguyenLieu}" readonly></td><td><input type="text" class="form-control form-control-sm" value="${donViTinh}" readonly></td><td><input type="number" step="0.01" name="products[${index}][materials][${i}][DinhMucBOM]" class="form-control form-control-sm bom-input" value="${dinhMuc.toFixed(2)}" readonly></td><td><input type="number" step="0.01" class="form-control form-control-sm required-qty-input" value="${soLuongCan.toFixed(2)}" readonly></td><td><input type="number" step="0.01" name="products[${index}][materials][${i}][TonKho]" class="form-control form-control-sm stock-input" value="${tonKho.toFixed(2)}" readonly></td><td><input type="number" step="0.01" name="products[${index}][materials][${i}][CanBoSung]" class="form-control form-control-sm needed-input" value="${canBoSung.toFixed(2)}" readonly></td></tr>`;
+                         productHtml += `<tr data-nl-ma="${nl.MaNguyenLieu}" data-donvitinh="${donViTinh}" data-gianhap="${giaNhap}">
+                                             <td><input type="text" name="products[${index}][materials][${i}][MaNguyenLieu]" class="form-control form-control-sm" value="${nl.MaNguyenLieu}" readonly></td>
+                                             <td><input type="text" name="products[${index}][materials][${i}][TenNguyenLieu]" class="form-control form-control-sm" value="${nl.TenNguyenLieu}" readonly></td>
+                                             <td><input type="text" class="form-control form-control-sm" value="${donViTinh}" readonly></td>
+                                             <td><input type="number" step="0" name="products[${index}][materials][${i}][DinhMucBOM]" class="form-control form-control-sm bom-input" value="${dinhMuc.toFixed(2)}" readonly></td>
+                                             <td><input type="number" step="0" class="form-control form-control-sm required-qty-input" value="${soLuongCan.toFixed(2)}" readonly></td>
+                                             <td><input type="number" step="0" name="products[${index}][materials][${i}][TonKho]" class="form-control form-control-sm stock-input" value="${tonKho.toFixed(2)}" readonly></td>
+                                             <td><input type="number" step="0" name="products[${index}][materials][${i}][CanBoSung]" class="form-control form-control-sm needed-input" value="${canBoSung.toFixed(2)}" readonly></td>
+                                         </tr>`;
                      });
                  } else { productHtml += `<tr><td colspan="7" class="text-center text-danger">Chưa có BOM.</td></tr>`; }
-                 productHtml += `</tbody></table></div><div class="row"><div class="col-md-12 mb-3"><label class="form-label fw-bold">Phân xưởng</label><select name="products[${index}][MaPhanXuong]" class="form-select" required><option value="">-- Chọn --</option><?php foreach ($xuongs as $xuong): ?><option value="<?php echo $xuong['MaPhanXuong']; ?>"><?php echo $xuong['MaPhanXuong'] . ' - ' . $xuong['TenPhanXuong']; ?></option><?php endforeach; ?></select></div></div></div>`;
+                 
+                 productHtml += `</tbody></table></div>
+                                 <div class="row">
+                                     <div class="col-md-12 mb-3">
+                                         <label class="form-label fw-bold">Phân xưởng</label>
+                                         <select name="products[${index}][MaPhanXuong]" class="form-select" required>
+                                             <option value="">-- Chọn --</option>`;
+                 
+                 // --- ===== ĐÃ SỬA: Dùng vòng lặp JS thay vì PHP ===== ---
+                 if (xuongList && xuongList.length > 0) {
+                     xuongList.forEach(xuong => {
+                         productHtml += `<option value="${xuong.MaPhanXuong}">${xuong.MaPhanXuong} - ${xuong.TenPhanXuong}</option>`;
+                     });
+                 }
+                 // --- ===== KẾT THÚC SỬA LỖI ===== ---
+
+                 productHtml += `</select></div></div></div>`;
                  productContainer.insertAdjacentHTML('beforeend', productHtml);
              });
         }
@@ -501,16 +564,12 @@ if (!function_exists('get_value')) {
         validateDates();           // 4. Validate
 
         if (!<?php echo $is_viewing ? 'true' : 'false'; ?>) {
-            // Listener cho Ngày
+            // Listener cho Ngày (CHỈ VALIDATE, KHÔNG TÍNH TOÁN LẠI CHI PHÍ)
             if (ngayBatDauInput) ngayBatDauInput.addEventListener('input', function() {
                 validateDates();
-                window.updateLaborCost();
-                window.updateTotalCost();
             });
             if (ngayKetThucInput) ngayKetThucInput.addEventListener('input', function() {
                 validateDates();
-                window.updateLaborCost();
-                window.updateTotalCost();
             });
 
             // Submit validation
@@ -528,20 +587,18 @@ if (!function_exists('get_value')) {
                 });
             }
 
-            // Listener cho thay đổi trong Product Container
+            // Listener cho thay đổi trong Product Container (ĐÃ SỬA LỖI)
             if (productContainer) {
                 productContainer.addEventListener('input', function(e) {
+                    
                     // Nếu là ô Sản lượng
                     if (e.target.classList.contains('total-sanluong')) {
-                        window.updateTotalRawMaterials();
-                        window.updateTotalCost();
+                        window.updateTotalRawMaterials(); // 1. Cập nhật NVL
+                        window.updateLaborCost();       // 2. Cập nhật Nhân công
+                        window.updateTotalCost();         // 3. Cập nhật Tổng
                     }
-
-                    // Nếu là dropdown Phân xưởng
-                    if (e.target.tagName === 'SELECT' && e.target.name.includes('[MaPhanXuong]')) {
-                        window.updateLaborCost();
-                        window.updateTotalCost();
-                    }
+                    
+                    // (Đã xóa listener của Phân xưởng, vì nó không ảnh hưởng CPNC nữa)
                 });
             }
         }

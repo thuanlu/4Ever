@@ -188,7 +188,11 @@ ob_start();
                     <!-- Actions -->
                     <div class="row mt-4">
                         <div class="col-12 text-end">
+<<<<<<< HEAD
                             <button class="btn btn-outline-primary me-2" onclick="window.print()">
+=======
+                            <button class="btn btn-primary me-2" onclick="window.print()">
+>>>>>>> 846529c2f597edacc8365b20a207f0deb2f52c10
                                 <i class="fas fa-print"></i> In phiếu
                             </button>
                             <button class="btn btn-outline-success me-2" onclick="exportToPDF()">

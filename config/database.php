@@ -29,6 +29,7 @@ class Database {
     }
 }
 
+
 if (!function_exists('getPDO')) {
     function getPDO() {
         static $pdo = null;
@@ -40,4 +41,5 @@ if (!function_exists('getPDO')) {
         return $pdo;
     }
 }
+
 ?>

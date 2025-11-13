@@ -10,7 +10,11 @@
         <i class="fas fa-cubes me-2"></i>Định mức NVL (BOM)
     </a>
     
+<<<<<<< HEAD
     <a class="nav-link" href="<?php echo BASE_URL; ?>kehoachsanxuat/index_nvl">
+=======
+    <a class="nav-link" href="<?php echo BASE_URL; ?>kehoachsanxuat/phieudatnvl">
+>>>>>>> 846529c2f597edacc8365b20a207f0deb2f52c10
         <i class="fas fa-file-invoice me-2"></i>Phiếu đặt hàng NVL
     </a>
     

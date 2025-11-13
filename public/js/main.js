@@ -19,6 +19,7 @@ window.FactoryApp = {
 
         // Format currency
         formatCurrency: function (amount) {
+
             return new Intl.NumberFormat('vi-VN', {
                 style: 'currency',
                 currency: 'VND'
@@ -32,6 +33,7 @@ window.FactoryApp = {
 
         // Format datetime
         formatDateTime: function (datetime) {
+
             return new Intl.DateTimeFormat('vi-VN', {
                 year: 'numeric',
                 month: '2-digit',
@@ -41,8 +43,10 @@ window.FactoryApp = {
             }).format(new Date(datetime));
         },
 
+
         // Show loading state
         showLoading: function (element) {
+
             if (typeof element === 'string') {
                 element = document.querySelector(element);
             }
@@ -52,8 +56,10 @@ window.FactoryApp = {
             }
         },
 
+
         // Hide loading state
         hideLoading: function (element) {
+
             if (typeof element === 'string') {
                 element = document.querySelector(element);
             }
@@ -63,11 +69,13 @@ window.FactoryApp = {
             }
         },
 
+
         // Show notification
         showNotification: function (message, type = 'info', duration = 5000) {
             const notification = document.createElement('div');
             notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
             notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+
 
             const icons = {
                 success: 'fa-check-circle',
@@ -76,13 +84,17 @@ window.FactoryApp = {
                 info: 'fa-info-circle'
             };
 
+
+
             notification.innerHTML = `
                 <i class="fas ${icons[type] || icons.info} me-2"></i>
                 ${message}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             `;
 
+
             document.body.appendChild(notification);
+
 
             // Auto remove after duration
             setTimeout(() => {
@@ -92,8 +104,10 @@ window.FactoryApp = {
             }, duration);
         },
 
+
         // Confirm dialog
         confirm: function (message, callback) {
+
             if (confirm(message)) {
                 if (typeof callback === 'function') {
                     callback();
@@ -103,8 +117,10 @@ window.FactoryApp = {
             return false;
         },
 
+
         // AJAX helper
         ajax: function (options) {
+
             const defaults = {
                 method: 'GET',
                 headers: {
@@ -113,7 +129,9 @@ window.FactoryApp = {
                 }
             };
 
+
             options = Object.assign(defaults, options);
+
 
             return fetch(options.url, options)
                 .then(response => {
@@ -130,12 +148,14 @@ window.FactoryApp = {
         }
     },
 
+
     // Components
     components: {
         // DataTable wrapper
         dataTable: function (selector, options = {}) {
             const table = document.querySelector(selector);
             if (!table) return;
+
 
             // Add search functionality
             const searchInput = document.createElement('input');
@@ -147,13 +167,16 @@ window.FactoryApp = {
                 const filter = this.value.toLowerCase();
                 const rows = table.querySelectorAll('tbody tr');
 
+
                 rows.forEach(row => {
                     const text = row.textContent.toLowerCase();
                     row.style.display = text.includes(filter) ? '' : 'none';
                 });
             });
 
+
             table.parentNode.insertBefore(searchInput, table);
+
 
             // Add sorting
             const headers = table.querySelectorAll('thead th');
@@ -164,6 +187,7 @@ window.FactoryApp = {
                 });
             });
         },
+
 
         // Sort table
         sortTable: function (table, column) {
@@ -195,6 +219,7 @@ window.FactoryApp = {
             // Update sort indicator
             table.dataset.sortOrder = isAscending ? 'asc' : 'desc';
 
+
             // Update header icons
             const headers = table.querySelectorAll('thead th');
             headers.forEach((header, index) => {
@@ -209,8 +234,10 @@ window.FactoryApp = {
             });
         },
 
+
         // Chart helper
         createChart: function (canvas, config) {
+
             if (typeof Chart === 'undefined') {
                 console.error('Chart.js not loaded');
                 return;
@@ -222,6 +249,7 @@ window.FactoryApp = {
 
         // Modal helper
         modal: function (options) {
+
             const modal = document.createElement('div');
             modal.className = 'modal fade';
             modal.innerHTML = `
@@ -246,10 +274,12 @@ window.FactoryApp = {
             const bsModal = new bootstrap.Modal(modal);
             bsModal.show();
 
+
             // Remove modal from DOM after hidden
             modal.addEventListener('hidden.bs.modal', () => {
                 modal.remove();
             });
+
 
             return bsModal;
         }
@@ -259,12 +289,14 @@ window.FactoryApp = {
     pages: {
         dashboard: {
             init: function () {
+
                 console.log('Dashboard initialized');
                 this.loadCharts();
                 this.setupRefresh();
             },
 
             loadCharts: function () {
+
                 // Production progress chart
                 const progressCanvas = document.getElementById('productionChart');
                 if (progressCanvas) {
@@ -304,7 +336,10 @@ window.FactoryApp = {
                 }
             },
 
+
             setupRefresh: function () {
+
+
                 const refreshBtn = document.getElementById('refreshDashboard');
                 if (refreshBtn) {
                     refreshBtn.addEventListener('click', () => {
@@ -316,23 +351,28 @@ window.FactoryApp = {
 
         productionPlans: {
             init: function () {
+
                 console.log('Production Plans initialized');
                 this.setupFilters();
                 this.setupDatePickers();
             },
 
+
             setupFilters: function () {
+
                 const statusFilter = document.getElementById('statusFilter');
                 if (statusFilter) {
                     statusFilter.addEventListener('change', this.filterPlans);
                 }
             },
 
+
             setupDatePickers: function () {
                 // Add date picker functionality if needed
             },
 
             filterPlans: function () {
+
                 // Implement filtering logic
             }
         }
@@ -340,20 +380,25 @@ window.FactoryApp = {
 };
 
 // DOM Ready
+
 document.addEventListener('DOMContentLoaded', function () {
     console.log('Factory Management System loaded');
+
 
     // Initialize sidebar toggle
     const toggleBtn = document.getElementById('toggleSidebar');
     const sidebar = document.getElementById('sidebar');
     const mainContent = document.getElementById('main-content');
 
+
     if (toggleBtn && sidebar && mainContent) {
         toggleBtn.addEventListener('click', function () {
+
             sidebar.classList.toggle('collapsed');
             mainContent.classList.toggle('expanded');
         });
     }
+
 
     // Initialize tooltips
     if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
@@ -375,12 +420,14 @@ document.addEventListener('DOMContentLoaded', function () {
     setTimeout(function () {
         const alerts = document.querySelectorAll('.alert-dismissible');
         alerts.forEach(function (alert) {
+
             if (typeof bootstrap !== 'undefined' && bootstrap.Alert) {
                 const bsAlert = new bootstrap.Alert(alert);
                 bsAlert.close();
             }
         });
     }, 5000);
+
 
     // Initialize page-specific code
     const body = document.body;
@@ -390,24 +437,30 @@ document.addEventListener('DOMContentLoaded', function () {
         FactoryApp.pages.productionPlans.init();
     }
 
+
     // Global error handler
     window.addEventListener('error', function (e) {
+
         if (FactoryApp.config.debug) {
             console.error('Global error:', e.error);
         }
     });
 
+
     // Handle AJAX errors globally
     window.addEventListener('unhandledrejection', function (e) {
+
         if (FactoryApp.config.debug) {
             console.error('Unhandled promise rejection:', e.reason);
         }
     });
 
+
     // Form validation
     const forms = document.querySelectorAll('.needs-validation');
     forms.forEach(function (form) {
         form.addEventListener('submit', function (event) {
+
             if (!form.checkValidity()) {
                 event.preventDefault();
                 event.stopPropagation();
@@ -416,10 +469,12 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+
     // Confirm delete actions
     const deleteButtons = document.querySelectorAll('[data-action="delete"]');
     deleteButtons.forEach(function (button) {
         button.addEventListener('click', function (e) {
+
             e.preventDefault();
             const message = this.dataset.message || 'Bạn có chắc chắn muốn xóa?';
             FactoryApp.utils.confirm(message, () => {
@@ -432,12 +487,14 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+
     // Auto-save draft forms
     const draftForms = document.querySelectorAll('.auto-save');
     draftForms.forEach(function (form) {
         const inputs = form.querySelectorAll('input, textarea, select');
         inputs.forEach(function (input) {
             input.addEventListener('change', function () {
+
                 // Implement auto-save logic
                 console.log('Auto-saving form data...');
             });

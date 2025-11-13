@@ -74,6 +74,11 @@ $router->addRoute('GET', '/xuongtruong/lapkehoachcapxuong', 'LapKeHoachCapXuongC
 $router->addRoute('GET', '/xuongtruong/lapkehoachcapxuong/create/(.*)', 'LapKeHoachCapXuongController', 'create');
 $router->addRoute('POST', '/xuongtruong/lapkehoachcapxuong/store', 'LapKeHoachCapXuongController', 'store');
 
+// Theo dõi tiến độ sản xuất (Xưởng trưởng)
+$router->addRoute('GET', '/xuongtruong/tien-do', 'TienDoController', 'index');
+$router->addRoute('GET', '/xuongtruong/tien-do/show/(.*)', 'TienDoController', 'show');
+$router->addRoute('GET', '/xuongtruong/tien-do/show', 'TienDoController', 'show');
+
 
 // Routes cho quản lý kế hoạch sản xuất (KeHoachSanXuat)
 $router->addRoute('GET', '/kehoachsanxuat', 'KeHoachSanXuatController', 'index');
@@ -84,16 +89,13 @@ $router->addRoute('POST', '/kehoachsanxuat/edit/(.*)', 'KeHoachSanXuatController
 $router->addRoute('GET', '/kehoachsanxuat/delete/(.*)', 'KeHoachSanXuatController', 'delete');
 $router->addRoute('GET', '/kehoachsanxuat/view/(.*)', 'KeHoachSanXuatController', 'view');
 
-// Routes cho quản lý phiếu nhập nguyên vật liệu (PhieuNhap)
-$router->addRoute('GET', '/kehoachsanxuat/phieu-nhap', 'PhieuNhapController', 'index');
-$router->addRoute('GET', '/kehoachsanxuat/phieu-nhap/create', 'PhieuNhapController', 'create');
-$router->addRoute('POST', '/kehoachsanxuat/phieu-nhap/store', 'PhieuNhapController', 'store');
-$router->addRoute('GET', '/kehoachsanxuat/phieu-nhap/show/(.*)', 'PhieuNhapController', 'show');
-$router->addRoute('GET', '/kehoachsanxuat/phieu-nhap/get-chi-tiet-nvl', 'PhieuNhapController', 'getChiTietNVL');
-$router->addRoute('GET', '/kehoachsanxuat/phieu-nhap/get-nha-cung-cap', 'PhieuNhapController', 'getNhaCungCap');
-$router->addRoute('POST', '/kehoachsanxuat/phieu-nhap/calculate-total', 'PhieuNhapController', 'calculateTotal');
-$router->addRoute('POST', '/kehoachsanxuat/phieu-nhap/duyet/(.*)', 'PhieuNhapController', 'duyet');
-$router->addRoute('POST', '/kehoachsanxuat/phieu-nhap/huy/(.*)', 'PhieuNhapController', 'huy');
+// Routes cho Phiếu Đặt Hàng Nguyên Vật Liệu (NVL)
+$router->addRoute('GET', '/kehoachsanxuat/phieudatnvl', 'PhieuDatHangNVLController', 'index');
+$router->addRoute('GET', '/kehoachsanxuat/phieudatnvl/create', 'PhieuDatHangNVLController', 'create');
+$router->addRoute('POST', '/kehoachsanxuat/phieudatnvl/store', 'PhieuDatHangNVLController', 'store');
+$router->addRoute('GET', '/kehoachsanxuat/phieudatnvl/view/(.*)', 'PhieuDatHangNVLController', 'view');
+$router->addRoute('GET', '/kehoachsanxuat/getThongTinThieuHutNVL/(.*)', 'PhieuDatHangNVLController', 'getThongTinThieuHutNVL');
+$router->addRoute('GET', '/kehoachsanxuat/getDonHangDetails/(.*)', 'KeHoachSanXuatController', 'getDonHangDetails');
 // 
 // ===== DÒNG BỊ THIẾU GÂY LỖI 404 ĐÃ ĐƯỢC THÊM VÀO ĐÂY =====
 //
@@ -110,6 +112,18 @@ $router->addRoute('POST', '/workshops/assign', 'WorkshopController', 'assign');
 $router->addRoute('GET', '/yeucauxuat', 'YeuCauXuatController', 'index');
 $router->addRoute('POST', '/yeucauxuat/save', 'YeuCauXuatController', 'save');
 $router->addRoute('GET', '/yeucauxuat/list', 'YeuCauXuatController', 'list');
+// Route xem chi tiết phiếu yêu cầu
+$router->addRoute('GET', '/yeucauxuat/view/(.*)', 'YeuCauXuatController', 'view');
+// Accept /yeucauxuat/view with querystring ?ma=... as well
+$router->addRoute('GET', '/yeucauxuat/view', 'YeuCauXuatController', 'view');
+
+// Routes cho Phiếu Kiểm Tra Lô/Sản Phẩm
+$router->addRoute('GET', '/phieu-kiem-tra/create', 'PhieuKiemTraSPController', 'create');
+$router->addRoute('POST', '/phieu-kiem-tra/store', 'PhieuKiemTraSPController', 'store');
+$router->addRoute('GET', '/phieu-kiem-tra/index', 'PhieuKiemTraSPController', 'index');
+// View ticket detail (with or without path param)
+$router->addRoute('GET', '/phieu-kiem-tra/view/(.*)', 'PhieuKiemTraSPController', 'view');
+$router->addRoute('GET', '/phieu-kiem-tra/view', 'PhieuKiemTraSPController', 'view');
 
 // Routes cho quản lý nguyên vật liệu
 $router->addRoute('GET', '/materials', 'MaterialController', 'index');

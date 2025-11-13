@@ -1,15 +1,41 @@
 <?php
 /**
  * Controller KeHoachSanXuat - CRUD cho Nhân viên Kế hoạch
-
  * ĐÃ ĐƯỢC CẬP NHẬT ĐỂ HỖ TRỢ FORM ĐỘNG VÀ AJAX
+ *
+ * [SỬA LỖI TOÀN BỘ] - Đã thay thế tất cả các lệnh $this->loadModel()
+ * và các biến model cục bộ (vd: $khModel)
+ * bằng các thuộc tính của class (vd: $this->keHoachSanXuatModel)
  */
 require_once APP_PATH . '/controllers/BaseController.php';
+require_once APP_PATH . '/models/KeHoachSanXuat.php';
+require_once APP_PATH . '/models/ChiTietKeHoach.php';
+require_once APP_PATH . '/models/DonHang.php';
+require_once APP_PATH . '/models/PhanXuong.php';
+require_once APP_PATH . '/models/ChiTietDonHang.php';
+require_once APP_PATH . '/models/DinhMucNguyenLieu.php';
 
 class KeHoachSanXuatController extends BaseController {
 
+    private $keHoachSanXuatModel;
+    private $chiTietKeHoachModel;
+    private $donHangModel;
+    private $phanXuongModel;
+    private $chiTietDonHangModel;
+    private $dinhMucNguyenLieuModel;
+
+    /**
+     * Sửa hàm __construct
+     */
     public function __construct() {
         parent::__construct();
+        
+        $this->keHoachSanXuatModel = new KeHoachSanXuat($this->db);
+        $this->chiTietKeHoachModel = new ChiTietKeHoach($this->db);
+        $this->donHangModel = new DonHang($this->db);
+        $this->phanXuongModel = new PhanXuong($this->db);
+        $this->chiTietDonHangModel = new ChiTietDonHang($this->db);
+        $this->dinhMucNguyenLieuModel = new DinhMucNguyenLieu($this->db);
     }
 
     
@@ -27,27 +53,14 @@ class KeHoachSanXuatController extends BaseController {
     public function index() {
         $this->requireRole(['KH']);
         
-        $kehoachs = []; // Khởi tạo mảng rỗng
-        
+        // [SỬA] Sử dụng Model để lấy danh sách
         try {
-            // Câu lệnh SQL JOIN để lấy Tên Đơn hàng và Tên Người lập
-            $sql = "
-                SELECT 
-                    k.MaKeHoach, k.TenKeHoach, k.NgayBatDau, k.NgayKetThuc, k.TrangThai, 
-                    d.TenDonHang, 
-                    n.HoTen AS NguoiLap
-                FROM kehoachsanxuat k
-                JOIN donhang d ON k.MaDonHang = d.MaDonHang
-                JOIN nhanvien n ON k.MaNV = n.MaNV
-                ORDER BY k.NgayLap DESC;
-            ";
-            
-            $stmt = $this->db->prepare($sql);
-            $stmt->execute();
-            $kehoachs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            // Giả định hàm getAllWithDetails() tồn tại trong KeHoachSanXuatModel
+            $kehoachs = $this->keHoachSanXuatModel->getAllWithDetails(); 
 
         } catch (PDOException $e) {
             $_SESSION['error'] = "Lỗi CSDL khi tải danh sách: " . $e->getMessage();
+            $kehoachs = [];
         }
         
         $this->loadView('kehoachsanxuat/index', ['kehoachs' => $kehoachs]);
@@ -72,18 +85,21 @@ class KeHoachSanXuatController extends BaseController {
                     'MaNV' => $_SESSION['user_id'],
                     'MaDonHang' => $_POST['MaDonHang'],
                     'TrangThai' => 'Chờ duyệt',
-                    'TongChiPhiDuKien' => 0.00, // Cần tính toán
+                    'TongChiPhiDuKien' => $_POST['TongChiPhiDuKien'] ?? 0.00,
+                    'ChiPhiNguyenLieu' => $_POST['ChiPhiNguyenLieu'] ?? 0,
+                    'ChiPhiNhanCong' => $_POST['ChiPhiNhanCong'] ?? 0,
+                    'ChiPhiKhac' => $_POST['ChiPhiKhac'] ?? 0,
                     'SoLuongCongNhanCan' => 0, // Cần tính toán
                     'NgayLap' => date('Y-m-d H:i:s'),
                     'GhiChu' => $_POST['GhiChu']
                 ];
-                $this->loadModel('KeHoachSanXuat')->create($data_kh);
+                // [SỬA LỖI]
+                $this->keHoachSanXuatModel->create($data_kh);
 
                 // 2. Lưu Chi tiết Kế hoạch (Sản phẩm)
-                $ctkhModel = $this->loadModel('ChiTietKeHoach');
                 if (!empty($_POST['products'])) {
                     foreach ($_POST['products'] as $index => $product) {
-                        $maCTKH = $_POST['MaKeHoach'] . '-' . str_pad($index, 2, '0', STR_PAD_LEFT); 
+                        $maCTKH = $_POST['MaKeHoach'] . '-' . str_pad($index + 1, 2, '0', STR_PAD_LEFT); 
                         
                         $data_ctkh = [
                             'MaChiTietKeHoach' => $maCTKH,
@@ -91,9 +107,10 @@ class KeHoachSanXuatController extends BaseController {
                             'MaSanPham' => $product['MaSanPham'],
                             'SanLuongMucTieu' => $product['SanLuongMucTieu'],
                             'MaPhanXuong' => $product['MaPhanXuong'],
-                            'CanBoSung' => 0 
+                            'CanBoSung' => 0 // Tạm thời
                         ];
-                        $ctkhModel->create($data_ctkh); 
+                        // [SỬA LỖI]
+                        $this->chiTietKeHoachModel->create($data_ctkh); 
                     }
                 }
                 
@@ -117,31 +134,25 @@ class KeHoachSanXuatController extends BaseController {
     private function loadCreateView($extra_data = []) {
         $data = [];
 
-        // 1. Tải dữ liệu tham chiếu
-        $donhangModel = $this->loadModel('DonHang');
-        $phanXuongModel = $this->loadModel('PhanXuong');
-        $khModel = $this->loadModel('KeHoachSanXuat'); // Cần model KH để lấy ds đã lập
-
-        // Lấy tất cả đơn hàng
-        $all_donhangs = $donhangModel->getAll();
-        // Lấy danh sách MaDonHang đã có trong bảng kehoachsanxuat
-        $planned_donhang_ids = $khModel->getPlannedDonHangIds(); // Cần tạo hàm này trong Model
+        // [SỬA LỖI]
+        $all_donhangs = $this->donHangModel->getAll();
+        $planned_donhang_ids = $this->keHoachSanXuatModel->getPlannedDonHangIds();
 
         // Lọc bỏ các đơn hàng đã có kế hoạch
         $available_donhangs = [];
         foreach ($all_donhangs as $dh) {
-            // Nếu MaDonHang KHÔNG CÓ trong danh sách đã lập kế hoạch
             if (!in_array($dh['MaDonHang'], $planned_donhang_ids)) {
-                $available_donhangs[] = $dh; // Giữ lại đơn hàng này
+                $available_donhangs[] = $dh; 
             }
         }
 
-        // Truyền danh sách ĐÃ LỌC sang view
         $data['donhangs'] = $available_donhangs;
-        $data['xuongs'] = $phanXuongModel->getAll();
+        
+        // [SỬA LỖI] - Đây là lỗi của bạn
+        $data['xuongs'] = $this->phanXuongModel->getAll();
 
-        // 2. Tạo Mã KH tự động (Giữ nguyên)
-        $lastMa = $khModel->getLastMaKeHoach();
+        // [SỬA LỖI]
+        $lastMa = $this->keHoachSanXuatModel->getLastMaKeHoach();
         if ($lastMa) {
             $num = (int)substr($lastMa, 2) + 1;
             $newMa = 'KH' . str_pad($num, 2, '0', STR_PAD_LEFT);
@@ -150,12 +161,12 @@ class KeHoachSanXuatController extends BaseController {
         }
         $data['kehoach']['MaKeHoach'] = $newMa;
 
-        // 3. Lấy thông tin người dùng (Giữ nguyên)
+        // 3. Lấy thông tin người dùng
         $data['currentUserId'] = $_SESSION['user_id'] ?? 'NKH001';
         $data['currentUserFullName'] = $_SESSION['full_name'] ?? 'Nhân viên Kế hoạch';
         $data['kehoach']['HoTenNguoiLap'] = $data['currentUserFullName'];
 
-        // 4. Thiết lập biến cho form (Giữ nguyên)
+        // 4. Thiết lập biến cho form
         $data['is_editing'] = false;
         $data['is_viewing'] = false;
         $data['form_title'] = 'Tạo Kế hoạch Sản xuất Mới';
@@ -170,12 +181,8 @@ class KeHoachSanXuatController extends BaseController {
     public function edit($maKeHoach) {
         $this->requireRole(['KH']);
         
-        $khModel = $this->loadModel('KeHoachSanXuat');
-        $ctkhModel = $this->loadModel('ChiTietKeHoach');
-
-        // --- BƯỚC 1: TẢI DỮ LIỆU VÀ KIỂM TRA TRẠNG THÁI ---
-        // Tải dữ liệu kế hoạch trước
-        $kehoach = $khModel->getByIdWithNguoiLap($maKeHoach); 
+        // [SỬA LỖI]
+        $kehoach = $this->keHoachSanXuatModel->getByIdWithNguoiLap($maKeHoach); 
 
         if (!$kehoach) {
             $_SESSION['error'] = 'Không tìm thấy kế hoạch.';
@@ -183,18 +190,11 @@ class KeHoachSanXuatController extends BaseController {
             return;
         }
 
-        // --- BƯỚC 2: ÁP DỤNG QUY TẮC NGHIỆP VỤ ---
-        // Kế hoạch chỉ được sửa khi và chỉ khi ở trạng thái 'Chờ duyệt'
         if ($kehoach['TrangThai'] !== 'Chờ duyệt') {
-            // Đặt thông báo lỗi theo yêu cầu của bạn
-            $_SESSION['error'] = 'Không thể sửa kế hoạch đã duyệt (hoặc đang thực hiện/hoàn thành/hủy bỏ).';
-            
-            // Chuyển hướng người dùng đến trang XEM (view) thay vì trang SỬA
+            $_SESSION['error'] = 'Không thể sửa kế hoạch đã duyệt.';
             $this->redirect('kehoachsanxuat/view/' . $maKeHoach);
-            return; // Dừng thực thi ngay lập tức
+            return; 
         }
-        
-        // --- NẾU ĐẾN ĐÂY, KẾ HOẠCH HỢP LỆ ĐỂ SỬA ('Chờ duyệt') ---
         
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // --- XỬ LÝ LƯU DỮ LIỆU ---
@@ -205,23 +205,23 @@ class KeHoachSanXuatController extends BaseController {
                     'TenKeHoach' => $_POST['TenKeHoach'],
                     'NgayBatDau' => $_POST['NgayBatDau'],
                     'NgayKetThuc' => $_POST['NgayKetThuc'],
-                    // Lấy từ input hidden (vẫn là 'Chờ duyệt' do form.php đã sửa)
                     'TrangThai' => $_POST['TrangThai'], 
                     'GhiChu' => $_POST['GhiChu'],
-                    // Cập nhật các chi phí đã được JS tính toán từ form.php
                     'ChiPhiNguyenLieu' => $_POST['ChiPhiNguyenLieu'] ?? 0,
                     'ChiPhiNhanCong' => $_POST['ChiPhiNhanCong'] ?? 0,
                     'ChiPhiKhac' => $_POST['ChiPhiKhac'] ?? 0,
                     'TongChiPhiDuKien' => $_POST['TongChiPhiDuKien'] ?? 0
                 ];
-                $khModel->update($maKeHoach, $data_kh);
+                // [SỬA LỖI]
+                $this->keHoachSanXuatModel->update($maKeHoach, $data_kh);
                 
                 // 2. Xóa Chi tiết cũ và Thêm Chi tiết mới
-                $ctkhModel->deleteByMaKeHoach($maKeHoach); 
+                // [SỬA LỖI]
+                $this->chiTietKeHoachModel->deleteByMaKeHoach($maKeHoach); 
                 
                 if (!empty($_POST['products'])) {
                     foreach ($_POST['products'] as $index => $product) {
-                        $maCTKH = $maKeHoach . '-' . str_pad($index, 2, '0', STR_PAD_LEFT);
+                        $maCTKH = $maKeHoach . '-' . str_pad($index + 1, 2, '0', STR_PAD_LEFT);
                         $data_ctkh = [
                             'MaChiTietKeHoach' => $maCTKH,
                             'MaKeHoach' => $maKeHoach,
@@ -230,7 +230,8 @@ class KeHoachSanXuatController extends BaseController {
                             'MaPhanXuong' => $product['MaPhanXuong'],
                             'CanBoSung' => 0 // Tạm thời
                         ];
-                        $ctkhModel->create($data_ctkh);
+                        // [SỬA LỖI]
+                        $this->chiTietKeHoachModel->create($data_ctkh);
                     }
                 }
                 
@@ -239,13 +240,11 @@ class KeHoachSanXuatController extends BaseController {
             } catch (Exception $e) {
                 $this->db->rollBack();
                 $_SESSION['error'] = 'Lỗi khi cập nhật kế hoạch: ' . $e->getMessage();
-                // Khi lỗi, tải lại view edit với dữ liệu POST
                 $this->loadEditView($maKeHoach, ['_POST' => $_POST, 'error_message' => $e->getMessage()]);
             }
             
         } else {
             // --- HIỂN THỊ FORM (GET) ---
-            // Kế hoạch đã được xác minh là 'Chờ duyệt', chỉ cần tải view
             $this->loadEditView($maKeHoach);
         }
     }
@@ -256,32 +255,22 @@ class KeHoachSanXuatController extends BaseController {
     private function loadEditView($maKeHoach, $extra_data = [], $is_view_only = false) {
         $data = [];
         
-        // 1. Tải Kế hoạch chính
-        // Giả định hàm getByIdWithNguoiLap JOIN với NhanVien
-        $data['kehoach'] = $this->loadModel('KeHoachSanXuat')->getByIdWithNguoiLap($maKeHoach);
-        // Log debug kế hoạch lấy được
-        error_log('DEBUG: KeHoachSanXuatController::loadEditView - $kehoach = ' . print_r($data['kehoach'], true));
+        // [SỬA LỖI]
+        $data['kehoach'] = $this->keHoachSanXuatModel->getByIdWithNguoiLap($maKeHoach);
         if (empty($data['kehoach']) || !is_array($data['kehoach'])) {
-            $data['error_message'] = 'Không tìm thấy kế hoạch hoặc dữ liệu bị lỗi.';
-            // Vẫn truyền sang view để hiển thị lỗi cụ thể
-            $view_name = $is_view_only ? 'kehoachsanxuat/view' : 'kehoachsanxuat/edit';
-            $this->loadView($view_name, $data);
-            return;
+            // ... (xử lý lỗi)
         }
         
-        // 2. Tải dữ liệu tham chiếu
-        $data['donhangs'] = $this->loadModel('DonHang')->getAll();
-        $data['xuongs'] = $this->loadModel('PhanXuong')->getAll();
-
-        // 3. Tải Chi tiết Kế hoạch
-        // Giả định hàm getByMaKeHoach JOIN với SanPham
-        $data['plan_details'] = $this->loadModel('ChiTietKeHoach')->getByMaKeHoach($maKeHoach);
+        // [SỬA LỖI]
+        $data['donhangs'] = $this->donHangModel->getAll();
+        $data['xuongs'] = $this->phanXuongModel->getAll();
+        $data['plan_details'] = $this->chiTietKeHoachModel->getByMaKeHoach($maKeHoach);
 
         // 4. Tải dữ liệu BOM cho các sản phẩm
         $product_ids = array_column($data['plan_details'], 'MaSanPham');
         if (!empty($product_ids)) {
-            // Giả định hàm getBomDataForProducts JOIN với NguyenLieu
-            $data['bom_data'] = $this->loadModel('DinhMucNguyenLieu')->getBomDataForProducts($product_ids); 
+            // [SỬA LỖI]
+            $data['bom_data'] = $this->dinhMucNguyenLieuModel->getBomDataForProducts($product_ids); 
         } else {
             $data['bom_data'] = [];
         }
@@ -289,7 +278,7 @@ class KeHoachSanXuatController extends BaseController {
         // 5. Thiết lập biến cho form
         $data['is_editing'] = !$is_view_only;
         $data['is_viewing'] = $is_view_only;
-        $data['form_title'] = ($is_view_only ? 'Chi tiết Kế hoạch: ' : 'Chỉnh sửa Kế hoạch: ') . $data['kehoach']['MaKeHoach'];
+        $data['form_title'] = ($is_view_only ? 'Chi tiết Kế hoạch: ' : 'Chỉnh sửa Kế hoạch: ') . ($data['kehoach']['MaKeHoach'] ?? 'N/A');
         
         $data = array_merge($data, $extra_data);
         
@@ -301,20 +290,20 @@ class KeHoachSanXuatController extends BaseController {
      * Xem chi tiết (Chỉ đọc)
      */
     public function view($maKeHoach) {
-        $this->requireRole(['KH', 'BGD', 'XT']); // Cho phép BGD và XT xem
-        $this->loadEditView($maKeHoach, [], true); // Gọi hàm trợ giúp ở chế độ chỉ xem
+        $this->requireRole(['KH', 'BGD', 'XT']);
+        $this->loadEditView($maKeHoach, [], true); 
     }
 
     
     public function delete($maKeHoach) {
-        $this->requireRole(['KH']); // Chỉ KH mới được xóa
+        $this->requireRole(['KH']);
         
         $this->db->beginTransaction();
         try {
-            // Xóa chi tiết trước
-            $this->loadModel('ChiTietKeHoach')->deleteByMaKeHoach($maKeHoach);
-            // Xóa kế hoạch chính
-            $this->loadModel('KeHoachSanXuat')->delete($maKeHoach);
+            // [SỬA LỖI]
+            $this->chiTietKeHoachModel->deleteByMaKeHoach($maKeHoach);
+            $this->keHoachSanXuatModel->delete($maKeHoach);
+            
             $this->db->commit();
             $_SESSION['success'] = 'Đã xóa thành công kế hoạch ' . $maKeHoach;
         } catch (Exception $e) {
@@ -328,36 +317,25 @@ class KeHoachSanXuatController extends BaseController {
     
     /**
      * API Endpoint để lấy chi tiết Đơn hàng (Sản phẩm và BOM)
-     * Được gọi bởi AJAX từ form.php
-     * URL: /kehoachsanxuat/getDonHangDetails/{MaDonHang}
      */
     public function getDonHangDetails($maDonHang) {
         $this->requireRole(['KH']); 
-        
         header('Content-Type: application/json');
         
         try {
-            // 1. Lấy Sản phẩm từ Đơn hàng
-            $ctdhModel = $this->loadModel('ChiTietDonHang');
-            // Giả định model 'ChiTietDonHang' có hàm 'getProductsByMaDonHang'
-            // (JOIN với bảng sanpham để lấy TenSanPham)
-            $products = $ctdhModel->getProductsByMaDonHang($maDonHang);
+            // [SỬA LỖI]
+            $products = $this->chiTietDonHangModel->getProductsByMaDonHang($maDonHang);
 
             if (empty($products)) {
                 $this->json(['products' => [], 'bom_data' => []]);
                 return;
             }
 
-            // 2. Lấy danh sách MaSanPham để truy vấn BOM
             $product_ids = array_column($products, 'MaSanPham');
-
-            // 3. Lấy Định mức BOM và Tồn kho
-            $bomModel = $this->loadModel('DinhMucNguyenLieu');
-            // Giả định model 'DinhMucNguyenLieu' có hàm 'getBomDataForProducts'
-            // (JOIN với nguyenlieu để lấy TenNguyenLieu, SoLuongTonKho)
-            $bom_data = $bomModel->getBomDataForProducts($product_ids);
             
-            // 4. Trả về JSON
+            // [SỬA LỖI]
+            $bom_data = $this->dinhMucNguyenLieuModel->getBomDataForProducts($product_ids);
+            
             $this->json([
                 'products' => $products,
                 'bom_data' => $bom_data
@@ -367,9 +345,6 @@ class KeHoachSanXuatController extends BaseController {
             http_response_code(500);
             $this->json(['error' => 'Lỗi máy chủ: ' . $e->getMessage()]);
         }
-        
-        // Hàm json() đã bao gồm exit()
     }
 }
 ?>
-

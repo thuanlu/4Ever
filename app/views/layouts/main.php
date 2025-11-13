@@ -1,3 +1,4 @@
+
 <?php
 if (!function_exists('getRoleDisplayName')) {
   function getRoleDisplayName($role) {
@@ -242,5 +243,4 @@ if (!function_exists('getRoleDisplayName')) {
     }
   }
   ?>
-</body>
-</html>
+

@@ -2,14 +2,18 @@
 // public/js/phanca.js
 (function () {
   // 1) Stub để tránh lỗi undefined khi HTML gọi inline
+
   window.calculateDays = function () { };
   window.calculateQuantity = function () { };
+
 
   // 2) Chỉ chạy JS ở trang phân ca
   if (!document.body.classList.contains('page-shift-assign')) return;
 
   // 3) Config API (KHAI BÁO MỘT LẦN DUY NHẤT)
+
   const BASE_URL = (window.BASE_URL || '/4Ever/').replace(/\/+$/, '/');
+
   const API = BASE_URL + 'public/api_phanca.php';
 
   // ====== Helpers ======
@@ -17,6 +21,7 @@
 
   const el = {
     // Inputs chính
+
     ticketId: $('ticketId'),
     workName: $('workName'),
     totalQty: $('totalQty'),
@@ -39,6 +44,7 @@
     workerGrid: $('workerGrid'),
     assignmentTable: $('assignmentTable'),
     alertBox: $('alertBox'),
+
   };
 
   let currentWorkers = [];
@@ -84,6 +90,7 @@
 
   function calculateQuantity() {
     const total = Number(el.totalQty.value || 0);
+
     const pct = Math.min(100, Math.max(0, Number(el.percentage.value || 0)));
     const days = Number(el.totalDays.textContent || 0);
 
@@ -94,6 +101,7 @@
 
     el.shiftQty.textContent = String(qtyForShift);
     el.qtyPerDay.textContent = String(perDay);
+
     el.qtyPerWorker.textContent = String(perWorker);
   }
 
@@ -111,9 +119,11 @@
       el.workerGrid.innerHTML = `<div class="text-muted">Không có công nhân cho ca này.</div>`;
     } else {
       el.workerGrid.innerHTML = currentWorkers.map(w => {
+
         const id = w.MaNV ?? w.id ?? w.code ?? '';
         const name = w.HoTen ?? w.fullname ?? w.name ?? '';
         const bp = w.BoPhan ? ` • ${w.BoPhan}` : '';
+
         return `
           <label class="form-check d-inline-flex align-items-center p-2 border rounded me-2 mb-2" style="min-width:240px">
             <input type="checkbox" class="form-check-input me-2" value="${id}" onchange="onWorkerCheck(this)">
@@ -125,6 +135,7 @@
 
     el.workerCount.textContent = String(currentWorkers.length);
     el.shiftName.textContent = el.shiftType.selectedOptions[0]?.textContent || '';
+
     calculateQuantity();
   }
 
@@ -176,6 +187,7 @@
       // Công việc hiển thị đẹp: "Sản xuất [Tên SP]" (nếu có product_type)
       const pvType = t.product_type ? (t.product_type + ' ') : '';
       const pvName = t.product_name || (t.work_name || '');
+
       el.workName.value = (pvType + pvName).trim();
       el.totalQty.value = t.total_qty || 0;
       el.prodSize.value = t.size || '';
@@ -183,6 +195,7 @@
 
       if (t.start_date) el.startDate.value = t.start_date;
       if (t.end_date) el.endDate.value = t.end_date;
+
 
       calculateDays();
 
@@ -240,6 +253,7 @@
     }
   }
 
+
   window.removeAssignment = async function (id) {
     if (!id) return;
     try {
@@ -248,11 +262,14 @@
       showAlert('success', 'Đã xoá');
       loadAssignmentTable();
     } catch (e) { showAlert('danger', 'Lỗi xoá: ' + e.message); }
+
   };
 
   // ====== Thêm/Lưu ======
   window.addToList = function () {
+
     if (selectedWorkers.size === 0) return showAlert('warning', 'Chưa chọn công nhân');
+
     showAlert('success', `Đã chọn ${selectedWorkers.size} công nhân (chưa lưu)`);
   };
 
@@ -276,21 +293,26 @@
       await loadAssignmentTable();
     } catch (e) {
       showAlert('danger', 'Lỗi lưu: ' + e.message);
+
     }
   };
 
   // ====== Events ======
   el.startDate?.addEventListener('change', calculateDays);
   el.endDate?.addEventListener('change', calculateDays);
+
   el.percentage?.addEventListener('input', calculateQuantity);
   el.shiftType?.addEventListener('change', () => loadWorkers(currentTicket?.workshop || ''));
 
   // ====== Init ======
   document.addEventListener('DOMContentLoaded', async () => {
     try { await loadTicketOptions(); } catch (e) { }
+
     // Nếu trong select đã có sẵn P00x thì load luôn
     if (el.ticketId.value) await loadTicketData();
   });
   window.calculateDays = calculateDays;
+
   window.calculateQuantity = calculateQuantity;
+
 })();

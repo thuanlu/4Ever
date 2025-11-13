@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+<?php $pageTitle = "Kế hoạch Sản xuất"; ?>
+>>>>>>> 846529c2f597edacc8365b20a207f0deb2f52c10
 <?php
 
 ob_start();

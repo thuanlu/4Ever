@@ -98,34 +98,42 @@ $currentDate = date('Y-m-d');
                     <thead class="table-light">
                         <tr>
                             <th style="width: 15%;">Mã nguyên liệu</th>
-                            <th style="width: 30%;">Tên nguyên liệu</th>
+                            <th style="width: 25%;">Tên nguyên liệu</th>
+                            <th style="width: 10%;">ĐVT</th> 
                             <th style="width: 15%;">Số lượng thiếu</th>
-                            <th style="width: 20%;">Đơn giá (dự kiến)</th>
-                            <th style="width: 20%;">Thành tiền (dự kiến)</th>
+                            <th style="width: 15%;">Đơn giá dự kiến (VNĐ/ĐVT)</th>
+                            <th style="width: 20%;">Thành tiền (VNĐ)</th>
                         </tr>
                     </thead>
                     <tbody id="nvlTableBody">
                         <?php // Dành cho CHẾ ĐỘ XEM (VIEW)
                         if ($isView && !empty($chiTiet)): ?>
-                            <?php foreach ($chiTiet as $item): ?>
+                            <?php foreach ($chiTiet as $item): 
+                                $donGia = $item['DonGia'] ?? 0;
+                                $thanhTien = $item['ThanhTien'] ?? 0;
+                                $donViTinh = $item['DonViTinh'] ?? ''; // <-- THÊM MỚI
+                            ?>
                                 <tr>
                                     <td><input type="text" class="form-control" value="<?php echo htmlspecialchars($item['MaNVL']); ?>" readonly></td>
                                     <td><input type="text" class="form-control" value="<?php echo htmlspecialchars($item['TenNVL']); ?>" readonly></td>
-                                    <td><input type="number" class="form-control" value="<?php echo htmlspecialchars($item['SoLuongCan']); ?>" readonly></td>
-                                    <td><input type="number" class="form-control" value="<?php echo htmlspecialchars($item['DonGia']); ?>" readonly></td>
-                                    <td><input type="number" class="form-control" value="<?php echo htmlspecialchars($item['ThanhTien']); ?>" readonly></td>
+                                    
+                                    <td><input type="text" class="form-control" value="<?php echo htmlspecialchars($donViTinh); ?>" readonly></td>
+                                    
+                                    <td><input type="number" class="form-control text-end" value="<?php echo htmlspecialchars($item['SoLuongCan']); ?>" readonly></td>
+                                    <td><input type="text" class="form-control text-end" value="<?php echo number_format($donGia, 0, ',', '.'); ?>" readonly></td>
+                                    <td><input type="text" class="form-control text-end" value="<?php echo number_format($thanhTien, 0, ',', '.'); ?>" readonly></td>
                                 </tr>
                             <?php endforeach; ?>
                         
                         <?php // Dành cho CHẾ ĐỘ TẠO (CREATE)
                         elseif (!$isView): ?>
                             <tr>
-                                <td colspan="5" class="text-center" id="nvl-placeholder">Vui lòng chọn Kế hoạch sản xuất...</td>
+                                <td colspan="6" class="text-center" id="nvl-placeholder">Vui lòng chọn Kế hoạch sản xuất...</td>
                             </tr>
                         <?php // Dành cho CHẾ ĐỘ XEM (VIEW) nhưng không có chi tiết
                         else: ?>
                             <tr>
-                                <td colspan="5" class="text-center">Không có chi tiết nguyên vật liệu.</td>
+                                <td colspan="6" class="text-center">Không có chi tiết nguyên vật liệu.</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
@@ -134,8 +142,12 @@ $currentDate = date('Y-m-d');
             
             <div class="row justify-content-end mt-3">
                 <div class="col-md-4">
-                    <label for="TongChiPhiDuKien" class="form-label fw-bold">Tổng chi phí dự kiến</label>
-                    <input type="number" class="form-control form-control-lg bg-light" id="TongChiPhiDuKien" name="TongChiPhiDuKien" value="<?php echo htmlspecialchars($phieu['TongChiPhiDuKien'] ?? 0); ?>" readonly>
+                    <label for="TongChiPhiDuKienDisplay" class="form-label fw-bold">Tổng chi phí dự kiến (VNĐ)</label>
+                    
+                    <input type="text" class="form-control form-control-lg bg-light text-end" id="TongChiPhiDuKienDisplay" 
+                           value="<?php echo number_format($phieu['TongChiPhiDuKien'] ?? 0, 0, ',', '.'); ?>" readonly>
+                    <input type="hidden" id="TongChiPhiDuKien" name="TongChiPhiDuKien" 
+                           value="<?php echo htmlspecialchars($phieu['TongChiPhiDuKien'] ?? 0); ?>">
                 </div>
             </div>
 
@@ -188,9 +200,21 @@ document.addEventListener('DOMContentLoaded', function() {
     const tableBody = document.getElementById('nvlTableBody');
     const placeholder = document.getElementById('nvl-placeholder');
     const loadingDiv = document.getElementById('nvl-loading');
-    const tongChiPhiInput = document.getElementById('TongChiPhiDuKien');
+    
+    // SỬA ĐỔI: Lấy cả 2 ô tổng chi phí
+    const tongChiPhiInput = document.getElementById('TongChiPhiDuKien'); // Ô hidden
+    const tongChiPhiDisplay = document.getElementById('TongChiPhiDuKienDisplay'); // Ô text hiển thị
+    
     const tenPhieuInput = document.getElementById('TenPhieu');
     const baseUrl = '<?php echo BASE_URL; ?>';
+
+    /**
+     * SỬA ĐỔI: Thêm hàm định dạng tiền
+     * Format number to Vietnamese currency string (e.g., 1000000 -> "1.000.000")
+     */
+    function formatCurrency(number) {
+        return parseFloat(number).toLocaleString('vi-VN');
+    }
 
     // --- Xử lý sự kiện thay đổi Kế hoạch ---
     if (maKHSXSelect) {
@@ -200,9 +224,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Reset
             tableBody.innerHTML = '';
-            tongChiPhiInput.value = 0;
+            // SỬA ĐỔI: Reset cả 2 ô
+            if (tongChiPhiInput) tongChiPhiInput.value = 0;
+            if (tongChiPhiDisplay) tongChiPhiDisplay.value = 0; // Hiển thị số 0
             
-            // [SỬA] Đã vô hiệu hóa tính năng tự động điền tên phiếu
             /*
             if (tenPhieuInput.value.trim() === '') {
                 tenPhieuInput.value = `Phiếu NVL cho ${tenKeHoachSelected}`;
@@ -235,18 +260,21 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (data.materials && data.materials.length > 0) {
                         buildHtmlTable(data.materials);
                     } else {
-                        tableBody.innerHTML = '<tr><td colspan="5" class="text-center text-success">Kế hoạch này không thiếu nguyên vật liệu.</td></tr>';
+                        tableBody.innerHTML = '<tr><td colspan="6" class="text-center text-success">Kế hoạch này không thiếu nguyên vật liệu.</td></tr>';
                     }
                 })
                 .catch(error => {
                     if (loadingDiv) loadingDiv.style.display = 'none';
-                    tableBody.innerHTML = `<tr><td colspan="5" class="text-center text-danger">Lỗi: ${error.message}</td></tr>`;
+                    tableBody.innerHTML = `<tr><td colspan="6" class="text-center text-danger">Lỗi: ${error.message}</td></tr>`;
                 });
         });
     }
 
     /**
      * Xây dựng bảng HTML từ dữ liệu JSON trả về
+     */
+    /**
+     * Xây dựng bảng HTML từ dữ liệu JSON trả về (ĐÃ SỬA LỖI)
      */
     function buildHtmlTable(materials) {
         let totalCost = 0;
@@ -255,13 +283,13 @@ document.addEventListener('DOMContentLoaded', function() {
         materials.forEach((item, index) => {
             // Lấy giá trị, đảm bảo là số
             const soLuongThieu = parseFloat(item.SoLuongThieu) || 0;
-            const donGia = parseFloat(item.DonGia) || 0; // DonGia này lấy từ CSDL (bảng nguyenlieu)
+            const donGia = parseFloat(item.DonGia) || 0; 
             const thanhTien = soLuongThieu * donGia;
+            const donViTinh = item.DonViTinh || ''; // Lấy ĐVT
             totalCost += thanhTien;
 
             const newRow = document.createElement('tr');
             
-            // Tên của input PHẢI khớp với logic đọc ở Controller (hàm store)
             newRow.innerHTML = `
                 <td>
                     <input type="text" class="form-control" name="materials[${index}][MaNVL]" value="${item.MaNVL}" readonly>
@@ -269,21 +297,30 @@ document.addEventListener('DOMContentLoaded', function() {
                 <td>
                     <input type="text" class="form-control" name="materials[${index}][TenNVL]" value="${item.TenNVL}" readonly>
                 </td>
+
                 <td>
-                    <input type="number" class="form-control" name="materials[${index}][SoLuongCan]" value="${soLuongThieu.toFixed(2)}" readonly>
+                    <input type="text" class="form-control" value="${donViTinh}" readonly>
+                    <input type="hidden" name="materials[${index}][DonViTinh]" value="${donViTinh}">
+                </td>
+
+                <td>
+                    <input type="number" class="form-control text-end" name="materials[${index}][SoLuongCan]" value="${soLuongThieu.toFixed(2)}" readonly>
                 </td>
                 <td>
-                    <input type="number" class="form-control" name="materials[${index}][DonGia]" value="${donGia.toFixed(2)}" readonly>
+                    <input type="text" class="form-control text-end" value="${formatCurrency(donGia)}" readonly>
+                    <input type="hidden" name="materials[${index}][DonGia]" value="${donGia.toFixed(2)}">
                 </td>
                 <td>
-                    <input type="number" class="form-control" name="materials[${index}][ThanhTien]" value="${thanhTien.toFixed(2)}" readonly>
+                    <input type="text" class="form-control text-end" value="${formatCurrency(thanhTien)}" readonly>
+                    <input type="hidden" name="materials[${index}][ThanhTien]" value="${thanhTien.toFixed(2)}">
                 </td>
             `;
             tableBody.appendChild(newRow);
         });
 
-        // Cập nhật tổng chi phí
-        tongChiPhiInput.value = totalCost.toFixed(2);
+        // Cập nhật tổng chi phí (chỉ chạy 1 lần sau khi vòng lặp kết thúc)
+        if (tongChiPhiInput) tongChiPhiInput.value = totalCost.toFixed(2);
+        if (tongChiPhiDisplay) tongChiPhiDisplay.value = formatCurrency(totalCost);
     }
 });
 </script>

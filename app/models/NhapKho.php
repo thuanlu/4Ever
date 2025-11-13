@@ -11,6 +11,44 @@ class NhapKho {
     private $database;
 
     /**
+     * LOGIC CỐT LÕI: Thực hiện nhập kho (không có transaction)
+     * Sẽ throw Exception nếu thất bại.
+     */
+    private function _thucHienNhapKho($maLoHang, $maNV) {
+        // 1. Lấy thông tin lô hàng
+        $loHang = $this->getLoHangById($maLoHang);
+        if (!$loHang) {
+            throw new Exception("Không tìm thấy lô hàng ($maLoHang)!");
+        }
+
+        // 2. Kiểm tra QC: chỉ cần có bất kỳ kết quả 'Đạt' nào
+        if (!$this->isLoHangDatQC($maLoHang)) {
+            $ketQuaLatest = $this->getKetQuaLatest($maLoHang);
+            throw new Exception("Lô hàng ($maLoHang) chưa đạt QC! (KQ gần nhất: " . ($ketQuaLatest ?? 'NULL') . ")");
+        }
+
+        // 3. Kiểm tra đã nhập chưa
+        if ($this->daNhapKho($maLoHang)) {
+            throw new Exception("Lô hàng ($maLoHang) đã được nhập kho rồi!");
+        }
+
+        // 4. Tạo phiếu nhập kho (đồng thời là mốc đánh dấu đã nhập)
+        $maKDLatest = $this->getMaKDLatest($maLoHang);
+        $maPhieuNhap = $this->insertPhieuNhapKho($maLoHang, $maNV, '', $maKDLatest);
+        if (!$maPhieuNhap) {
+            throw new Exception("Lỗi tạo phiếu nhập kho cho lô ($maLoHang)!");
+        }
+
+        // 5. Cập nhật tồn kho
+        if (!$this->updateTonKho($loHang['MaSanPham'], $loHang['SoLuong'])) {
+            throw new Exception("Lỗi cập nhật tồn kho cho sản phẩm (" . $loHang['MaSanPham'] . ")!");
+        }
+
+        // Trả về mã phiếu nhập nếu thành công
+        return $maPhieuNhap;
+    }
+
+    /**
      * Constructor - Khởi tạo kết nối database
      */
     public function __construct() {
@@ -347,45 +385,15 @@ class NhapKho {
     }
 
     /**
-     * Xử lý nhập kho một lô hàng
-     * Thực hiện tất cả các bước: cập nhật trạng thái, tạo phiếu, cập nhật tồn kho
-     * 
-     * @param string $maLoHang Mã lô hàng
-     * @param string $maNV Mã nhân viên
-     * @return array Kết quả với mã phiếu nhập và thông báo
+     * Xử lý nhập kho MỘT lô hàng (Bao bọc trong transaction)
      */
     public function nhapKhoLoHang($maLoHang, $maNV) {
         try {
             // Bắt đầu transaction
             $this->conn->beginTransaction();
 
-            // 1. Lấy thông tin lô hàng
-            $loHang = $this->getLoHangById($maLoHang);
-            if (!$loHang) {
-                throw new Exception("Không tìm thấy lô hàng!");
-            }
-
-            // Kiểm tra QC: chỉ cần có bất kỳ kết quả 'Đạt' nào
-            if (!$this->isLoHangDatQC($maLoHang)) {
-                $ketQuaLatest = $this->getKetQuaLatest($maLoHang);
-                throw new Exception("Lô hàng chưa đạt QC! (KQ gần nhất: " . ($ketQuaLatest ?? 'NULL') . ")");
-            }
-
-            if ($this->daNhapKho($maLoHang)) {
-                throw new Exception("Lô hàng đã được nhập kho rồi!");
-            }
-
-            // 2. Tạo phiếu nhập kho (đồng thời là mốc đánh dấu đã nhập)
-            $maKDLatest = $this->getMaKDLatest($maLoHang);
-            $maPhieuNhap = $this->insertPhieuNhapKho($maLoHang, $maNV, '', $maKDLatest);
-            if (!$maPhieuNhap) {
-                throw new Exception("Lỗi tạo phiếu nhập kho!");
-            }
-
-            // 3. Cập nhật tồn kho
-            if (!$this->updateTonKho($loHang['MaSanPham'], $loHang['SoLuong'])) {
-                throw new Exception("Lỗi cập nhật tồn kho!");
-            }
+            // Gọi logic cốt lõi
+            $maPhieuNhap = $this->_thucHienNhapKho($maLoHang, $maNV);
 
             // Commit transaction
             $this->conn->commit();
@@ -409,59 +417,64 @@ class NhapKho {
     }
 
     /**
-     * Nhập kho nhiều lô hàng cùng lúc
-     * 
-     * @param array $danhSachLoHang Mảng mã lô hàng
-     * @param string $maNV Mã nhân viên
-     * @return array Kết quả tổng hợp
+     * Nhập kho NHIỀU lô hàng cùng lúc (Toàn bộ là một transaction)
      */
     public function nhapKhoNhieuLoHang($danhSachLoHang, $maNV) {
         error_log("nhapKhoNhieuLoHang called with " . count($danhSachLoHang) . " lots: " . implode(', ', $danhSachLoHang));
         
+        // BẮT ĐẦU GIAO DỊCH LỚN
+        $this->conn->beginTransaction();
+        
         $results = [];
         $successCount = 0;
-        $failCount = 0;
-        $failedLots = [];
+        $failedLotsInfo = []; // Chỉ để debug
 
-        foreach ($danhSachLoHang as $index => $maLoHang) {
-            error_log("Processing lot $index: $maLoHang");
-            $result = $this->nhapKhoLoHang($maLoHang, $maNV);
-            if ($result['success']) {
+        try {
+            foreach ($danhSachLoHang as $index => $maLoHang) {
+                error_log("Processing lot $index: $maLoHang (trong transaction)");
+                
+                // Gọi logic cốt lõi (KHÔNG có transaction lồng nhau)
+                // Nếu hàm này throw Exception, toàn bộ khối try...catch sẽ bắt được
+                $maPhieuNhap = $this->_thucHienNhapKho($maLoHang, $maNV);
+                
+                $results[] = [
+                    'maLoHang' => $maLoHang,
+                    'maPhieuNhap' => $maPhieuNhap
+                ];
                 $successCount++;
-                error_log("Lot $maLoHang: Success");
-            } else {
-                $failCount++;
-                $errorMsg = $result['message'] ?? 'Unknown error';
-                $failedLots[] = $maLoHang . ': ' . $errorMsg;
-                error_log("Lot $maLoHang: Failed - $errorMsg");
             }
-            $results[] = [
-                'maLoHang' => $maLoHang,
-                'result' => $result
+
+            // Nếu vòng lặp chạy xong mà không có Exception
+            // -> TẤT CẢ đều thành công -> Commit
+            $this->conn->commit();
+            error_log("nhapKhoNhieuLoHang: COMMIT successful for $successCount lots.");
+
+            return [
+                'success' => true,
+                'successCount' => $successCount,
+                'failCount' => 0,
+                'message' => "Đã nhập thành công $successCount lô hàng.",
+                'details' => $results
+            ];
+
+        } catch (Exception $e) {
+            // NẾU CÓ BẤT KỲ LỖI NÀO (kể cả chỉ 1 lô)
+            // -> ROLLBACK TẤT CẢ
+            $this->conn->rollBack();
+            
+            // Lấy lỗi
+            $errorMsg = $e->getMessage();
+            error_log("nhapKhoNhieuLoHang: ROLLBACK triggered. Error: $errorMsg");
+
+            // Trả về lỗi
+            return [
+                'success' => false,
+                'successCount' => 0,
+                'failCount' => count($danhSachLoHang),
+                'message' => "Nhập kho thất bại! Lỗi: " . $errorMsg,
+                'details' => []
             ];
         }
-
-        $success = $successCount > 0; // coi là thành công nếu có ít nhất 1 lô nhập được
-        $message = "Đã nhập $successCount lô";
-        if ($failCount > 0) {
-            $message .= ", thất bại $failCount lô";
-            if (!empty($failedLots)) {
-                $message .= ". Chi tiết: " . implode('; ', array_slice($failedLots, 0, 3)); // Chỉ hiện 3 lỗi đầu
-                if (count($failedLots) > 3) {
-                    $message .= " ...";
-                }
-            }
-        }
-
-        error_log("nhapKhoNhieuLoHang result: success=$success, successCount=$successCount, failCount=$failCount");
-
-        return [
-            'success' => $success,
-            'successCount' => $successCount,
-            'failCount' => $failCount,
-            'message' => $message,
-            'details' => $results
-        ];
     }
 
     /**
@@ -496,4 +509,3 @@ class NhapKho {
 
 }
 ?>
-

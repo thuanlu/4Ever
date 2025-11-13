@@ -1,5 +1,6 @@
 <?php
 // [THAY THẾ TOÀN BỘ FILE: app/models/PhieuDatHangNVL.php]
+require_once __DIR__ . '/BaseModel.php'; // <--- THÊM DÒNG NÀY VÀO
 
 class PhieuDatHangNVL extends BaseModel {
     
@@ -103,13 +104,16 @@ class PhieuDatHangNVL extends BaseModel {
             // 4. [SỬA] Gán ID mới (VARCHAR) cho chi tiết, không dùng lastInsertId()
             $lastPhieuId = $newMaPhieu; 
 
-            $sqlChiTiet = "INSERT INTO $this->detailTable (MaPhieu, MaNVL, TenNVL, SoLuongCan, DonGia, ThanhTien) 
-                           VALUES (:MaPhieu, :MaNVL, :TenNVL, :SoLuongCan, :DonGia, :ThanhTien)";
+            $sqlChiTiet = "INSERT INTO $this->detailTable (MaPhieu, MaNVL, TenNVL, DonViTinh, SoLuongCan, DonGia, ThanhTien) 
+                           VALUES (:MaPhieu, :MaNVL, :TenNVL, :DonViTinh, :SoLuongCan, :DonGia, :ThanhTien)";
+            
             $stmtChiTiet = $this->db->prepare($sqlChiTiet);
 
             foreach ($chiTietData as $item) {
                 if (empty($item['MaNVL'])) continue;
                 $item['MaPhieu'] = $lastPhieuId; // Dùng ID mới 'PDNL04'
+                
+                // Mảng $item bây giờ đã có 'DonViTinh' (nhờ sửa Controller)
                 $stmtChiTiet->execute($item);
             }
 
@@ -186,11 +190,20 @@ class PhieuDatHangNVL extends BaseModel {
      * [HÀM MỚI] - (Requirement 4 - Đã đúng, không đổi)
      * Lấy chi tiết các NVL đang bị thiếu hụt cho 1 KHSX cụ thể (Dùng cho AJAX)
      */
+    /**
+     * [HÀM MỚI] - (Requirement 4 - Đã đúng, không đổi)
+     * Lấy chi tiết các NVL đang bị thiếu hụt cho 1 KHSX cụ thể (Dùng cho AJAX)
+     *
+     * [SỬA ĐỔI]: Đã thêm cột 'DonViTinh' từ bảng nguyenlieu
+     */
     public function getChiTietThieuHut($maKeHoach) {
         $sql = "
             SELECT
                 NhuCau.MaNguyenLieu AS MaNVL,
                 nl.TenNguyenLieu AS TenNVL,
+                
+                nl.DonViTinh AS DonViTinh, -- <-- ĐÃ THÊM DÒNG NÀY
+
                 ROUND((NhuCau.TongSoLuongCan - nl.SoLuongTonKho), 2) AS SoLuongThieu,
                 nl.GiaNhap AS DonGia
             FROM (

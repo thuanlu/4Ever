@@ -65,6 +65,7 @@ class PhieuDatHangNVLController extends BaseController {
                     $chiTietData[] = [
                         'MaNVL' => $item['MaNVL'] ?? null,
                         'TenNVL' => $item['TenNVL'] ?? '',
+                        'DonViTinh' => $item['DonViTinh'] ?? '',
                         'SoLuongCan' => $item['SoLuongCan'] ?? 0,
                         'DonGia' => $item['DonGia'] ?? 0,
                         'ThanhTien' => $item['ThanhTien'] ?? 0,

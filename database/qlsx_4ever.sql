@@ -1,127 +1,11 @@
-<<<<<<< HEAD
-=======
--- --------------------------------------------------------
-
--- Cấu trúc bảng cho bảng `nhanvien_calam`
-
-CREATE TABLE `nhanvien_calam` (
-  `MaNV` varchar(10) NOT NULL,
-  `MaCa` varchar(10) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Liên kết Công nhân - Ca làm việc';
-
--- Đang đổ dữ liệu cho bảng `nhanvien_calam`
-
-INSERT INTO `nhanvien_calam` (`MaNV`, `MaCa`) VALUES
-('CN001', 'morning'),
-('CN002', 'morning'),
-('CN003', 'morning'),
-('CN004', 'morning'),
-('CN005', 'morning'),
-('CN006', 'morning'),
-('CN007', 'morning'),
-('CN008', 'morning'),
-('CN009', 'morning'),
-('CN010', 'morning'),
-('CN011', 'morning'),
-('CN012', 'morning'),
-('CN013', 'morning'),
-('CN014', 'morning'),
-('CN015', 'morning'),
-('CN016', 'morning'),
-('CN017', 'morning'),
-('CN018', 'morning'),
-('CN019', 'morning'),
-('CN020', 'morning'),
-('CN021', 'afternoon'),
-('CN022', 'afternoon'),
-('CN023', 'afternoon'),
-('CN024', 'afternoon'),
-('CN025', 'afternoon'),
-('CN026', 'afternoon'),
-('CN027', 'afternoon'),
-('CN028', 'afternoon'),
-('CN029', 'afternoon'),
-('CN030', 'afternoon'),
-('CN031', 'afternoon'),
-('CN032', 'afternoon'),
-('CN033', 'afternoon'),
-('CN034', 'afternoon'),
-('CN035', 'afternoon'),
-('CN036', 'afternoon'),
-('CN037', 'afternoon'),
-('CN038', 'afternoon'),
-('CN039', 'afternoon'),
-('CN040', 'afternoon');
-
--- --------------------------------------------------------
-
--- Cấu trúc bảng cho bảng `phancongcalam`
-
-CREATE TABLE `phancongcalam` (
-  `Id` int(11) NOT NULL AUTO_INCREMENT,
-  `MaKHCapXuong` varchar(20) NOT NULL,
-  `MaCa` varchar(10) NOT NULL,
-  `NgayBatDau` date NOT NULL,
-  `NgayKetThuc` date NOT NULL,
-  `TyLe` int(11) NOT NULL DEFAULT 0,
-  `SoLuong` int(11) NOT NULL DEFAULT 0,
-  `CreatedBy` varchar(20) DEFAULT NULL,
-  `CreatedAt` datetime NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`Id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- Đang đổ dữ liệu cho bảng `phancongcalam`
-
-INSERT INTO `phancongcalam` (`Id`, `MaKHCapXuong`, `MaCa`, `NgayBatDau`, `NgayKetThuc`, `TyLe`, `SoLuong`, `CreatedBy`, `CreatedAt`) VALUES
-(1, 'P001', 'morning', '2025-10-25', '2025-11-25', 50, 250, NULL, '2025-10-28 16:18:22'),
-(2, 'P001', 'morning', '2025-10-25', '2025-11-25', 50, 250, NULL, '2025-10-28 16:18:45');
-
--- --------------------------------------------------------
-
--- Cấu trúc bảng cho bảng `phancongcalam_nhanvien`
-
-CREATE TABLE `phancongcalam_nhanvien` (
-  `PhanCongId` int(11) NOT NULL,
-  `MaNV` varchar(10) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- Đang đổ dữ liệu cho bảng `phancongcalam_nhanvien`
-
-INSERT INTO `phancongcalam_nhanvien` (`PhanCongId`, `MaNV`) VALUES
-(2, 'CN001'),
-(2, 'CN002'),
-(2, 'CN003'),
-(2, 'CN005'),
-(2, 'CN006'),
-(2, 'CN007'),
-(2, 'CN008'),
-(2, 'CN009'),
-(2, 'CN010'),
-(2, 'CN011'),
-(2, 'CN012'),
-(2, 'CN013'),
-(2, 'CN014'),
-(2, 'CN015'),
-(2, 'CN016'),
-(2, 'CN017'),
-(2, 'CN018'),
-(2, 'CN019'),
-(2, 'CN020');
->>>>>>> 846529c2f597edacc8365b20a207f0deb2f52c10
 -- phpMyAdmin SQL Dump
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
 -- Máy chủ: 127.0.0.1
-<<<<<<< HEAD
 -- Thời gian đã tạo: Th10 01, 2025 lúc 05:20 AM
 -- Phiên bản máy phục vụ: 10.4.32-MariaDB
 -- Phiên bản PHP: 8.0.30
-=======
--- Thời gian đã tạo: Th10 30, 2025 lúc 04:26 AM
--- Phiên bản máy phục vụ: 10.4.32-MariaDB
--- Phiên bản PHP: 8.2.12
->>>>>>> 846529c2f597edacc8365b20a207f0deb2f52c10
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -156,16 +40,11 @@ CREATE TABLE `calamviec` (
 --
 
 INSERT INTO `calamviec` (`MaCa`, `LoaiCa`, `GioBatDau`, `GioKetThuc`, `TrangThai`) VALUES
-<<<<<<< HEAD
 ('afternoon', 'Ca Chiều', '14:00:00', '22:00:00', 'Hoạt động'),
 ('CA01', 'Ca sáng', '07:00:00', '11:00:00', 'Hoạt động'),
 ('CA02', 'Ca chiều', '13:00:00', '17:00:00', 'Hoạt động'),
 ('morning', 'Ca Sáng', '06:00:00', '14:00:00', 'Hoạt động'),
 ('night', 'Ca Đêm', '22:00:00', '06:00:00', 'Hoạt động');
-=======
-('CA_C', 'Ca chiều', '13:00:00', '17:00:00', 'Hoạt động'),
-('CA_S', 'Ca sáng', '07:00:00', '11:00:00', 'Hoạt động');
->>>>>>> 846529c2f597edacc8365b20a207f0deb2f52c10
 
 -- --------------------------------------------------------
 
@@ -182,17 +61,6 @@ CREATE TABLE `chamcongsanpham` (
   `TrangThai` varchar(20) NOT NULL DEFAULT 'Đã ghi nhận'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Chấm công theo sản phẩm và ca';
 
-<<<<<<< HEAD
-=======
---
--- Đang đổ dữ liệu cho bảng `chamcongsanpham`
---
-
-INSERT INTO `chamcongsanpham` (`MaChamCong`, `MaNV`, `MaCa`, `Ngay`, `SoLuong`, `TrangThai`) VALUES
-(1, 'NCN001', 'CA_S', '2025-10-29', 120, 'Đã ghi nhận'),
-(2, 'NCN001', 'CA_C', '2025-10-29', 80, 'Đã ghi nhận');
-
->>>>>>> 846529c2f597edacc8365b20a207f0deb2f52c10
 -- --------------------------------------------------------
 
 --
@@ -247,10 +115,7 @@ CREATE TABLE `chitietkehoach` (
 --
 
 INSERT INTO `chitietkehoach` (`MaChiTietKeHoach`, `MaKeHoach`, `MaSanPham`, `SanLuongMucTieu`, `CanBoSung`, `MaPhanXuong`) VALUES
-<<<<<<< HEAD
 ('KH07-01', 'KH07', 'SP03', 22, 0, 'PX02'),
-=======
->>>>>>> 846529c2f597edacc8365b20a207f0deb2f52c10
 ('KHSX01-01', 'KH01', 'SP01', 100, 0, 'PX01'),
 ('KHSX01-02', 'KH01', 'SP01', 100, 0, 'PX02'),
 ('KHSX01-03', 'KH01', 'SP02', 50, 0, 'PX03'),
@@ -277,10 +142,7 @@ CREATE TABLE `chitietphieudatnvl` (
   `MaPhieu` varchar(10) NOT NULL COMMENT 'FK - Liên kết bảng phieudatnvl',
   `MaNVL` varchar(10) NOT NULL COMMENT 'FK - Mã nguyên vật liệu',
   `TenNVL` varchar(100) DEFAULT NULL COMMENT 'Tên NVL (snapshot tại thời điểm tạo)',
-<<<<<<< HEAD
   `DonViTinh` varchar(20) DEFAULT NULL,
-=======
->>>>>>> 846529c2f597edacc8365b20a207f0deb2f52c10
   `SoLuongCan` decimal(12,2) NOT NULL DEFAULT 0.00,
   `DonGia` decimal(12,2) NOT NULL DEFAULT 0.00 COMMENT 'Đơn giá dự kiến',
   `ThanhTien` decimal(15,2) NOT NULL DEFAULT 0.00 COMMENT 'Thành tiền dự kiến'
@@ -290,17 +152,10 @@ CREATE TABLE `chitietphieudatnvl` (
 -- Đang đổ dữ liệu cho bảng `chitietphieudatnvl`
 --
 
-<<<<<<< HEAD
 INSERT INTO `chitietphieudatnvl` (`MaChiTiet`, `MaPhieu`, `MaNVL`, `TenNVL`, `DonViTinh`, `SoLuongCan`, `DonGia`, `ThanhTien`) VALUES
 (1, 'PDNL01', 'NL01', 'Da bò loại A', NULL, 250.00, 150000.00, 37500000.00),
 (2, 'PDNL01', 'NL02', 'Keo dán PU', NULL, 25.00, 50000.00, 1250000.00),
 (3, 'PDNL02', 'NL03', 'Đế giày cao su', NULL, 1000.00, 12000.00, 12000000.00);
-=======
-INSERT INTO `chitietphieudatnvl` (`MaChiTiet`, `MaPhieu`, `MaNVL`, `TenNVL`, `SoLuongCan`, `DonGia`, `ThanhTien`) VALUES
-(1, 'PDNL01', 'NL01', 'Da bò loại A', 250.00, 150000.00, 37500000.00),
-(2, 'PDNL01', 'NL02', 'Keo dán PU', 25.00, 50000.00, 1250000.00),
-(3, 'PDNL02', 'NL03', 'Đế giày cao su', 1000.00, 12000.00, 12000000.00);
->>>>>>> 846529c2f597edacc8365b20a207f0deb2f52c10
 
 -- --------------------------------------------------------
 
@@ -478,12 +333,8 @@ INSERT INTO `kehoachcapxuong` (`MaKHCapXuong`, `MaKeHoach`, `MaPhanXuong`, `Ngay
 ('KHCX03', 'KH01', 'PX03', '2025-10-28 01:14:48', 50, 0.00, 'Chưa thực hiện'),
 ('KHCX04', 'KH03', 'PX01', '2025-10-30 01:25:01', 300, 0.00, 'Chưa thực hiện'),
 ('KHCX05', 'KH03', 'PX02', '2025-10-30 01:25:01', 300, 0.00, 'Chưa thực hiện'),
-<<<<<<< HEAD
 ('KHCX06', 'KH03', 'PX03', '2025-10-30 01:25:01', 200, 0.00, 'Chưa thực hiện'),
 ('P001', 'KH01', 'PX01', '2025-11-01 11:17:05', 500, 0.00, 'Chưa thực hiện');
-=======
-('KHCX06', 'KH03', 'PX03', '2025-10-30 01:25:01', 200, 0.00, 'Chưa thực hiện');
->>>>>>> 846529c2f597edacc8365b20a207f0deb2f52c10
 
 -- --------------------------------------------------------
 
@@ -500,12 +351,9 @@ CREATE TABLE `kehoachsanxuat` (
   `MaDonHang` varchar(10) NOT NULL COMMENT 'Đơn hàng nguồn (FK)',
   `TrangThai` varchar(20) NOT NULL DEFAULT 'Chờ duyệt',
   `TongChiPhiDuKien` decimal(15,2) NOT NULL DEFAULT 0.00,
-<<<<<<< HEAD
   `ChiPhiNguyenLieu` decimal(15,2) NOT NULL DEFAULT 0.00,
   `ChiPhiNhanCong` decimal(15,2) NOT NULL DEFAULT 0.00,
   `ChiPhiKhac` decimal(15,2) NOT NULL DEFAULT 0.00,
-=======
->>>>>>> 846529c2f597edacc8365b20a207f0deb2f52c10
   `SoLuongCongNhanCan` int(11) NOT NULL DEFAULT 0,
   `NgayLap` datetime NOT NULL DEFAULT current_timestamp(),
   `GhiChu` text DEFAULT NULL
@@ -515,7 +363,6 @@ CREATE TABLE `kehoachsanxuat` (
 -- Đang đổ dữ liệu cho bảng `kehoachsanxuat`
 --
 
-<<<<<<< HEAD
 INSERT INTO `kehoachsanxuat` (`MaKeHoach`, `TenKeHoach`, `NgayBatDau`, `NgayKetThuc`, `MaNV`, `MaDonHang`, `TrangThai`, `TongChiPhiDuKien`, `ChiPhiNguyenLieu`, `ChiPhiNhanCong`, `ChiPhiKhac`, `SoLuongCongNhanCan`, `NgayLap`, `GhiChu`) VALUES
 ('KH01', 'Kế hoạch cho ĐH01', '2025-11-01', '2025-11-15', 'NKH001', 'DH01', 'Đã duyệt', 50000000.00, 0.00, 0.00, 0.00, 20, '2025-10-28 01:10:07', 'Ưu tiên sản xuất SP01'),
 ('KH02', 'Kế hoạch cho ĐH02', '2025-11-10', '2025-11-30', 'NKH001', 'DH02', 'Chờ duyệt', 200000000.00, 0.00, 0.00, 0.00, 50, '2025-10-28 01:10:07', 'Hàng xuất khẩu, yêu cầu QC kỹ'),
@@ -524,15 +371,6 @@ INSERT INTO `kehoachsanxuat` (`MaKeHoach`, `TenKeHoach`, `NgayBatDau`, `NgayKetT
 ('KH05', 'KH cho ĐH06 (XK T12)', '2025-11-22', '2025-12-15', 'NKH001', 'DH06', 'Đã duyệt', 120000000.00, 0.00, 0.00, 0.00, 45, '2025-10-30 04:11:00', 'Plan 2 - Đã duyệt (Đủ NVL)'),
 ('KH06', 'KH cho ĐH07 (B2B - 3SP)', '2025-11-25', '2025-12-20', 'NKH001', 'DH07', 'Đã duyệt', 85000000.00, 0.00, 0.00, 0.00, 35, '2025-10-30 04:12:00', 'Cảnh báo: Thiếu Nguyên vật liệu NL08 (Da bê). Cần 150 m2, Tồn kho 10 m2.'),
 ('KH07', 'Kế hoạch T10_25 DH02', '2025-10-31', '2025-11-02', 'NKH001', 'DH08', 'Chờ duyệt', 19323150.00, 17083000.00, 1320000.00, 920150.00, 0, '2025-10-30 15:33:39', '');
-=======
-INSERT INTO `kehoachsanxuat` (`MaKeHoach`, `TenKeHoach`, `NgayBatDau`, `NgayKetThuc`, `MaNV`, `MaDonHang`, `TrangThai`, `TongChiPhiDuKien`, `SoLuongCongNhanCan`, `NgayLap`, `GhiChu`) VALUES
-('KH01', 'Kế hoạch cho ĐH01', '2025-11-01', '2025-11-15', 'NKH001', 'DH01', 'Đã duyệt', 50000000.00, 20, '2025-10-28 01:10:07', 'Ưu tiên sản xuất SP01'),
-('KH02', 'Kế hoạch cho ĐH02', '2025-11-10', '2025-11-30', 'NKH001', 'DH02', 'Chờ duyệt', 200000000.00, 50, '2025-10-28 01:10:07', 'Hàng xuất khẩu, yêu cầu QC kỹ'),
-('KH03', 'Kế hoạch cho ĐH03', '2025-11-05', '2025-11-20', 'NKH001', 'DH03', 'Đã duyệt', 150000000.00, 40, '2025-10-30 01:25:01', 'Hàng Đại lý A, ưu tiên'),
-('KH04', 'KH cho ĐH05 (Boot nữ)', '2025-11-20', '2025-12-10', 'NKH001', 'DH05', 'Chờ duyệt', 90000000.00, 30, '2025-10-30 04:10:00', 'Plan 1 - Chờ duyệt'),
-('KH05', 'KH cho ĐH06 (XK T12)', '2025-11-22', '2025-12-15', 'NKH001', 'DH06', 'Đã duyệt', 120000000.00, 45, '2025-10-30 04:11:00', 'Plan 2 - Đã duyệt (Đủ NVL)'),
-('KH06', 'KH cho ĐH07 (B2B - 3SP)', '2025-11-25', '2025-12-20', 'NKH001', 'DH07', 'Đã duyệt', 85000000.00, 35, '2025-10-30 04:12:00', 'Cảnh báo: Thiếu Nguyên vật liệu NL08 (Da bê). Cần 150 m2, Tồn kho 10 m2.');
->>>>>>> 846529c2f597edacc8365b20a207f0deb2f52c10
 
 -- --------------------------------------------------------
 
@@ -547,19 +385,14 @@ CREATE TABLE `ketquakiemdinh` (
   `NgayLap` datetime NOT NULL DEFAULT current_timestamp(),
   `MaNV` varchar(10) NOT NULL,
   `KetQua` varchar(20) NOT NULL,
-<<<<<<< HEAD
   `TrangThai` varchar(50) NOT NULL DEFAULT 'Đã kiểm tra',
   `GhiChu` text DEFAULT NULL
-=======
-  `TrangThai` varchar(20) NOT NULL DEFAULT 'Đã kiểm tra'
->>>>>>> 846529c2f597edacc8365b20a207f0deb2f52c10
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Kết quả kiểm định lô sản phẩm';
 
 --
 -- Đang đổ dữ liệu cho bảng `ketquakiemdinh`
 --
 
-<<<<<<< HEAD
 INSERT INTO `ketquakiemdinh` (`MaKD`, `MaLoHang`, `MaPhieuKT`, `NgayLap`, `MaNV`, `KetQua`, `TrangThai`, `GhiChu`) VALUES
 ('KD01', 'LH01', 'PYCQC01', '2025-10-29 09:00:00', 'NQC001', 'Đạt', 'Đã kiểm tra', NULL),
 ('KD02', 'LH02', 'PYCQC02', '2025-10-30 09:00:00', 'NQC001', 'Chờ xử lý', 'Chờ kiểm tra', NULL),
@@ -596,11 +429,6 @@ INSERT INTO `lenhsanxuat` (`MaLenhSX`, `ma_ke_hoach_tong`, `ngay_lap_lenh`, `ma_
 (2, 'KH06', '2025-10-30', 'DC02', 'NTT002', 100, 0, 'Mới tạo', NULL, NULL),
 (3, 'KH06', '2025-10-30', 'DC01', 'NTT001', 50, 0, 'Mới tạo', NULL, NULL),
 (4, 'KH06', '2025-10-30', 'DC03', 'NTT003', 150, 0, 'Mới tạo', NULL, NULL);
-=======
-INSERT INTO `ketquakiemdinh` (`MaKD`, `MaLoHang`, `MaPhieuKT`, `NgayLap`, `MaNV`, `KetQua`, `TrangThai`) VALUES
-('KD01', 'LH01', 'PYCQC01', '2025-10-29 09:00:00', 'NQC001', 'Đạt', 'Đã kiểm tra'),
-('KD02', 'LH02', 'PYCQC02', '2025-10-30 09:00:00', 'NQC001', 'Chờ xử lý', 'Chờ kiểm tra');
->>>>>>> 846529c2f597edacc8365b20a207f0deb2f52c10
 
 -- --------------------------------------------------------
 
@@ -622,13 +450,9 @@ CREATE TABLE `lohang` (
 
 INSERT INTO `lohang` (`MaLoHang`, `MaSanPham`, `SoLuong`, `TrangThaiQC`, `TrangThaiKho`) VALUES
 ('LH01', 'SP01', 100, 'Đã kiểm', 'Chưa nhập kho'),
-<<<<<<< HEAD
 ('LH02', 'SP02', 50, 'Chưa kiểm', 'Chưa nhập kho'),
 ('LH03', 'SP03', 50, 'Đã kiểm', 'Chưa nhập kho'),
 ('LH04', 'SP04', 300, 'Chưa kiểm', 'Chưa nhập kho');
-=======
-('LH02', 'SP02', 50, 'Chưa kiểm', 'Chưa nhập kho');
->>>>>>> 846529c2f597edacc8365b20a207f0deb2f52c10
 
 -- --------------------------------------------------------
 
@@ -706,7 +530,6 @@ CREATE TABLE `nhanvien` (
 --
 
 INSERT INTO `nhanvien` (`MaNV`, `HoTen`, `ChucVu`, `BoPhan`, `SoDienThoai`, `Password`, `TrangThai`) VALUES
-<<<<<<< HEAD
 ('CN001', 'Nguyễn Văn A', 'Công nhân', 'Dây chuyền 1', NULL, NULL, 'Đang làm việc'),
 ('CN002', 'Trần Văn B', 'Công nhân', 'Dây chuyền 1', NULL, NULL, 'Đang làm việc'),
 ('CN003', 'Lê Văn C', 'Công nhân', 'Dây chuyền 2', NULL, NULL, 'Đang làm việc'),
@@ -747,18 +570,12 @@ INSERT INTO `nhanvien` (`MaNV`, `HoTen`, `ChucVu`, `BoPhan`, `SoDienThoai`, `Pas
 ('CN038', 'Nguyễn Văn 38', 'Công nhân', 'PX01', NULL, NULL, 'Đang làm việc'),
 ('CN039', 'Nguyễn Văn 39', 'Công nhân', 'PX01', NULL, NULL, 'Đang làm việc'),
 ('CN040', 'Nguyễn Văn 40', 'Công nhân', 'PX01', NULL, NULL, 'Đang làm việc'),
-=======
->>>>>>> 846529c2f597edacc8365b20a207f0deb2f52c10
 ('NAD001', 'Lư Minh Thuận', 'ADMIN', 'Phòng IT', '0908000008', '$2y$10$cHGFwvQW3FyQVJRNAzWWT.DXlhjr/2gtNkHltakxAXjVLIEwYZGji', 'Đang làm việc'),
 ('NBGD001', 'Nguyễn Nhật Minh Quang', 'BGD', 'Ban Giám Đốc', '0901000001', '$2y$10$4aeZcC4/aFqA4lzkyfG3WOe1Zo7PHFENUvhSFY1iNaRqC9l2zT1yi', 'Đang làm việc'),
 ('NCN001', 'Huỳnh Văn Nam', 'CN', 'Dây chuyền 2', '0907000007', '$2y$10$GyJpC20HAKai0b0on8/cEuW7rQcO52zD5HaJ0U1xlmDw/nnwEznc6', 'Đang làm việc'),
 ('NKH001', 'Trần Thanh Trường', 'KH', 'Phòng Kế Hoạch', '0902000002', '$2y$10$sAQd1gCY2LRem4s9BnAO1uq8FvGW/7t64zlNf1xWSF1mOIXf7e6LC', 'Đang làm việc'),
 ('NQC001', 'Phạm Thị Ngọc Diễm', 'QC', 'Phòng Kiểm Định', '0905000005', '$2y$10$ob6Jlaruf4oCTXYu4bYSTukp2fc9GuXb7rUkMNdndHsEkZpMxjuQu', 'Đang làm việc'),
-<<<<<<< HEAD
 ('NTT001', 'Trương Huỳnh Kim Yến', 'TT', 'Tổ May 1', '0904000004', '$2y$10$AObMwjQdWifQBa8MOchr1.iSgEkHUsxhAZfBQnv2k3QRLOC9j4eR2', 'Đang làm việc'),
-=======
-('NTT001', 'Trương Huỳnh Kim Yến', 'TT', 'Tổ May 1', '0904000004', '$2y$10$mYFfG.bDFFyitC6tnca7b.SbPdSAAkG8.mLkiPqrWmuAIqKJ98Bu', 'Đang làm việc'),
->>>>>>> 846529c2f597edacc8365b20a207f0deb2f52c10
 ('NTT002', 'Lê Văn Cường', 'TT', 'Tổ May 2', '0904000002', 'e10adc3949ba59abbe56e057f20f883e', 'Đang làm việc'),
 ('NTT003', 'Nguyễn Thị Tâm', 'TT', 'Tổ Đóng Gói 1', '0904000003', 'e10adc3949ba59abbe56e057f20f883e', 'Đang làm việc'),
 ('NVK001', 'Phạm Thành Khang', 'NVK', 'Kho Nguyên Liệu', '0906000006', '$2y$10$E08sjh6C4ityXIL5nW6SOewQ5OZJ3WfX79NlKWUGNosAjJASqBk6i', 'Đang làm việc'),
@@ -768,7 +585,6 @@ INSERT INTO `nhanvien` (`MaNV`, `HoTen`, `ChucVu`, `BoPhan`, `SoDienThoai`, `Pas
 -- --------------------------------------------------------
 
 --
-<<<<<<< HEAD
 -- Cấu trúc bảng cho bảng `nhanvien_calam`
 --
 
@@ -888,8 +704,6 @@ INSERT INTO `phancongcalam_nhanvien` (`PhanCongId`, `MaNV`) VALUES
 -- --------------------------------------------------------
 
 --
-=======
->>>>>>> 846529c2f597edacc8365b20a207f0deb2f52c10
 -- Cấu trúc bảng cho bảng `phanxuong`
 --
 
@@ -977,14 +791,9 @@ CREATE TABLE `phieunhapsanpham` (
 --
 
 INSERT INTO `phieunhapsanpham` (`MaPhieuNhap`, `MaKD`, `NgayNhap`, `MaNhanVien`, `MaLoHang`, `GhiChu`) VALUES
-<<<<<<< HEAD
 ('PNSP01', 'KD01', '2025-10-30 15:01:43', 'NVK001', 'LH01', NULL),
 ('PNSP02', NULL, '2025-10-30 09:15:00', 'NVK001', 'LH02', NULL),
 ('PNTP202510', 'KH04', '2025-10-30 15:20:07', 'NVK001', 'LH04', NULL);
-=======
-('PNSP01', 'KD01', '2025-10-29 08:30:00', 'NVK001', 'LH01', NULL),
-('PNSP02', NULL, '2025-10-30 09:15:00', 'NVK001', 'LH02', NULL);
->>>>>>> 846529c2f597edacc8365b20a207f0deb2f52c10
 
 -- --------------------------------------------------------
 
@@ -1029,14 +838,10 @@ CREATE TABLE `phieuyeucaukiemtralosp` (
 
 INSERT INTO `phieuyeucaukiemtralosp` (`MaPhieuKT`, `MaLoHang`, `NgayKiemTra`, `MaNV`, `TrangThai`, `KetQua`) VALUES
 ('PYCQC01', 'LH01', '2025-10-29', 'NTT001', 'Đã kiểm tra', 'Đạt'),
-<<<<<<< HEAD
 ('PYCQC02', 'LH02', '2025-10-30', 'NTT001', 'Đã kiểm định - Đạt', 'Đạt'),
 ('PYCQC03', 'LH03', '2025-10-30', 'NTT001', 'Đã kiểm tra', 'Đạt'),
 ('PYCQC04', 'LH03', '2025-10-23', 'NXT002', 'Đã kiểm định - Đạt', 'Đạt'),
 ('PYCQC05', 'LH01', '2025-10-29', 'NXT001', 'Đã kiểm định - Đạt', 'Đạt');
-=======
-('PYCQC02', 'LH02', '2025-10-30', 'NTT001', 'Chờ kiểm tra', NULL);
->>>>>>> 846529c2f597edacc8365b20a207f0deb2f52c10
 
 -- --------------------------------------------------------
 
@@ -1115,7 +920,6 @@ INSERT INTO `system_logs` (`MaLog`, `user_id`, `action`, `table_name`, `record_i
 (4, 'NXT001', 'logout', 'users', 'NXT001', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0', '2025-10-30 01:59:58'),
 (5, 'NKH001', 'logout', 'users', 'NKH001', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0', '2025-10-30 02:02:02'),
 (6, 'NXT001', 'logout', 'users', 'NXT001', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0', '2025-10-30 02:22:07'),
-<<<<<<< HEAD
 (7, 'NKH001', 'logout', 'users', 'NKH001', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0', '2025-10-30 02:34:52'),
 (8, 'NXT001', 'logout', 'users', 'NXT001', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0', '2025-10-30 03:46:43'),
 (9, 'NVK001', 'logout', 'users', 'NVK001', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0', '2025-10-30 03:47:44'),
@@ -1145,9 +949,6 @@ INSERT INTO `system_logs` (`MaLog`, `user_id`, `action`, `table_name`, `record_i
 (33, 'NTT001', 'logout', 'users', 'NTT001', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0', '2025-10-30 08:44:04'),
 (34, 'NQC001', 'logout', 'users', 'NQC001', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0', '2025-10-30 08:47:04'),
 (35, 'NQC001', 'logout', 'users', 'NQC001', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0', '2025-10-30 08:48:58');
-=======
-(7, 'NKH001', 'logout', 'users', 'NKH001', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0', '2025-10-30 02:34:52');
->>>>>>> 846529c2f597edacc8365b20a207f0deb2f52c10
 
 -- --------------------------------------------------------
 
@@ -1164,7 +965,6 @@ CREATE TABLE `tonkho` (
   `GhiChu` text DEFAULT NULL COMMENT 'Ghi chú bổ sung'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Bảng quản lý tồn kho thành phẩm';
 
-<<<<<<< HEAD
 --
 -- Đang đổ dữ liệu cho bảng `tonkho`
 --
@@ -1174,8 +974,6 @@ INSERT INTO `tonkho` (`id`, `MaSanPham`, `SoLuongHienTai`, `ViTriKho`, `NgayCapN
 (2, 'SP03', 450, 'Kho A', '2025-10-30 15:00:59', NULL),
 (7, 'SP04', 600, 'Kho A', '2025-10-30 15:20:07', NULL);
 
-=======
->>>>>>> 846529c2f597edacc8365b20a207f0deb2f52c10
 -- --------------------------------------------------------
 
 --
@@ -1316,7 +1114,6 @@ ALTER TABLE `ketquakiemdinh`
   ADD KEY `MaNV` (`MaNV`);
 
 --
-<<<<<<< HEAD
 -- Chỉ mục cho bảng `lenhsanxuat`
 --
 ALTER TABLE `lenhsanxuat`
@@ -1326,8 +1123,6 @@ ALTER TABLE `lenhsanxuat`
   ADD KEY `ma_to_truong` (`ma_to_truong`);
 
 --
-=======
->>>>>>> 846529c2f597edacc8365b20a207f0deb2f52c10
 -- Chỉ mục cho bảng `lohang`
 --
 ALTER TABLE `lohang`
@@ -1354,15 +1149,12 @@ ALTER TABLE `nhanvien`
   ADD PRIMARY KEY (`MaNV`);
 
 --
-<<<<<<< HEAD
 -- Chỉ mục cho bảng `phancongcalam`
 --
 ALTER TABLE `phancongcalam`
   ADD PRIMARY KEY (`Id`);
 
 --
-=======
->>>>>>> 846529c2f597edacc8365b20a207f0deb2f52c10
 -- Chỉ mục cho bảng `phanxuong`
 --
 ALTER TABLE `phanxuong`
@@ -1461,7 +1253,6 @@ ALTER TABLE `chitietdonhang`
 -- AUTO_INCREMENT cho bảng `chitietphieudatnvl`
 --
 ALTER TABLE `chitietphieudatnvl`
-<<<<<<< HEAD
   MODIFY `MaChiTiet` int(11) NOT NULL AUTO_INCREMENT COMMENT 'PK - Mã chi tiết tự tăng', AUTO_INCREMENT=7;
 
 --
@@ -1475,29 +1266,18 @@ ALTER TABLE `lenhsanxuat`
 --
 ALTER TABLE `phancongcalam`
   MODIFY `Id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
-=======
-  MODIFY `MaChiTiet` int(11) NOT NULL AUTO_INCREMENT COMMENT 'PK - Mã chi tiết tự tăng', AUTO_INCREMENT=4;
->>>>>>> 846529c2f597edacc8365b20a207f0deb2f52c10
 
 --
 -- AUTO_INCREMENT cho bảng `system_logs`
 --
 ALTER TABLE `system_logs`
-<<<<<<< HEAD
   MODIFY `MaLog` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
-=======
-  MODIFY `MaLog` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
->>>>>>> 846529c2f597edacc8365b20a207f0deb2f52c10
 
 --
 -- AUTO_INCREMENT cho bảng `tonkho`
 --
 ALTER TABLE `tonkho`
-<<<<<<< HEAD
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'ID tự tăng', AUTO_INCREMENT=8;
-=======
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'ID tự tăng';
->>>>>>> 846529c2f597edacc8365b20a207f0deb2f52c10
 
 --
 -- Các ràng buộc cho các bảng đã đổ
@@ -1589,7 +1369,6 @@ ALTER TABLE `ketquakiemdinh`
   ADD CONSTRAINT `ketquakiemdinh_ibfk_3` FOREIGN KEY (`MaNV`) REFERENCES `nhanvien` (`MaNV`);
 
 --
-<<<<<<< HEAD
 -- Các ràng buộc cho bảng `lenhsanxuat`
 --
 ALTER TABLE `lenhsanxuat`
@@ -1598,8 +1377,6 @@ ALTER TABLE `lenhsanxuat`
   ADD CONSTRAINT `lenhsanxuat_ibfk_3` FOREIGN KEY (`ma_to_truong`) REFERENCES `nhanvien` (`MaNV`);
 
 --
-=======
->>>>>>> 846529c2f597edacc8365b20a207f0deb2f52c10
 -- Các ràng buộc cho bảng `lohang`
 --
 ALTER TABLE `lohang`

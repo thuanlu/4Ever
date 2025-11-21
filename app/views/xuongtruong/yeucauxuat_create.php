@@ -26,9 +26,7 @@
 
     <div class="col-md-3">
       <label class="form-label">Ngày yêu cầu xuất</label>
-<<<<<<< HEAD
-      <input type="date" id="ngay_yeucau" name="ngay_yeucau" class="form-control" min="<?php echo $minDate; ?>" required>
-=======
+
       <?php
         // Ensure the date input uses a valid YYYY-MM-DD value. If oldDate is present but not in the
         // expected format, fall back to the system min date provided by the controller.
@@ -38,16 +36,14 @@
         }
       ?>
       <input type="date" id="ngay_yeucau" name="ngay_yeucau" class="form-control" min="<?php echo $minDate; ?>" value="<?php echo htmlspecialchars($dateVal); ?>" required>
->>>>>>> 846529c2f597edacc8365b20a207f0deb2f52c10
+
     </div>
 
     <div class="col-md-3">
       <label class="form-label">Ghi chú (nếu có)</label>
-<<<<<<< HEAD
-      <input type="text" name="ghichu" class="form-control" maxlength="255" placeholder="Ghi chú thêm">
-=======
+
       <input type="text" name="ghichu" class="form-control" maxlength="255" placeholder="Ghi chú thêm" value="<?php echo htmlspecialchars($oldGhichu ?? ''); ?>">
->>>>>>> 846529c2f597edacc8365b20a207f0deb2f52c10
+
     </div>
 
     <?php if ($selectedPlan): ?>
@@ -119,11 +115,9 @@
   <div class="card mt-4">
     <div class="card-header bg-light d-flex justify-content-between align-items-center">
       <strong>Danh sách phiếu đã tạo</strong>
-<<<<<<< HEAD
-      <a href="<?php echo BASE_URL; ?>yeucauxuat/list" class="btn btn-sm btn-outline-primary">Mở trang quản lý</a>
-=======
+
       <a href="<?php echo BASE_URL; ?>yeucauxuat/list" class="btn btn-primary">Mở trang quản lý</a>
->>>>>>> 846529c2f597edacc8365b20a207f0deb2f52c10
+
     </div>
     <div class="card-body">
       <form class="row gy-2 gx-2 align-items-end mb-3" method="get" action="">

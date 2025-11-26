@@ -46,7 +46,8 @@ class BaseController {
     }
     
     protected function requireAuth() {
-        if (!isset($_SESSION['user_id'])) {
+        // Ưu tiên kiểm tra $_SESSION['user'] (mảng user đầy đủ)
+        if (empty($_SESSION['user']) || !isset($_SESSION['user']['MaNV'])) {
             $this->redirect('login');
         }
     }
@@ -91,12 +92,17 @@ class BaseController {
     }
     
     protected function getCurrentUser() {
+        // Ưu tiên trả về $_SESSION['user'] nếu có
+        if (!empty($_SESSION['user'])) {
+            return $_SESSION['user'];
+        }
+        // Nếu không có, trả về các biến lẻ (cũ)
         if (isset($_SESSION['user_id'])) {
             return [
-                'id' => $_SESSION['user_id'],
-                'username' => $_SESSION['username'],
-                'full_name' => $_SESSION['full_name'],
-                'role' => $_SESSION['user_role']
+                'MaNV' => $_SESSION['user_id'],
+                'HoTen' => $_SESSION['full_name'] ?? '',
+                'ChucVu' => $_SESSION['user_role'] ?? '',
+                'BoPhan' => $_SESSION['bo_phan'] ?? ''
             ];
         }
         return null;

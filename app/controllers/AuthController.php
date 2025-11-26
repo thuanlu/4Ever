@@ -37,6 +37,7 @@ class AuthController extends BaseController {
                 $_SESSION['full_name'] = $user['HoTen'];
                 $_SESSION['user_role'] = $user['ChucVu'];
                 $_SESSION['bo_phan'] = $user['BoPhan'];
+                $_SESSION['user'] = $user;
 
                 // if (strtoupper($user['ChucVu']) === 'QC') {
                 //     $_SESSION['MaNV_QC'] = $user['MaNV'];

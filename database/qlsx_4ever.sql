@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Máy chủ: 127.0.0.1
--- Thời gian đã tạo: Th10 01, 2025 lúc 05:20 AM
+-- Thời gian đã tạo: Th10 26, 2025 lúc 06:40 AM
 -- Phiên bản máy phục vụ: 10.4.32-MariaDB
--- Phiên bản PHP: 8.0.30
+-- Phiên bản PHP: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -245,9 +245,26 @@ CREATE TABLE `daychuyen` (
 --
 
 INSERT INTO `daychuyen` (`MaDayChuyen`, `TenDayChuyen`, `MaPhanXuong`, `TrangThai`, `SoLuongCongNhan`, `MaToTruong`) VALUES
-('DC01', 'Dây chuyền Cắt 1', 'PX01', 'Đang hoạt động', 40, 'NTT001'),
-('DC02', 'Dây chuyền May 1', 'PX02', 'Đang hoạt động', 40, 'NTT002'),
-('DC03', 'Dây chuyền Đóng gói 1', 'PX03', 'Đang hoạt động', 40, 'NTT003');
+('DC01', 'Dây chuyền 1', 'PX01', 'Đang hoạt động', 40, 'NTT001'),
+('DC02', 'Dây chuyền 2', 'PX01', 'Đang hoạt động', 40, 'NTT002'),
+('DC03', 'Dây chuyền 3', 'PX01', 'Đang hoạt động', 40, 'NTT003'),
+('DC04', 'Dây chuyền 4', 'PX01', 'Đang hoạt động', 40, 'NTT004'),
+('DC05', 'Dây chuyền 5', 'PX01', 'Đang hoạt động', 40, 'NTT005'),
+('DC06', 'Dây chuyền 6', 'PX01', 'Đang hoạt động', 40, 'NTT006'),
+('DC07', 'Dây chuyền 7', 'PX01', 'Đang hoạt động', 40, 'NTT007'),
+('DC08', 'Dây chuyền 8', 'PX01', 'Đang hoạt động', 40, 'NTT008'),
+('DC09', 'Dây chuyền 9', 'PX01', 'Đang hoạt động', 40, 'NTT009'),
+('DC10', 'Dây chuyền 10', 'PX01', 'Đang hoạt động', 40, 'NTT010'),
+('DC11', 'Dây chuyền 1', 'PX02', 'Đang hoạt động', 40, 'NTT011'),
+('DC12', 'Dây chuyền 2', 'PX02', 'Đang hoạt động', 40, 'NTT012'),
+('DC13', 'Dây chuyền 3', 'PX02', 'Đang hoạt động', 40, 'NTT013'),
+('DC14', 'Dây chuyền 4', 'PX02', 'Đang hoạt động', 40, 'NTT014'),
+('DC15', 'Dây chuyền 5', 'PX02', 'Đang hoạt động', 40, 'NTT015'),
+('DC16', 'Dây chuyền 6', 'PX02', 'Đang hoạt động', 40, 'NTT016'),
+('DC17', 'Dây chuyền 7', 'PX02', 'Đang hoạt động', 40, 'NTT017'),
+('DC18', 'Dây chuyền 8', 'PX02', 'Đang hoạt động', 40, 'NTT018'),
+('DC19', 'Dây chuyền 9', 'PX02', 'Đang hoạt động', 40, 'NTT019'),
+('DC20', 'Dây chuyền 10', 'PX02', 'Đang hoạt động', 40, 'NTT020');
 
 -- --------------------------------------------------------
 
@@ -322,19 +339,6 @@ CREATE TABLE `kehoachcapxuong` (
   `CongSuatDuKien` decimal(10,2) NOT NULL DEFAULT 0.00,
   `TrangThai` varchar(20) NOT NULL DEFAULT 'Chưa thực hiện'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Kế hoạch cấp xưởng';
-
---
--- Đang đổ dữ liệu cho bảng `kehoachcapxuong`
---
-
-INSERT INTO `kehoachcapxuong` (`MaKHCapXuong`, `MaKeHoach`, `MaPhanXuong`, `NgayLap`, `SoLuong`, `CongSuatDuKien`, `TrangThai`) VALUES
-('KHCX01', 'KH01', 'PX01', '2025-10-28 01:14:48', 100, 0.00, 'Chưa thực hiện'),
-('KHCX02', 'KH01', 'PX02', '2025-10-28 01:14:48', 100, 0.00, 'Chưa thực hiện'),
-('KHCX03', 'KH01', 'PX03', '2025-10-28 01:14:48', 50, 0.00, 'Chưa thực hiện'),
-('KHCX04', 'KH03', 'PX01', '2025-10-30 01:25:01', 300, 0.00, 'Chưa thực hiện'),
-('KHCX05', 'KH03', 'PX02', '2025-10-30 01:25:01', 300, 0.00, 'Chưa thực hiện'),
-('KHCX06', 'KH03', 'PX03', '2025-10-30 01:25:01', 200, 0.00, 'Chưa thực hiện'),
-('P001', 'KH01', 'PX01', '2025-11-01 11:17:05', 500, 0.00, 'Chưa thực hiện');
 
 -- --------------------------------------------------------
 
@@ -419,16 +423,6 @@ CREATE TABLE `lenhsanxuat` (
   `ngay_bat_dau_thuc_te` date DEFAULT NULL,
   `ngay_ket_thuc_thuc_te` date DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Lệnh sản xuất chi tiết cho từng dây chuyền';
-
---
--- Đang đổ dữ liệu cho bảng `lenhsanxuat`
---
-
-INSERT INTO `lenhsanxuat` (`MaLenhSX`, `ma_ke_hoach_tong`, `ngay_lap_lenh`, `ma_day_chuyen`, `ma_to_truong`, `san_luong_muc_tieu`, `san_luong_thuc_te`, `trang_thai`, `ngay_bat_dau_thuc_te`, `ngay_ket_thuc_thuc_te`) VALUES
-(1, 'KH01', '2025-10-30', 'DC01', 'NTT001', 20, 0, 'Mới tạo', NULL, NULL),
-(2, 'KH06', '2025-10-30', 'DC02', 'NTT002', 100, 0, 'Mới tạo', NULL, NULL),
-(3, 'KH06', '2025-10-30', 'DC01', 'NTT001', 50, 0, 'Mới tạo', NULL, NULL),
-(4, 'KH06', '2025-10-30', 'DC03', 'NTT003', 150, 0, 'Mới tạo', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -575,12 +569,37 @@ INSERT INTO `nhanvien` (`MaNV`, `HoTen`, `ChucVu`, `BoPhan`, `SoDienThoai`, `Pas
 ('NCN001', 'Huỳnh Văn Nam', 'CN', 'Dây chuyền 2', '0907000007', '$2y$10$GyJpC20HAKai0b0on8/cEuW7rQcO52zD5HaJ0U1xlmDw/nnwEznc6', 'Đang làm việc'),
 ('NKH001', 'Trần Thanh Trường', 'KH', 'Phòng Kế Hoạch', '0902000002', '$2y$10$sAQd1gCY2LRem4s9BnAO1uq8FvGW/7t64zlNf1xWSF1mOIXf7e6LC', 'Đang làm việc'),
 ('NQC001', 'Phạm Thị Ngọc Diễm', 'QC', 'Phòng Kiểm Định', '0905000005', '$2y$10$ob6Jlaruf4oCTXYu4bYSTukp2fc9GuXb7rUkMNdndHsEkZpMxjuQu', 'Đang làm việc'),
-('NTT001', 'Trương Huỳnh Kim Yến', 'TT', 'Tổ May 1', '0904000004', '$2y$10$AObMwjQdWifQBa8MOchr1.iSgEkHUsxhAZfBQnv2k3QRLOC9j4eR2', 'Đang làm việc'),
-('NTT002', 'Lê Văn Cường', 'TT', 'Tổ May 2', '0904000002', 'e10adc3949ba59abbe56e057f20f883e', 'Đang làm việc'),
-('NTT003', 'Nguyễn Thị Tâm', 'TT', 'Tổ Đóng Gói 1', '0904000003', 'e10adc3949ba59abbe56e057f20f883e', 'Đang làm việc'),
+('NTT001', 'Trương Huỳnh Kim Yến', 'TT', 'Dây chuyền 1', '0904000004', '$2y$10$AObMwjQdWifQBa8MOchr1.iSgEkHUsxhAZfBQnv2k3QRLOC9j4eR2', 'Đang làm việc'),
+('NTT002', 'Lê Văn Cường', 'TT', 'Dây chuyền 2', '0904000002', '$2y$10$WIsUmtybJXQHIVEIYXGorOWlU6xPLRsi2xQ4PR5srSNcrcW/AvYL6', 'Đang làm việc'),
+('NTT003', 'Nguyễn Thị Tâm', 'TT', 'Dây chuyền 3', '0904000003', '$2y$10$6Oo/gmKHXaqstYky3OzRs.zqK3PwjlBQIB.IYcEerWZFNf9HMUiHq', 'Đang làm việc'),
+('NTT004', 'Phạm Văn Thành', 'TT', 'Dây chuyền 4', '0904000004', '$2y$10$abcdabcdabcdabcdabcdabCdEfGhIjKlMnOpQrStUvWxYzABCD1', 'Đang làm việc'),
+('NTT005', 'Lê Hoàng Phúc', 'TT', 'Dây chuyền 5', '0904000005', '$2y$10$abcdabcdabcdabcdabcdabCdEfGhIjKlMnOpQrStUvWxYzABCD2', 'Đang làm việc'),
+('NTT006', 'Ngô Minh Hòa', 'TT', 'Dây chuyền 6', '0904000006', '$2y$10$abcdabcdabcdabcdabcdabCdEfGhIjKlMnOpQrStUvWxYzABCD3', 'Đang làm việc'),
+('NTT007', 'Trần Nhật Tân', 'TT', 'Dây chuyền 7', '0904000007', '$2y$10$abcdabcdabcdabcdabcdabCdEfGhIjKlMnOpQrStUvWxYzABCD4', 'Đang làm việc'),
+('NTT008', 'Võ Thanh Duy', 'TT', 'Dây chuyền 8', '0904000008', '$2y$10$abcdabcdabcdabcdabcdabCdEfGhIjKlMnOpQrStUvWxYzABCD5', 'Đang làm việc'),
+('NTT009', 'Đỗ Hữu Trí', 'TT', 'Dây chuyền 9', '0904000009', '$2y$10$abcdabcdabcdabcdabcdabCdEfGhIjKlMnOpQrStUvWxYzABCD6', 'Đang làm việc'),
+('NTT010', 'Nguyễn Tấn Khải', 'TT', 'Dây chuyền 10', '0904000010', '$2y$10$abcdabcdabcdabcdabcdabCdEfGhIjKlMnOpQrStUvWxYzABCD7', 'Đang làm việc'),
+('NTT011', 'Nguyễn Văn Hải', 'TT', 'Dây chuyền 1', '0904000011', '$2y$10$abcdabcdabcdabcdabcdabCdEfGhIjKlMnOpQrStUvWxYzA11', 'Đang làm việc'),
+('NTT012', 'Lê Quốc Hưng', 'TT', 'Dây chuyền 2', '0904000012', '$2y$10$abcdabcdabcdabcdabcdabCdEfGhIjKlMnOpQrStUvWxYzA12', 'Đang làm việc'),
+('NTT013', 'Phạm Hoàng Duy', 'TT', 'Dây chuyền 3', '0904000013', '$2y$10$abcdabcdabcdabcdabcdabCdEfGhIjKlMnOpQrStUvWxYzA13', 'Đang làm việc'),
+('NTT014', 'Đỗ Quốc Việt', 'TT', 'Dây chuyền 4', '0904000014', '$2y$10$abcdabcdabcdabcdabcdabCdEfGhIjKlMnOpQrStUvWxYzA14', 'Đang làm việc'),
+('NTT015', 'Ngô Anh Kiệt', 'TT', 'Dây chuyền 5', '0904000015', '$2y$10$abcdabcdabcdabcdabcdabCdEfGhIjKlMnOpQrStUvWxYzA15', 'Đang làm việc'),
+('NTT016', 'Trần Minh Khoa', 'TT', 'Dây chuyền 6', '0904000016', '$2y$10$abcdabcdabcdabcdabcdabCdEfGhIjKlMnOpQrStUvWxYzA16', 'Đang làm việc'),
+('NTT017', 'Võ Tấn Phát', 'TT', 'Dây chuyền 7', '0904000017', '$2y$10$abcdabcdabcdabcdabcdabCdEfGhIjKlMnOpQrStUvWxYzA17', 'Đang làm việc'),
+('NTT018', 'Hồ Gia Bảo', 'TT', 'Dây chuyền 8', '0904000018', '$2y$10$abcdabcdabcdabcdabcdabCdEfGhIjKlMnOpQrStUvWxYzA18', 'Đang làm việc'),
+('NTT019', 'Lưu Hoàng Tú', 'TT', 'Dây chuyền 9', '0904000019', '$2y$10$abcdabcdabcdabcdabcdabCdEfGhIjKlMnOpQrStUvWxYzA19', 'Đang làm việc'),
+('NTT020', 'Nguyễn Trọng Tín', 'TT', 'Dây chuyền 10', '0904000020', '$2y$10$abcdabcdabcdabcdabcdabCdEfGhIjKlMnOpQrStUvWxYzA20', 'Đang làm việc'),
 ('NVK001', 'Phạm Thành Khang', 'NVK', 'Kho Nguyên Liệu', '0906000006', '$2y$10$E08sjh6C4ityXIL5nW6SOewQ5OZJ3WfX79NlKWUGNosAjJASqBk6i', 'Đang làm việc'),
-('NXT001', 'Lư Minh Thuận', 'XT', 'Phân Xưởng 1', '0903000003', '$2y$10$wOp2wTZNDlAu6wH8x/EzkOqNBNSGGIFtZIIW3tLI2bmoRQfTd.KRa', 'Đang làm việc'),
-('NXT002', 'Nguyễn Văn Hậu', 'Xưởng trưởng', 'Phân xưởng 2', '0903000004', 'e10adc3949ba59abbe56e057f20f883e', 'Đang làm việc');
+('NXT001', 'Lư Minh Thuận', 'XT', 'Phân Xưởng 1', '0903000003', '$2y$10$AByV5tdEBi7dIj95hSaBnOP.a4yNwuoQShYDUNnTWXu2fMv1myuM2', 'Đang làm việc'),
+('NXT002', 'Nguyễn Văn Hậu', 'XT', 'Phân xưởng 2', '0903000004', '$2y$10$q011V/tMftYS2XAflRT0muR3hGX8Z8CJ5qCFqVTPpnIG6IcXYSH6i', 'Đang làm việc'),
+('NXT003', 'Lê Hoàng Phúc', 'Xưởng trưởng', 'Phân xưởng 3', '0903000005', '$2y$10$AbCdEf1234567890AbCdEfO12abcdEfghijkLmnoPqrstuV', 'Đang làm việc'),
+('NXT004', 'Trần Thị Ngọc Hân', 'Xưởng trưởng', 'Phân xưởng 4', '0903000006', '$2y$10$ZxcVbnm123456789QWERtyuIoPAsdFghJklMnOpQrstu12', 'Đang làm việc'),
+('NXT005', 'Võ Thành Đạt', 'Xưởng trưởng', 'Phân xưởng 5', '0903000007', '$2y$10$FghJKLmnOp123456789QweRTYuiopASDfghJKLmnBvCxz12', 'Đang làm việc'),
+('NXT006', 'Nguyễn Thùy Tiên', 'Xưởng trưởng', 'Phân xưởng 6', '0903000008', '$2y$10$QweRtyUiop123456789AsDfGhJkLzXcVbNmQweRtyUiop12', 'Đang làm việc'),
+('NXT007', 'Đặng Minh Khang', 'Xưởng trưởng', 'Phân xưởng 7', '0903000009', '$2y$10$MnBvCxZ123456789QWerTyUiOpAsDfGhJkLzXcVbNmErT12', 'Đang làm việc'),
+('NXT008', 'Hồ Quỳnh Như', 'Xưởng trưởng', 'Phân xưởng 8', '0903000010', '$2y$10$LpOiUyTrEwQ123456789AsDfGhJkLpOiUyTrEwQmNbVcX12', 'Đang làm việc'),
+('NXT009', 'Phạm Quốc Huy', 'Xưởng trưởng', 'Phân xưởng 9', '0903000011', '$2y$10$QazWsxEdC123456789RfVtGbYhnUjMikOlPqAzWsXeDc12', 'Đang làm việc'),
+('NXT010', 'Nguyễn Thảo Vy', 'Xưởng trưởng', 'Phân xưởng 10', '0903000012', '$2y$10$VfRgTgBhN123456789UjMiKoLpOiUhYgTfrEdCvBgNhUj12', 'Đang làm việc');
 
 -- --------------------------------------------------------
 
@@ -719,9 +738,16 @@ CREATE TABLE `phanxuong` (
 --
 
 INSERT INTO `phanxuong` (`MaPhanXuong`, `TenPhanXuong`, `MaXuongTruong`, `MoTa`) VALUES
-('PX01', 'Phân xưởng Cắt', 'NXT001', 'Cắt da, vải'),
-('PX02', 'Phân xưởng May', 'NXT002', 'May ráp chi tiết giày'),
-('PX03', 'Phân xưởng Đóng gói', NULL, 'Hoàn thiện và đóng hộp');
+('PX01', 'Phân xưởng 1', 'NXT001', ''),
+('PX02', 'Phân xưởng 2', 'NXT002', ''),
+('PX03', 'Phân xưởng 3', 'NXT003', ''),
+('PX04', 'Phân xưởng 4', 'NXT004', NULL),
+('PX05', 'Phân xưởng 5', 'NXT005', NULL),
+('PX06', 'Phân xưởng 6', 'NXT006', NULL),
+('PX07', 'Phân xưởng 7', 'NXT007', NULL),
+('PX08', 'Phân xưởng 8', 'NXT008', NULL),
+('PX09', 'Phân xưởng 9', 'NXT009', NULL),
+('PX10', 'Phân xưởng 10', 'NXT010', NULL);
 
 -- --------------------------------------------------------
 
@@ -948,7 +974,19 @@ INSERT INTO `system_logs` (`MaLog`, `user_id`, `action`, `table_name`, `record_i
 (32, 'NXT001', 'logout', 'users', 'NXT001', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0', '2025-10-30 08:43:09'),
 (33, 'NTT001', 'logout', 'users', 'NTT001', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0', '2025-10-30 08:44:04'),
 (34, 'NQC001', 'logout', 'users', 'NQC001', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0', '2025-10-30 08:47:04'),
-(35, 'NQC001', 'logout', 'users', 'NQC001', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0', '2025-10-30 08:48:58');
+(35, 'NQC001', 'logout', 'users', 'NQC001', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0', '2025-10-30 08:48:58'),
+(36, 'NXT001', 'logout', 'users', 'NXT001', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0', '2025-11-21 13:52:03'),
+(37, 'NTT001', 'logout', 'users', 'NTT001', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0', '2025-11-25 13:57:57'),
+(38, 'NXT001', 'logout', 'users', 'NXT001', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0', '2025-11-25 14:15:51'),
+(39, 'NKH001', 'logout', 'users', 'NKH001', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0', '2025-11-25 14:19:08'),
+(40, 'NKH001', 'logout', 'users', 'NKH001', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0', '2025-11-25 14:33:42'),
+(41, 'NXT001', 'logout', 'users', 'NXT001', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0', '2025-11-25 14:48:37'),
+(42, 'NKH001', 'logout', 'users', 'NKH001', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0', '2025-11-25 14:52:41'),
+(43, 'NXT001', 'logout', 'users', 'NXT001', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0', '2025-11-26 04:30:44'),
+(44, 'NKH001', 'logout', 'users', 'NKH001', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0', '2025-11-26 04:31:23'),
+(45, 'NXT001', 'logout', 'users', 'NXT001', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0', '2025-11-26 04:37:58'),
+(46, 'NTT001', 'logout', 'users', 'NTT001', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0', '2025-11-26 04:38:05'),
+(47, 'NKH001', 'logout', 'users', 'NKH001', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0', '2025-11-26 04:40:46');
 
 -- --------------------------------------------------------
 
@@ -1259,7 +1297,7 @@ ALTER TABLE `chitietphieudatnvl`
 -- AUTO_INCREMENT cho bảng `lenhsanxuat`
 --
 ALTER TABLE `lenhsanxuat`
-  MODIFY `MaLenhSX` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Mã lệnh sản xuất tự tăng', AUTO_INCREMENT=5;
+  MODIFY `MaLenhSX` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Mã lệnh sản xuất tự tăng', AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT cho bảng `phancongcalam`
@@ -1271,7 +1309,7 @@ ALTER TABLE `phancongcalam`
 -- AUTO_INCREMENT cho bảng `system_logs`
 --
 ALTER TABLE `system_logs`
-  MODIFY `MaLog` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
+  MODIFY `MaLog` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=48;
 
 --
 -- AUTO_INCREMENT cho bảng `tonkho`

@@ -9,7 +9,7 @@ class TienDoController extends BaseController {
 
         // Determine the current user's phân xưởng (xưởng trưởng -> MaPhanXuong)
         $ycModel = $this->loadModel('YeuCauXuat');
-        $maNV = $_SESSION['user_id'] ?? ($_SESSION['username'] ?? null);
+        $maNV = $_SESSION['user']['MaNV'] ?? null;
         $maPX = $maNV ? $ycModel->getPhanXuongForUser($maNV) : null;
 
         if (!$maPX) {
@@ -88,7 +88,7 @@ class TienDoController extends BaseController {
             $this->requireRole(['xuong_truong','ban_giam_doc','nhan_vien_ke_hoach']);
 
             $ycModel = $this->loadModel('YeuCauXuat');
-            $maNV = $_SESSION['user_id'] ?? ($_SESSION['username'] ?? null);
+            $maNV = $_SESSION['user']['MaNV'] ?? null;
             $maPX = $maNV ? $ycModel->getPhanXuongForUser($maNV) : null;
 
             if (!$maPX) {
@@ -119,7 +119,7 @@ class TienDoController extends BaseController {
 
         // Determine the current user's phân xưởng early so any reloads show only that phân xưởng's lines
         $ycModel = $this->loadModel('YeuCauXuat');
-        $maNV = $_SESSION['user_id'] ?? ($_SESSION['username'] ?? null);
+        $maNV = $_SESSION['user']['MaNV'] ?? null;
         $maPXUser = $maNV ? $ycModel->getPhanXuongForUser($maNV) : null;
         if (!$maPXUser) {
             // If we cannot determine the phân xưởng for this user, show an instructive error

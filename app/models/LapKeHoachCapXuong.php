@@ -1,7 +1,7 @@
 <?php
 require_once APP_PATH . '/models/BaseModel.php';
 
-class LapKeHoachCapXuongModel extends BaseModel {
+class LapKeHoachCapXuong extends BaseModel {
     protected $tableName = 'kehoachcapxuong';
     protected $primaryKey = 'MaKHCapXuong';
 
@@ -40,9 +40,10 @@ class LapKeHoachCapXuongModel extends BaseModel {
      */
     public function create($data) {
         try {
-            $sql = "INSERT INTO {$this->tableName} (MaKeHoach, MaPhanXuong, NgayLap, SoLuong, CongSuatDuKien, TrangThai) VALUES (?, ?, ?, ?, ?, ?)";
+            $sql = "INSERT INTO {$this->tableName} (MaKHCapXuong, MaKeHoach, MaPhanXuong, NgayLap, SoLuong, CongSuatDuKien, TrangThai) VALUES (?, ?, ?, ?, ?, ?, ?)";
             $stmt = $this->db->prepare($sql);
             $stmt->execute([
+                $data['ma_kh_cap_xuong'],
                 $data['ma_kehoach'],
                 $data['ma_phan_xuong'],
                 $data['ngay_lap'],
@@ -50,7 +51,7 @@ class LapKeHoachCapXuongModel extends BaseModel {
                 $data['cong_suat_du_kien'] ?? 0,
                 $data['trang_thai'] ?? 'Chưa thực hiện'
             ]);
-            return $this->db->lastInsertId();
+            return $data['ma_kh_cap_xuong'];
         } catch (PDOException $e) {
             error_log(__METHOD__ . '::Error: ' . $e->getMessage());
             return false;

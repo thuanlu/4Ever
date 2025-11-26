@@ -42,16 +42,19 @@ class KeHoachSanXuat extends BaseModel {
     /**
      * Lấy danh sách kế hoạch đã duyệt
      */
-    public function getApprovedPlans() {
+    // Lấy kế hoạch đã duyệt mà xưởng trưởng hiện tại phụ trách ít nhất một phân xưởng liên quan
+    public function getApprovedPlansByXuongTruong($maXuongTruong) {
         try {
-            $sql = "SELECT k.*, n.HoTen AS NguoiLap, d.TenDonHang
+            $sql = "SELECT DISTINCT k.*, n.HoTen AS NguoiLap, d.TenDonHang
                     FROM {$this->tableName} k
                     LEFT JOIN nhanvien n ON k.MaNV = n.MaNV
                     LEFT JOIN donhang d ON k.MaDonHang = d.MaDonHang
-                    WHERE k.TrangThai = 'Đã duyệt'
+                    JOIN chitietkehoach ct ON ct.MaKeHoach = k.MaKeHoach
+                    JOIN phanxuong px ON ct.MaPhanXuong = px.MaPhanXuong
+                    WHERE k.TrangThai = 'Đã duyệt' AND px.MaXuongTruong = ?
                     ORDER BY k.NgayBatDau DESC";
             $stmt = $this->db->prepare($sql);
-            $stmt->execute();
+            $stmt->execute([$maXuongTruong]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
             error_log(__METHOD__ . "::Error: " . $e->getMessage());

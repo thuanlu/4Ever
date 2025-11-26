@@ -52,3 +52,9 @@ TienDoController::show - maNV=NXT001 maPXUser=PX01 line.MaPhanXuong=PX01 maDayCh
 TienDoController::show - lineInfo: {"MaDayChuyen":"DC02","TenDayChuyen":"Dây chuyền May ","MaPhanXuong":"PX01","TrangThai":"Đang hoạt động","SoLuongCongNhan":"40","MaToTruong":"NTT002"}
 TienDoController::index - MaPhanXuong=PX01 - fetched=1
 TienDoController::index - rows: [{"MaDayChuyen":"DC01","TenDayChuyen":"Dây chuyền Cắt 1","MaPhanXuong":"PX01"}]
+TienDoController::index - MaPhanXuong=PX01 - fetched=1
+TienDoController::index - rows: [{"MaDayChuyen":"DC01","TenDayChuyen":"Dây chuyền Cắt 1","MaPhanXuong":"PX01"}]
+TienDoController::index - MaPhanXuong=PX01 - fetched=1
+TienDoController::index - rows: [{"MaDayChuyen":"DC01","TenDayChuyen":"Dây chuyền Cắt 1","MaPhanXuong":"PX01"}]
+TienDoController::index - MaPhanXuong=PX01 - fetched=1
+TienDoController::index - rows: [{"MaDayChuyen":"DC01","TenDayChuyen":"Dây chuyền Cắt 1","MaPhanXuong":"PX01"}]

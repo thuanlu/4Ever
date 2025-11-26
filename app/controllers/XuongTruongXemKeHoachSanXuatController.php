@@ -38,7 +38,8 @@ class XuongTruongXemKeHoachSanXuatController extends BaseController {
         $conn = $database->getConnection();
         $query = "INSERT INTO audit_log (user_id, action, ma_kehoach, timestamp) VALUES (:user_id, :action, :ma_kehoach, NOW())";
         $stmt = $conn->prepare($query);
-        $stmt->bindParam(':user_id', $_SESSION['user_id']);
+        $userId = $_SESSION['user']['MaNV'] ?? null;
+        $stmt->bindParam(':user_id', $userId);
         $stmt->bindParam(':action', $action);
         $stmt->bindParam(':ma_kehoach', $maKeHoach);
         $stmt->execute();

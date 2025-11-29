@@ -70,13 +70,15 @@ $router->addRoute('GET', '/reports/attendance', 'ReportController', 'attendance'
 $router->addRoute('GET', '/qc', 'KetQuaKiemDinhController', 'index');
 $router->addRoute('GET', '/qc/view/(.*)', 'KetQuaKiemDinhController', 'view');
 $router->addRoute('POST', '/qc/view/(.*)', 'KetQuaKiemDinhController', 'view');  
-$router->addRoute('POST', '/qc/save', 'KetQuaKiemDinhController', 'save');
+$router->addRoute('POST', '/qc/store', 'KetQuaKiemDinhController', 'store');
 $router->addRoute('GET', '/qc/history', 'KetQuaKiemDinhController', 'history');
 
 // Quản lý Xuất nguyên liệu
 $router->addRoute('GET', '/kho/xuatnguyenlieu', 'XuatNguyenLieuController', 'index');
 $router->addRoute('GET', '/kho/xuatnguyenlieu/create/(.*)', 'XuatNguyenLieuController', 'create');
 $router->addRoute('POST', '/kho/xuatnguyenlieu/store', 'XuatNguyenLieuController', 'store');
+$router->addRoute('GET', '/kho/tonkho', 'CanhBaoTonKhoController', 'stock');
+ // Bạn sẽ viết hàm này sau
 // Xử lý request
 $router->dispatch();
 ?>

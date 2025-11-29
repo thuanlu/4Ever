@@ -31,17 +31,41 @@ class DashboardController extends BaseController {
         $this->loadView('qc/dashboard', $data);
     }
 
+    // public function nvk() {
+    //     $this->requireAuth();
+    //     $currentUser = $this->getCurrentUser();
+    //     $dashboardData = $this->getDashboardData('nhan_vien_kho_nl');
+    //     $data = [
+    //         'currentUser' => $currentUser,
+    //         'dashboardData' => $dashboardData,
+    //         'pageTitle' => 'Dashboard NV Kho'
+    //     ];
+    //     $this->loadView('kho/dashboard', $data);
+    // }
+
+    //thay thế vào 29/11/2025
     public function nvk() {
         $this->requireAuth();
         $currentUser = $this->getCurrentUser();
+        // Chỉ NVK mới kiểm tra cảnh báo
+        $criticalAlerts = [];
+        if (isset($currentUser['role']) && $currentUser['role'] === 'NVK') {
+            require_once APP_PATH . '/models/CanhBaoTonKho.php';
+            $tempModel = new CanhBaoTonKho();
+            $criticalAlerts = $tempModel->getCriticalAlerts();
+        }
+
         $dashboardData = $this->getDashboardData('nhan_vien_kho_nl');
         $data = [
             'currentUser' => $currentUser,
             'dashboardData' => $dashboardData,
+            'criticalAlerts' => $criticalAlerts,
             'pageTitle' => 'Dashboard NV Kho'
         ];
+
         $this->loadView('kho/dashboard', $data);
     }
+
 
     public function cn() {
         $this->requireAuth();

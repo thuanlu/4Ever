@@ -73,6 +73,10 @@ $router->addRoute('POST', '/qc/view/(.*)', 'KetQuaKiemDinhController', 'view');
 $router->addRoute('POST', '/qc/save', 'KetQuaKiemDinhController', 'save');
 $router->addRoute('GET', '/qc/history', 'KetQuaKiemDinhController', 'history');
 
+// Quản lý Xuất nguyên liệu
+$router->addRoute('GET', '/kho/xuatnguyenlieu', 'XuatNguyenLieuController', 'index');
+$router->addRoute('GET', '/kho/xuatnguyenlieu/create/(.*)', 'XuatNguyenLieuController', 'create');
+$router->addRoute('POST', '/kho/xuatnguyenlieu/store', 'XuatNguyenLieuController', 'store');
 // Xử lý request
 $router->dispatch();
 ?>

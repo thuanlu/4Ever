@@ -151,12 +151,8 @@ if (empty($_SESSION['user'])) {
                                 // Lấy số trong mã kế hoạch tổng (ví dụ KH06 -> 06)
                                 $soKeHoach = '';
                                 if (!empty($kehoach['MaKeHoach'])) {
-                                    // Lấy đúng 2 số cuối của mã kế hoạch tổng (KH05 -> 05)
-                                    if (preg_match('/KH(\d{2})$/', $kehoach['MaKeHoach'], $matches)) {
+                                    if (preg_match('/KH(\d+)/', $kehoach['MaKeHoach'], $matches)) {
                                         $soKeHoach = $matches[1];
-                                    } else {
-                                        // Nếu không đúng định dạng, lấy 2 số cuối bất kỳ
-                                        $soKeHoach = substr(preg_replace('/\D/', '', $kehoach['MaKeHoach']), -2);
                                     }
                                 }
                                 $autoMaKeHoachXuong = 'KCX-' . date('Ymd') . '-' . $soKeHoach;

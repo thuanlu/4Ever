@@ -125,27 +125,21 @@ class LapKeHoachCapXuongController extends BaseController {
                     }
                 }
             }
-            // ĐẢM BẢO: Controller luôn lấy đúng giá trị mã KCX từ form POST, không tự sinh lại nếu đã có
-            // Nếu phải sinh lại, dùng đúng regex như ở view: lấy 2 số cuối của mã kế hoạch tổng
-            // Nếu $data['ma_kehoach_xuong'] có giá trị, dùng luôn giá trị này
+            // Sinh mã kế hoạch cấp xưởng đúng định dạng KCX-[ngày hiện tại]-[số từ mã kế hoạch tổng]
             if (!empty($data['ma_kehoach_xuong'])) {
                 $maKHCapXuong = $data['ma_kehoach_xuong'];
             } else {
-                // Nếu không có, sinh lại đúng logic như view
+                // Lấy đúng 2 số cuối của mã kế hoạch tổng (KH05 -> 05)
                 $soKeHoach = '';
                 if (!empty($data['ma_kehoach'])) {
-                    // Lấy đúng 2 số cuối của mã kế hoạch tổng (KH05 -> 05)
                     if (preg_match('/KH(\d{2})$/', $data['ma_kehoach'], $matches)) {
                         $soKeHoach = $matches[1];
                     } else {
-                        // Nếu không đúng định dạng, lấy 2 số cuối bất kỳ
                         $soKeHoach = substr(preg_replace('/\D/', '', $data['ma_kehoach']), -2);
                     }
                 }
                 $maKHCapXuong = 'KCX-' . date('Ymd') . '-' . $soKeHoach;
             }
-                // Log giá trị thực tế của $maKHCapXuong để debug
-                error_log('DEBUG $maKHCapXuong: ' . $maKHCapXuong);
             // Ngày lập lấy thời gian hiện tại
             $ngayLap = date('Y-m-d H:i:s');
             // Công suất dự kiến lấy từ form, mặc định 0 nếu không có

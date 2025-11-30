@@ -81,7 +81,7 @@ ob_start();
                             </td>
                             <td>
                                 <a href="?xem=<?= $k['MaKeHoach'] ?>" class="btn btn-sm btn-info">Xem</a>
-                            </td>
+       ?>                       </td>
                         </tr>
                         <?php endforeach; ?>
                     </tbody>

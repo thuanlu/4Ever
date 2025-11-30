@@ -79,7 +79,7 @@ ob_start();
                                 }
                                 ?>
                             </td>
-                            <td>
+                            <td class="text-center align-middle">
                                 <a href="?xem=<?= $k['MaKeHoach'] ?>" class="btn btn-sm btn-info">Xem</a>
                             </td>
                         </tr>
@@ -96,4 +96,13 @@ ob_start();
 <?php
 $content = ob_get_clean();
 include APP_PATH . '/views/layouts/main.php';
-?>
+                        <tr>
+                            <th>Mã KH</th>
+                            <th>Tên kế hoạch</th>
+                            <th>Ngày bắt đầu</th>
+                            <th>Ngày kết thúc</th>
+                            <th>Người lập</th>
+                            <th>Mã đơn hàng</th>
+                            <th>Trạng thái</th>
+                            <th class="text-center">Thao tác</th>
+                        </tr>

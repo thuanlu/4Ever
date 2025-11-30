@@ -40,11 +40,14 @@ class LapKeHoachCapXuong extends BaseModel {
      */
     public function create($data) {
         try {
-            // Chỉ lưu đúng mã KCX truyền vào, giống như sinh ra ở view
+            // Kiểm tra trùng mã KCX, nếu trùng thì tự động tăng số phía sau
             $maKHCapXuong = $data['ma_kh_cap_xuong'];
-            // Nếu đã tồn tại mã này thì báo lỗi, không tự động tăng hậu tố
-            if ($this->getById($maKHCapXuong)) {
-                throw new PDOException('Mã kế hoạch cấp xưởng đã tồn tại: ' . $maKHCapXuong);
+            $originalMaKHCapXuong = $maKHCapXuong;
+            $suffix = 1;
+            while ($this->getById($maKHCapXuong)) {
+                // Nếu đã có mã này, tăng số phía sau
+                $maKHCapXuong = $originalMaKHCapXuong . '-' . $suffix;
+                $suffix++;
             }
             $sql = "INSERT INTO {$this->tableName} (MaKHCapXuong, MaKeHoach, MaPhanXuong, NgayLap, SoLuong, CongSuatDuKien, TrangThai) VALUES (?, ?, ?, ?, ?, ?, ?)";
             $stmt = $this->db->prepare($sql);

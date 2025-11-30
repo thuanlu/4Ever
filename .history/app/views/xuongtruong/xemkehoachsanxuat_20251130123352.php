@@ -80,7 +80,9 @@ ob_start();
                                 ?>
                             </td>
                             <td>
-                                <a href="?xem=<?= $k['MaKeHoach'] ?>" class="btn btn-sm btn-info">Xem</a>
+                                <div class="text-center">
+                                    <a href="?xem=<?=  ?> htmlspecialchars($k['MaKeHoach']) ?>" class="btn btn-sm btn-info">Xem
+                                </div></a>
                             </td>
                         </tr>
                         <?php endforeach; ?>

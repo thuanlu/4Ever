@@ -4,7 +4,7 @@ ob_start();
 <div class="container mt-4">
     <div class="card mb-4">
         <div class="card-header gradient-header">
-            <h4 class="mb-0 fw-bold" style="letter-spacing:0.5px;">Xem Kế hoạch sản xuất</h4>
+            <h4 class="mb-0 fw-bold" style="letter-spacing:0.5px;">Danh sách kế hoạch sản xuất</h4>
         </div>
         <style>
             .gradient-header {
@@ -16,44 +16,24 @@ ob_start();
             }
         </style>
         <div class="card-body pb-2">
-            <form method="get" class="row g-3 align-items-end mb-3">
-                <div class="col-md-3">
-                    <div class="d-flex flex-column">
-                        <label class="form-label fw-bold mb-2 text-center">Kỳ</label>
-                        <select name="ky" class="form-select">
-                            <option value="">Tất cả</option>
-                            <option value="week">Tuần</option>
-                            <option value="month">Tháng</option>
-                        </select>
-                    </div>
+            <form method="get" class="row g-2 align-items-center mb-3">
+                <div class="col-auto flex-grow-1">
+                    <input type="text" name="search" class="form-control" placeholder="Tìm kiếm mã kế hoạch, tên kế hoạch, đơn hàng..." value="<?= htmlspecialchars($_GET['search'] ?? '') ?>">
                 </div>
-                <div class="col-md-3">
-                    <div class="d-flex flex-column">
-                        <label class="form-label fw-bold mb-2 text-center">Mã kế hoạch</label>
-                        <input type="text" name="makehoach" class="form-control" placeholder="Mã kế hoạch">
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="d-flex flex-column">
-                        <label class="form-label fw-bold mb-2 text-center">Mã đơn hàng</label>
-                        <input type="text" name="donhang" class="form-control" placeholder="Mã đơn hàng">
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <button type="submit" class="btn btn-outline-primary w-100 fw-bold py-2" style="font-size:1.1rem;">Lọc</button>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-outline-primary">Tìm kiếm</button>
                 </div>
             </form>
-            <hr>
             <div class="table-responsive">
-                <table class="table table-bordered table-hover mb-0">
-                    <thead class="table-light">
+                <table class="table table-bordered mb-0">
+                    <thead>
                         <tr>
-                            <th>Mã KH</th>
+                            <th>Mã kế hoạch</th>
                             <th>Tên kế hoạch</th>
                             <th>Ngày bắt đầu</th>
                             <th>Ngày kết thúc</th>
                             <th>Người lập</th>
-                            <th>Mã đơn hàng</th>
+                            <th>Đơn hàng</th>
                             <th>Trạng thái</th>
                             <th>Thao tác</th>
                         </tr>

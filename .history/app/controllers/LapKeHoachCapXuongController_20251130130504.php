@@ -144,8 +144,6 @@ class LapKeHoachCapXuongController extends BaseController {
                 }
                 $maKHCapXuong = 'KCX-' . date('Ymd') . '-' . $soKeHoach;
             }
-                // Log giá trị thực tế của $maKHCapXuong để debug
-                error_log('DEBUG $maKHCapXuong: ' . $maKHCapXuong);
             // Ngày lập lấy thời gian hiện tại
             $ngayLap = date('Y-m-d H:i:s');
             // Công suất dự kiến lấy từ form, mặc định 0 nếu không có

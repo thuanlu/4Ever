@@ -80,7 +80,6 @@ if (empty($_SESSION['user'])) {
    
         </div>
     </div>
-    <?php if (!empty($kehoach)): ?>
     <div class="pt-4 mt-2">
         <div class="card mb-4">
             <div class="card-header gradient-header">
@@ -91,6 +90,7 @@ if (empty($_SESSION['user'])) {
                 <input type="hidden" name="ma_kehoach" value="<?= $kehoach['MaKeHoach'] ?>">
                 <div class="mb-3">
                     <h5 class="fw-bold mb-3" style="font-size:1.15rem;">Tham chiếu Kế hoạch Tổng</h5>
+                    
                     <div class="row g-3 mb-3">
                         <div class="col-md-4">
                             <div class="card shadow-sm border-0 rounded-3 p-3 h-100 bg-light">
@@ -108,6 +108,7 @@ if (empty($_SESSION['user'])) {
                             <div class="card shadow-sm border-0 rounded-3 p-3 h-100 bg-light">
                                 <div class="fw-bold text-secondary mb-1">Sản lượng Tổng của phân xưởng</div>
                                 <?php
+                                // Tính tổng sản lượng của phân xưởng hiện tại
                                 $sanLuongPhanXuong = 0;
                                 if (!empty($kehoach['SanPhamList']) && is_array($kehoach['SanPhamList'])) {
                                     foreach ($kehoach['SanPhamList'] as $sp) {
@@ -119,6 +120,7 @@ if (empty($_SESSION['user'])) {
                             </div>
                         </div>
                     </div>
+                    
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
                             <div class="form-group">
@@ -143,23 +145,13 @@ if (empty($_SESSION['user'])) {
                 <hr class="my-4">
                 <h5 class="fw-bold mb-3" style="font-size:1.15rem;">Lập kế hoạch cấp xưởng</h5>
                 <div class="row g-3 mb-3">
+                    
                     <div class="col-md-4">
                         <div class="form-group">
                             <label class="form-label fw-bold">Mã kế hoạch xưởng</label>
                             <?php
-                                // Sinh mã: KCX-[ngày hiện tại]-[số thứ tự kế hoạch]
-                                // Lấy số trong mã kế hoạch tổng (ví dụ KH06 -> 06)
-                                $soKeHoach = '';
-                                if (!empty($kehoach['MaKeHoach'])) {
-                                    // Lấy đúng 2 số cuối của mã kế hoạch tổng (KH05 -> 05)
-                                    if (preg_match('/KH(\d{2})$/', $kehoach['MaKeHoach'], $matches)) {
-                                        $soKeHoach = $matches[1];
-                                    } else {
-                                        // Nếu không đúng định dạng, lấy 2 số cuối bất kỳ
-                                        $soKeHoach = substr(preg_replace('/\D/', '', $kehoach['MaKeHoach']), -2);
-                                    }
-                                }
-                                $autoMaKeHoachXuong = 'KCX-' . date('Ymd') . '-' . $soKeHoach;
+                                // Sinh mã kế hoạch xưởng tự động: CX-[ngày]-[random]
+                                $autoMaKeHoachXuong = 'KCX-' . date('Ymd') . '-' . rand(100,999);
                             ?>
                             <input type="text" class="form-control" name="ma_kehoach_xuong" value="<?= htmlspecialchars($autoMaKeHoachXuong) ?>" readonly>
                         </div>
@@ -183,41 +175,45 @@ if (empty($_SESSION['user'])) {
                         </div>
                     </div>
                 </div>
+                
                 <div class="row g-3 mb-3">
-                    <div class="col-12">
-                        <label class="form-label fw-bold mb-2">Danh sách sản phẩm</label>
-                        <div class="table-responsive">
-                            <table class="table table-bordered mb-0">
-                                <thead>
-                                    <tr>
-                                        <th>Mã sản phẩm</th>
-                                        <th>Tên sản phẩm</th>
-                                        <th>Số lượng</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php
-                                    if (!empty($kehoach['SanPhamList']) && is_array($kehoach['SanPhamList'])) {
-                                        foreach ($kehoach['SanPhamList'] as $sp) {
+                        <div class="col-12">
+                            <label class="form-label fw-bold mb-2">Danh sách sản phẩm</label>
+                            <div class="table-responsive">
+                                <table class="table table-bordered mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Mã sản phẩm</th>
+                                            <th>Tên sản phẩm</th>
+                                            <th>Số lượng</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php
+                                        // Nếu có nhiều sản phẩm, hiển thị tất cả
+                                        if (!empty($kehoach['SanPhamList']) && is_array($kehoach['SanPhamList'])) {
+                                            foreach ($kehoach['SanPhamList'] as $sp) {
+                                                echo '<tr>';
+                                                echo '<td>' . htmlspecialchars($sp['MaSanPham'] ?? '') . '</td>';
+                                                echo '<td>' . htmlspecialchars($sp['TenSanPham'] ?? '') . '</td>';
+                                                echo '<td>' . htmlspecialchars($sp['SanLuongMucTieu'] ?? $sp['SoLuong'] ?? '') . '</td>';
+                                                echo '</tr>';
+                                            }
+                                        } else {
+                                            // Nếu chỉ có một sản phẩm, hiển thị một dòng
                                             echo '<tr>';
-                                            echo '<td>' . htmlspecialchars($sp['MaSanPham'] ?? '') . '</td>';
-                                            echo '<td>' . htmlspecialchars($sp['TenSanPham'] ?? '') . '</td>';
-                                            echo '<td>' . htmlspecialchars($sp['SanLuongMucTieu'] ?? $sp['SoLuong'] ?? '') . '</td>';
+                                            echo '<td>' . htmlspecialchars($kehoach['MaSanPham'] ?? '') . '</td>';
+                                            echo '<td>' . htmlspecialchars($kehoach['TenSanPham'] ?? '') . '</td>';
+                                            echo '<td>' . htmlspecialchars($kehoach['SoLuongSanPham'] ?? '') . '</td>';
                                             echo '</tr>';
                                         }
-                                    } else {
-                                        echo '<tr>';
-                                        echo '<td>' . htmlspecialchars($kehoach['MaSanPham'] ?? '') . '</td>';
-                                        echo '<td>' . htmlspecialchars($kehoach['TenSanPham'] ?? '') . '</td>';
-                                        echo '<td>' . htmlspecialchars($kehoach['SoLuongSanPham'] ?? '') . '</td>';
-                                        echo '</tr>';
-                                    }
-                                    ?>
-                                </tbody>
-                            </table>
+                                        ?>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
-                </div>
+
                 <div class="mb-3">
                     <label class="form-label fw-bold mb-2">Danh sách ca làm việc</label>
                     <div class="table-responsive">
@@ -243,6 +239,7 @@ if (empty($_SESSION['user'])) {
                         <div id="progress-bar" class="progress-bar bg-success" style="width: 0%; font-size:1.1rem; border-radius: 0.5rem;">0%</div>
                     </div>
                 </div>
+
                 <div class="d-flex gap-2 justify-content-end mt-3">
                     <button type="submit" class="btn btn-success px-4 py-2 fw-bold" style="font-size:1.1rem;">Xác nhận</button>
                     <a href="<?= BASE_URL ?>xuongtruong/lapkehoachcapxuong" class="btn btn-secondary px-4 py-2 fw-bold" style="font-size:1.1rem;">Hủy</a>
@@ -250,7 +247,6 @@ if (empty($_SESSION['user'])) {
             </form>
         </div>
     </div>
-    <?php endif; ?>
     
 <?php if (!empty($kehoach)): ?>
     <script>
@@ -484,24 +480,22 @@ if (empty($_SESSION['user'])) {
                         <h5 class="fw-bold mb-3">Sửa kế hoạch cấp xưởng</h5>
                         <form method="post" action="/4Ever/xuongtruong/suakehoachcapxuong">
                             <input type="hidden" name="makhcx" value="<?= htmlspecialchars($khcxEdit['MaKHCapXuong']) ?>">
-                            <?php if (!empty($kehoach) && !empty($kehoach['MaKeHoach'])): ?>
-                            <div class="pt-4 mt-2">
-                                <div class="card mb-4">
-                                    <div class="card-header gradient-header">
-                                        <h4 class="mb-0 fw-bold" style="letter-spacing:0.5px;">Lập Kế hoạch Cấp Xưởng</h4>
-                                        <div class="mt-1" style="font-size:1.1rem; color:#fff;">Phân bổ sản lượng từ kế hoạch tổng xuống từng ca làm việc và Tổ trưởng phụ trách.</div>
-                                    </div>
-                                    <form method="POST" action="<?= BASE_URL ?>xuongtruong/lapkehoachcapxuong/store" id="form-lapkehoach" class="p-3">
-                                        <input type="hidden" name="ma_kehoach" value="<?= $kehoach['MaKeHoach'] ?>">
-                                        <div class="mb-3">
-                                            <h5 class="fw-bold mb-3" style="font-size:1.15rem;">Tham chiếu Kế hoạch Tổng</h5>
-                                            ...existing code...
-                                        </div>
-                                        ...existing code...
-                                    </form>
+                            <div class="row mb-2">
+                                <div class="col-md-4">
+                                    <label>Mã kế hoạch tổng</label>
+                                    <input type="text" class="form-control" name="ma_kehoach" value="<?= htmlspecialchars($khcxEdit['MaKeHoach']) ?>" readonly>
+                                </div>
+                                <div class="col-md-4">
+                                    <label>Mã phân xưởng</label>
+                                    <input type="text" class="form-control" name="ma_phan_xuong" value="<?= htmlspecialchars($khcxEdit['MaPhanXuong']) ?>" readonly>
+                                </div>
+                                <div class="col-md-4">
+                                    <label>Ngày lập</label>
+                                    <input type="text" class="form-control" name="ngay_lap" value="<?= htmlspecialchars($khcxEdit['NgayLap']) ?>" readonly>
                                 </div>
                             </div>
-                            <?php endif; ?>
+                            <div class="row mb-2">
+                                <div class="col-md-4">
                                     <label>Số lượng</label>
                                     <input type="number" class="form-control" name="so_luong" value="<?= htmlspecialchars($khcxEdit['SoLuong']) ?>">
                                 </div>

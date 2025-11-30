@@ -16,34 +16,27 @@ ob_start();
             }
         </style>
         <div class="card-body pb-2">
-            <form method="get" class="row g-3 align-items-end mb-3">
-                <div class="col-md-3">
-                    <div class="d-flex flex-column">
-                        <label class="form-label fw-bold mb-2 text-center">Kỳ</label>
-                        <select name="ky" class="form-select">
-                            <option value="">Tất cả</option>
-                            <option value="week">Tuần</option>
-                            <option value="month">Tháng</option>
-                        </select>
-                    </div>
+            <form method="get" class="row g-2 align-items-center mb-3">
+                <div class="col-lg-2 col-md-3 col-6">
+                    <label class="form-label fw-bold mb-1 text-center w-100">Kỳ</label>
+                    <select name="ky" class="form-select form-select-sm">
+                        <option value="">Tất cả</option>
+                        <option value="week">Tuần</option>
+                        <option value="month">Tháng</option>
+                    </select>
                 </div>
-                <div class="col-md-3">
-                    <div class="d-flex flex-column">
-                        <label class="form-label fw-bold mb-2 text-center">Mã kế hoạch</label>
-                        <input type="text" name="makehoach" class="form-control" placeholder="Mã kế hoạch">
-                    </div>
+                <div class="col-lg-3 col-md-3 col-6">
+                    <label class="form-label fw-bold mb-1 text-center w-100">Mã kế hoạch</label>
+                    <input type="text" name="makehoach" class="form-control form-control-sm" placeholder="Mã kế hoạch">
                 </div>
-                <div class="col-md-3">
-                    <div class="d-flex flex-column">
-                        <label class="form-label fw-bold mb-2 text-center">Mã đơn hàng</label>
-                        <input type="text" name="donhang" class="form-control" placeholder="Mã đơn hàng">
-                    </div>
+                <div class="col-lg-3 col-md-3 col-6">
+                    <label class="form-label fw-bold mb-1 text-center w-100">Mã đơn hàng</label>
+                    <input type="text" name="donhang" class="form-control form-control-sm" placeholder="Mã đơn hàng">
                 </div>
-                <div class="col-md-3">
-                    <button type="submit" class="btn btn-outline-primary w-100 fw-bold py-2" style="font-size:1.1rem;">Lọc</button>
+                <div class="col-lg-2 col-md-3 col-6 d-flex align-items-end">
+                    <button type="submit" class="btn btn-outline-primary w-100 fw-bold py-1" style="font-size:1rem;">Lọc</button>
                 </div>
             </form>
-            <hr>
             <div class="table-responsive">
                 <table class="table table-bordered table-hover mb-0">
                     <thead class="table-light">

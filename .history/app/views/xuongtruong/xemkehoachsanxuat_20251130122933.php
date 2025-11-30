@@ -43,7 +43,6 @@ ob_start();
                     <button type="submit" class="btn btn-outline-primary w-100 fw-bold py-2" style="font-size:1.1rem;">Lọc</button>
                 </div>
             </form>
-            <hr>
             <div class="table-responsive">
                 <table class="table table-bordered table-hover mb-0">
                     <thead class="table-light">

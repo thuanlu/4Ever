@@ -154,6 +154,15 @@ $router->addRoute('POST', '/nhapkho/confirm', 'NhapKhoController', 'confirmImpor
 $router->addRoute('POST', '/nhapkho/confirm-multi', 'NhapKhoController', 'confirmImportMulti');
 $router->addRoute('GET', '/nhapkho/detail', 'NhapKhoController', 'getDetail');
 
+// Routes cho Tra Cứu Tồn Kho
+$router->addRoute('GET', '/tracuutonkho', 'TraCuuTonKhoController', 'index');
+
+// Routes cho Nhập Kho Nguyên Liệu
+$router->addRoute('GET', '/nhapkhonguyenlieu', 'NhapKhoNguyenLieuController', 'index');
+$router->addRoute('GET', '/nhapkhonguyenlieu/detail', 'NhapKhoNguyenLieuController', 'detail');
+$router->addRoute('POST', '/nhapkhonguyenlieu/confirm', 'NhapKhoNguyenLieuController', 'confirm');
+$router->addRoute('POST', '/nhapkhonguyenlieu/reject', 'NhapKhoNguyenLieuController', 'reject');
+
 
 
 //Routes cho QC

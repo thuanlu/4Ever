@@ -22,7 +22,10 @@ class Database {
             );
             $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         } catch(PDOException $exception) {
-            echo "Lỗi kết nối: " . $exception->getMessage();
+            // Log lỗi thay vì echo (tránh làm hỏng output HTML)
+            error_log("Database connection error: " . $exception->getMessage());
+            // Không echo ra màn hình, chỉ return null
+            // Caller sẽ xử lý lỗi này
         }
         
         return $this->conn;

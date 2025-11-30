@@ -48,10 +48,15 @@ class NhapKhoController extends BaseController {
             // Hiển thị view
             $this->loadView('kho/nhap_kho_thanh_pham', $data);
 
+        } catch (PDOException $e) {
+            // Xử lý lỗi database
+            error_log("Database error in NhapKhoController::index: " . $e->getMessage());
+            $_SESSION['error'] = "Lỗi kết nối database! Vui lòng kiểm tra MySQL đã chạy chưa.";
+            $this->redirect('kho/dashboard');
         } catch (Exception $e) {
-            // Xử lý lỗi
+            // Xử lý lỗi khác
             error_log("Error in NhapKhoController::index: " . $e->getMessage());
-            $_SESSION['error'] = "Lỗi khi tải danh sách lô hàng!";
+            $_SESSION['error'] = "Lỗi: " . $e->getMessage();
             $this->redirect('kho/dashboard');
         }
     }
@@ -95,7 +100,15 @@ class NhapKhoController extends BaseController {
             }
 
             // Gọi Model để xử lý nhập kho
-            $result = $this->model->nhapKhoLoHang($maLoHang, $currentUser['id']);
+            $maNV = $currentUser['MaNV'] ?? $currentUser['id'] ?? null;
+            if (!$maNV) {
+                $this->json([
+                    'success' => false,
+                    'message' => 'Không xác định được mã nhân viên!'
+                ]);
+                return;
+            }
+            $result = $this->model->nhapKhoLoHang($maLoHang, $maNV);
 
             // Trả kết quả về dạng JSON
             $this->json($result);
@@ -114,13 +127,31 @@ class NhapKhoController extends BaseController {
      * Route: POST /nhapkho/confirm-multi
      */
     public function confirmImportMulti() {
+        // Đảm bảo không có output trước khi trả JSON
+        if (ob_get_level()) {
+            ob_clean();
+        }
+        
+        // Tăng thời gian timeout cho request này
+        set_time_limit(60);
+        
         // Kiểm tra quyền
-        $this->requireRole(['NVK', 'nhan_vien_kho_tp']);
+        try {
+            $this->requireRole(['NVK', 'nhan_vien_kho_tp']);
+        } catch (Exception $e) {
+            $this->json([
+                'success' => false,
+                'message' => 'Không có quyền truy cập!'
+            ]);
+            return;
+        }
 
         // Kiểm tra method là POST
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            $_SESSION['error'] = "Yêu cầu không hợp lệ!";
-            $this->redirect('nhapkho');
+            $this->json([
+                'success' => false,
+                'message' => 'Yêu cầu không hợp lệ!'
+            ]);
             return;
         }
 
@@ -156,16 +187,70 @@ class NhapKhoController extends BaseController {
             }
 
             // Gọi Model để xử lý nhập kho nhiều lô hàng
-            $result = $this->model->nhapKhoNhieuLoHang($danhSachLoHang, $currentUser['id']);
+            $maNV = $currentUser['MaNV'] ?? $currentUser['id'] ?? null;
+            if (!$maNV) {
+                $this->json([
+                    'success' => false,
+                    'message' => 'Không xác định được mã nhân viên!'
+                ]);
+                return;
+            }
+            
+            $result = $this->model->nhapKhoNhieuLoHang($danhSachLoHang, $maNV);
+            
+            // Log kết quả từ model
+            error_log("NhapKhoController::confirmImportMulti - Model returned: " . json_encode($result));
+            
+            // Đảm bảo result có đầy đủ các trường cần thiết
+            if (!isset($result) || !is_array($result)) {
+                error_log("NhapKhoController::confirmImportMulti - Invalid result from model!");
+                $result = [
+                    'success' => false,
+                    'message' => 'Lỗi không xác định từ model!',
+                    'successCount' => 0,
+                    'failCount' => count($danhSachLoHang)
+                ];
+            }
+            
+            if (!isset($result['success'])) {
+                error_log("NhapKhoController::confirmImportMulti - Missing 'success' field, defaulting to false");
+                $result['success'] = false;
+            }
+            if (!isset($result['message'])) {
+                error_log("NhapKhoController::confirmImportMulti - Missing 'message' field");
+                $result['message'] = 'Không xác định được kết quả!';
+            }
+            if (!isset($result['successCount'])) {
+                error_log("NhapKhoController::confirmImportMulti - Missing 'successCount' field");
+                $result['successCount'] = 0;
+            }
+            if (!isset($result['failCount'])) {
+                error_log("NhapKhoController::confirmImportMulti - Missing 'failCount' field");
+                $result['failCount'] = 0;
+            }
+
+            // Log kết quả cuối cùng trước khi trả về
+            error_log("NhapKhoController::confirmImportMulti - Final result before JSON: " . json_encode($result));
 
             // Trả kết quả về dạng JSON
             $this->json($result);
 
-        } catch (Exception $e) {
-            error_log("Error in NhapKhoController::confirmImportMulti: " . $e->getMessage());
+        } catch (PDOException $e) {
+            error_log("Database error in NhapKhoController::confirmImportMulti: " . $e->getMessage());
             $this->json([
                 'success' => false,
-                'message' => 'Lỗi kết nối! Vui lòng thử lại sau.'
+                'message' => 'Lỗi kết nối database! Vui lòng kiểm tra MySQL đã chạy chưa.',
+                'successCount' => 0,
+                'failCount' => 0
+            ]);
+        } catch (Exception $e) {
+            error_log("Error in NhapKhoController::confirmImportMulti: " . $e->getMessage());
+            error_log("Stack trace: " . $e->getTraceAsString());
+            $this->json([
+                'success' => false,
+                'message' => 'Lỗi: ' . $e->getMessage(),
+                'successCount' => 0,
+                'failCount' => 0
             ]);
         }
     }

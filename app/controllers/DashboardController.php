@@ -123,6 +123,28 @@ class DashboardController extends BaseController {
         try {
             $database = new Database();
             $conn = $database->getConnection();
+            
+            // Kiểm tra connection null
+            if ($conn === null) {
+                error_log("DashboardController::getDashboardData - Database connection is null!");
+                // Trả về dữ liệu mặc định để tránh crash
+                return [
+                    'total_users' => 0,
+                    'total_workshops' => 0,
+                    'total_products' => 0,
+                    'total_materials' => 0,
+                    'plans_draft' => 0,
+                    'plans_approved' => 0,
+                    'plans_in_progress' => 0,
+                    'plans_completed' => 0,
+                    'materials_low_stock' => 0,
+                    'pending_orders' => 0,
+                    'today_present' => 0,
+                    'today_absent' => 0,
+                    'recent_plans' => [],
+                    'low_stock_materials' => []
+                ];
+            }
 
             $data = [];
 
@@ -157,38 +179,99 @@ class DashboardController extends BaseController {
             return $data;
 
         } catch (Exception $e) {
-            return [];
+            error_log("DashboardController::getDashboardData - Error: " . $e->getMessage());
+            return [
+                'total_users' => 0,
+                'total_workshops' => 0,
+                'total_products' => 0,
+                'total_materials' => 0,
+                'plans_draft' => 0,
+                'plans_approved' => 0,
+                'plans_in_progress' => 0,
+                'plans_completed' => 0,
+                'materials_low_stock' => 0,
+                'pending_orders' => 0,
+                'today_present' => 0,
+                'today_absent' => 0,
+                'recent_plans' => [],
+                'low_stock_materials' => []
+            ];
         }
     }
     
     private function getCount($conn, $table, $condition = '1=1') {
-        $query = "SELECT COUNT(*) as count FROM $table WHERE $condition";
-        $stmt = $conn->prepare($query);
-        $stmt->execute();
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $result['count'] ?? 0;
+        // Kiểm tra connection null
+        if ($conn === null) {
+            error_log("DashboardController::getCount - Database connection is null!");
+            return 0;
+        }
+        
+        try {
+            $query = "SELECT COUNT(*) as count FROM $table WHERE $condition";
+            $stmt = $conn->prepare($query);
+            if ($stmt === false) {
+                error_log("DashboardController::getCount - Failed to prepare statement for table: $table");
+                return 0;
+            }
+            $stmt->execute();
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $result['count'] ?? 0;
+        } catch (PDOException $e) {
+            error_log("DashboardController::getCount - Error: " . $e->getMessage());
+            return 0;
+        }
     }
     
     private function getRecentProductionPlans($conn) {
-        $query = "SELECT k.*, d.TenDonHang, nv.HoTen as NguoiLap
-                  FROM KeHoachSanXuat k
-                  LEFT JOIN DonHang d ON k.MaDonHang = d.MaDonHang
-                  LEFT JOIN NhanVien nv ON k.MaNV = nv.MaNV
-                  ORDER BY k.NgayLap DESC
-                  LIMIT 5";
-        $stmt = $conn->prepare($query);
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        // Kiểm tra connection null
+        if ($conn === null) {
+            error_log("DashboardController::getRecentProductionPlans - Database connection is null!");
+            return [];
+        }
+        
+        try {
+            $query = "SELECT k.*, d.TenDonHang, nv.HoTen as NguoiLap
+                      FROM KeHoachSanXuat k
+                      LEFT JOIN DonHang d ON k.MaDonHang = d.MaDonHang
+                      LEFT JOIN NhanVien nv ON k.MaNV = nv.MaNV
+                      ORDER BY k.NgayLap DESC
+                      LIMIT 5";
+            $stmt = $conn->prepare($query);
+            if ($stmt === false) {
+                error_log("DashboardController::getRecentProductionPlans - Failed to prepare statement");
+                return [];
+            }
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("DashboardController::getRecentProductionPlans - Error: " . $e->getMessage());
+            return [];
+        }
     }
     
     private function getLowStockMaterials($conn) {
-        $query = "SELECT * FROM NguyenLieu 
-                  WHERE SoLuongTonKho <= 10
-                  ORDER BY SoLuongTonKho ASC
-                  LIMIT 5";
-        $stmt = $conn->prepare($query);
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        // Kiểm tra connection null
+        if ($conn === null) {
+            error_log("DashboardController::getLowStockMaterials - Database connection is null!");
+            return [];
+        }
+        
+        try {
+            $query = "SELECT * FROM NguyenLieu 
+                      WHERE SoLuongTonKho <= 10
+                      ORDER BY SoLuongTonKho ASC
+                      LIMIT 5";
+            $stmt = $conn->prepare($query);
+            if ($stmt === false) {
+                error_log("DashboardController::getLowStockMaterials - Failed to prepare statement");
+                return [];
+            }
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("DashboardController::getLowStockMaterials - Error: " . $e->getMessage());
+            return [];
+        }
     }
 }
 ?>

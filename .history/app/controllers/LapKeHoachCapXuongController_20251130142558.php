@@ -25,18 +25,6 @@ class LapKeHoachCapXuongController extends BaseController {
         $kehoachs = array_filter($allKeHoachs, function($kh) use ($kehoachCapXuongMaKeHoachArr) {
             return !in_array($kh['MaKeHoach'], $kehoachCapXuongMaKeHoachArr);
         });
-        // Lọc theo từ khóa tìm kiếm nếu có
-        if (!empty($_GET['search'])) {
-            $keyword = mb_strtolower(trim($_GET['search']));
-            $kehoachs = array_filter($kehoachs, function($kh) use ($keyword) {
-                $ma = mb_strtolower($kh['MaKeHoach'] ?? '');
-                $ten = mb_strtolower($kh['TenKeHoach'] ?? '');
-                $donhang = mb_strtolower($kh['TenDonHang'] ?? '');
-                return strpos($ma, $keyword) !== false
-                    || strpos($ten, $keyword) !== false
-                    || strpos($donhang, $keyword) !== false;
-            });
-        }
         // Sắp xếp kế hoạch theo ngày bắt đầu tăng dần (kế hoạch lập trước ở trên)
         usort($kehoachs, function($a, $b) {
             $dateA = strtotime($a['NgayBatDau'] ?? '');

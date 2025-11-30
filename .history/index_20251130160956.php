@@ -1,3 +1,5 @@
+// Route cho quản lý nhân viên (Xưởng trưởng)
+$router->addRoute('GET', '/xuongtruong/quanlynhanvien', 'QuanLyNhanVienController', 'index');
 
 <?php
 
@@ -73,9 +75,6 @@ $router->addRoute('GET', '/xuongtruong/xemkehoachsanxuat', 'XuongTruongXemKeHoac
 $router->addRoute('GET', '/xuongtruong/lapkehoachcapxuong', 'LapKeHoachCapXuongController', 'index');
 $router->addRoute('GET', '/xuongtruong/lapkehoachcapxuong/create/(.*)', 'LapKeHoachCapXuongController', 'create');
 $router->addRoute('POST', '/xuongtruong/lapkehoachcapxuong/store', 'LapKeHoachCapXuongController', 'store');
-// Route cho quản lý nhân viên (Xưởng trưởng)
-$router->addRoute('GET', '/xuongtruong/quanlynhanvien', 'QuanLyNhanVienController', 'index');
-
 
 // Theo dõi tiến độ sản xuất (Xưởng trưởng)
 $router->addRoute('GET', '/xuongtruong/tien-do', 'TienDoController', 'index');

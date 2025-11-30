@@ -23,14 +23,4 @@ class NhanVien extends BaseModel {
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
-
-     /**
-     * Lấy danh sách tổ trưởng
-     */
-    public function getToTruongList() {
-        $sql = "SELECT MaNV, HoTen FROM nhanvien WHERE ChucVu = 'Tổ trưởng' ORDER BY HoTen ASC";
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
 }

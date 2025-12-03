@@ -10,7 +10,7 @@
         <i class="fas fa-box-open me-2"></i>Nhập kho TP
     </a>
 
-     <a class="nav-link" href="<?= BASE_URL ?>kho/xuatnguyenlieu">
+     <a class="nav-link" href="<?= BASE_URL ?>kho/phieuxuatnguyenlieu">
     <i class="fas fa-arrow-up me-2"></i>Xuất NVL
     </a>
 

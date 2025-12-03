@@ -163,9 +163,9 @@ $router->addRoute('GET', '/tracuutonkho', 'TraCuuTonKhoController', 'index');
 
 // Routes cho Xuất NVL (Phiếu xuất nguyên liệu kho)
 $router->addRoute('GET', '/kho/xuatnguyenlieu', 'XuatNguyenLieuController', 'index');
-$router->addRoute('GET', '/kho/xuatnguyenlieu/create/(.*)', 'XuatNguyenLieuController', 'create');
-$router->addRoute('POST', '/kho/xuatnguyenlieu/store', 'XuatNguyenLieuController', 'store');
-$router->addRoute('GET', '/kho/xuatnguyenlieu/stock', 'XuatNguyenLieuController', 'stock');
+$router->addRoute('GET', '/kho/phieuxuatnguyenlieu/create/(.*)', 'XuatNguyenLieuController', 'create');
+$router->addRoute('POST', '/kho/phieuxuatnguyenlieu/store', 'XuatNguyenLieuController', 'store');
+$router->addRoute('GET', '/kho/phieuxuatnguyenlieu/stock', 'XuatNguyenLieuController', 'stock');
 
 // Routes cho Nhập Kho Nguyên Liệu
 $router->addRoute('GET', '/nhapkhonguyenlieu', 'NhapKhoNguyenLieuController', 'index');

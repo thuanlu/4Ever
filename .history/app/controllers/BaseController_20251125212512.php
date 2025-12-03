@@ -40,12 +40,7 @@ class BaseController {
     }
     
     protected function json($data) {
-        // Xóa output buffer nếu có để đảm bảo chỉ trả về JSON
-        if (ob_get_level()) {
-            ob_clean();
-        }
-        
-        header('Content-Type: application/json; charset=utf-8');
+        header('Content-Type: application/json');
         echo json_encode($data, JSON_UNESCAPED_UNICODE);
         exit();
     }

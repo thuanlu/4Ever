@@ -230,70 +230,40 @@ function performImport(danhSachLoHang) {
     // Debug log
     console.log('Sending lots:', danhSachLoHang);
     
-    // Tạo AbortController để có thể timeout
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 giây timeout
-    
     fetch('<?php echo BASE_URL; ?>nhapkho/confirm-multi', {
         method: 'POST',
         body: formData,
-        credentials: 'same-origin',
-        signal: controller.signal,
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest'
-        }
+        credentials: 'same-origin'
     })
-    .then(response => {
-        clearTimeout(timeoutId);
-        
-        // Kiểm tra status code
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        // Kiểm tra content type
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-            return response.text().then(text => {
-                console.error('Response is not JSON:', text);
-                throw new Error('Response is not JSON: ' + text.substring(0, 100));
-            });
-        }
-        
-        return response.json();
-    })
+    .then(response => response.json())
     .then(data => {
-        clearTimeout(timeoutId);
         buttons.forEach(btn => btn.disabled = false);
         
-        console.log('Response data:', data);
-        
-        if (data && data.success) {
-            const successMsg = data.successCount > 0 
-                ? `Nhập kho thành công! Đã nhập ${data.successCount} lô hàng.` 
-                : 'Nhập kho thành công!';
-            showAlert(successMsg, 'success');
+        if (data.success) {
+            showAlert(
+                `Nhập kho thành công! Đã nhập ${data.successCount} lô hàng.`, 
+                'success'
+            );
             
             // Reload trang sau 2 giây
             setTimeout(() => {
                 window.location.reload();
             }, 2000);
         } else {
-            const errorMsg = data && data.message ? data.message : 'Có lỗi xảy ra khi nhập kho!';
-            showAlert(errorMsg, 'danger');
+            showAlert(
+                `Có lỗi xảy ra: ${data.message}`, 
+                'danger'
+            );
         }
     })
     .catch(error => {
-        clearTimeout(timeoutId);
         buttons.forEach(btn => btn.disabled = false);
-        
-        if (error.name === 'AbortError') {
-            console.error('Request timeout');
-            showAlert('Request timeout! Vui lòng thử lại.', 'danger');
-        } else {
-            console.error('Fetch error:', error);
-            showAlert('Lỗi kết nối! Vui lòng kiểm tra console để xem chi tiết.', 'danger');
-        }
+<<<<<<< HEAD
+        showAlert('Lỗi kết nối! Vui lòng thử lại sau.', 'danger');
+=======
+        showAlert('Nhập Kho Thành Công', 'danger');
+>>>>>>> 846529c2f597edacc8365b20a207f0deb2f52c10
+        console.error('Error:', error);
     });
 }
 
@@ -304,3 +274,4 @@ function performImport(danhSachLoHang) {
 $content = ob_get_clean();
 include APP_PATH . '/views/layouts/main.php';
 ?>
+

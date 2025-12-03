@@ -58,3 +58,5 @@ TienDoController::index - MaPhanXuong=PX01 - fetched=1
 TienDoController::index - rows: [{"MaDayChuyen":"DC01","TenDayChuyen":"Dây chuyền Cắt 1","MaPhanXuong":"PX01"}]
 TienDoController::index - MaPhanXuong=PX01 - fetched=1
 TienDoController::index - rows: [{"MaDayChuyen":"DC01","TenDayChuyen":"Dây chuyền Cắt 1","MaPhanXuong":"PX01"}]
+TienDoController::index - MaPhanXuong=PX01 - fetched=10
+TienDoController::index - rows: [{"MaDayChuyen":"DC01","TenDayChuyen":"Dây chuyền 1","MaPhanXuong":"PX01"},{"MaDayChuyen":"DC10","TenDayChuyen":"Dây chuyền 10","MaPhanXuong":"PX01"},{"MaDayChuyen":"DC02","TenDayChuyen":"Dây chuyền 2","MaPhanXuong":"PX01"},{"MaDayChuyen":"DC03","TenDayChuyen":"Dây chuyền 3","MaPhanXuong":"PX01"},{"MaDayChuyen":"DC04","TenDayChuyen":"Dây chuyền 4","MaPhanXuong":"PX01"},{"MaDayChuyen":"DC05","TenDayChuyen":"Dây chuyền 5","MaPhanXuong":"PX01"},{"MaDayChuyen":"DC06","TenDayChuyen":"Dây chuyền 6","MaPhanXuong":"PX01"},{"MaDayChuyen":"DC07","TenDayChuyen":"Dây chuyền 7","MaPhanXuong":"PX01"},{"MaDayChuyen":"DC08","TenDayChuyen":"Dây chuyền 8","MaPhanXuong":"PX01"},{"MaDayChuyen":"DC09","TenDayChuyen":"Dây chuyền 9","MaPhanXuong":"PX01"}]

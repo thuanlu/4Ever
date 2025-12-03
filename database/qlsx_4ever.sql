@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Máy chủ: 127.0.0.1
--- Thời gian đã tạo: Th10 26, 2025 lúc 06:40 AM
+-- Thời gian đã tạo: Th12 03, 2025 lúc 11:02 AM
 -- Phiên bản máy phục vụ: 10.4.32-MariaDB
 -- Phiên bản PHP: 8.2.12
 
@@ -331,7 +331,7 @@ INSERT INTO `donhang` (`MaDonHang`, `TenDonHang`, `NgayDat`, `TrangThai`) VALUES
 --
 
 CREATE TABLE `kehoachcapxuong` (
-  `MaKHCapXuong` varchar(10) NOT NULL,
+  `MaKHCapXuong` varchar(20) NOT NULL,
   `MaKeHoach` varchar(10) NOT NULL,
   `MaPhanXuong` varchar(10) NOT NULL,
   `NgayLap` datetime NOT NULL DEFAULT current_timestamp(),
@@ -339,6 +339,13 @@ CREATE TABLE `kehoachcapxuong` (
   `CongSuatDuKien` decimal(10,2) NOT NULL DEFAULT 0.00,
   `TrangThai` varchar(20) NOT NULL DEFAULT 'Chưa thực hiện'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Kế hoạch cấp xưởng';
+
+--
+-- Đang đổ dữ liệu cho bảng `kehoachcapxuong`
+--
+
+INSERT INTO `kehoachcapxuong` (`MaKHCapXuong`, `MaKeHoach`, `MaPhanXuong`, `NgayLap`, `SoLuong`, `CongSuatDuKien`, `TrangThai`) VALUES
+('KCX-20251130-03', 'KH03', 'PX01', '2025-11-30 16:42:08', 300, 0.00, 'Chờ duyệt');
 
 -- --------------------------------------------------------
 
@@ -368,8 +375,8 @@ CREATE TABLE `kehoachsanxuat` (
 --
 
 INSERT INTO `kehoachsanxuat` (`MaKeHoach`, `TenKeHoach`, `NgayBatDau`, `NgayKetThuc`, `MaNV`, `MaDonHang`, `TrangThai`, `TongChiPhiDuKien`, `ChiPhiNguyenLieu`, `ChiPhiNhanCong`, `ChiPhiKhac`, `SoLuongCongNhanCan`, `NgayLap`, `GhiChu`) VALUES
-('KH01', 'Kế hoạch cho ĐH01', '2025-11-01', '2025-11-15', 'NKH001', 'DH01', 'Đã duyệt', 50000000.00, 0.00, 0.00, 0.00, 20, '2025-10-28 01:10:07', 'Ưu tiên sản xuất SP01'),
-('KH02', 'Kế hoạch cho ĐH02', '2025-11-10', '2025-11-30', 'NKH001', 'DH02', 'Chờ duyệt', 200000000.00, 0.00, 0.00, 0.00, 50, '2025-10-28 01:10:07', 'Hàng xuất khẩu, yêu cầu QC kỹ'),
+('KH01', 'Kế hoạch cho ĐH01', '2025-11-24', '2025-12-30', 'NKH001', 'DH01', 'Đã duyệt', 50000000.00, 0.00, 0.00, 0.00, 20, '2025-10-28 01:10:07', 'Ưu tiên sản xuất SP01'),
+('KH02', 'Kế hoạch cho ĐH02', '2025-11-10', '2025-12-28', 'NKH001', 'DH02', 'Chờ duyệt', 200000000.00, 0.00, 0.00, 0.00, 50, '2025-10-28 01:10:07', 'Hàng xuất khẩu, yêu cầu QC kỹ'),
 ('KH03', 'Kế hoạch cho ĐH03', '2025-11-05', '2025-11-20', 'NKH001', 'DH03', 'Đã duyệt', 150000000.00, 0.00, 0.00, 0.00, 40, '2025-10-30 01:25:01', 'Hàng Đại lý A, ưu tiên'),
 ('KH04', 'KH cho ĐH05 (Boot nữ)', '2025-11-20', '2025-12-10', 'NKH001', 'DH05', 'Chờ duyệt', 90000000.00, 0.00, 0.00, 0.00, 30, '2025-10-30 04:10:00', 'Plan 1 - Chờ duyệt'),
 ('KH05', 'KH cho ĐH06 (XK T12)', '2025-11-22', '2025-12-15', 'NKH001', 'DH06', 'Đã duyệt', 120000000.00, 0.00, 0.00, 0.00, 45, '2025-10-30 04:11:00', 'Plan 2 - Đã duyệt (Đủ NVL)'),
@@ -423,6 +430,13 @@ CREATE TABLE `lenhsanxuat` (
   `ngay_bat_dau_thuc_te` date DEFAULT NULL,
   `ngay_ket_thuc_thuc_te` date DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Lệnh sản xuất chi tiết cho từng dây chuyền';
+
+--
+-- Đang đổ dữ liệu cho bảng `lenhsanxuat`
+--
+
+INSERT INTO `lenhsanxuat` (`MaLenhSX`, `ma_ke_hoach_tong`, `ngay_lap_lenh`, `ma_day_chuyen`, `ma_to_truong`, `san_luong_muc_tieu`, `san_luong_thuc_te`, `trang_thai`, `ngay_bat_dau_thuc_te`, `ngay_ket_thuc_thuc_te`) VALUES
+(31, 'KH03', '2025-11-30', 'DC01', 'NTT001', 300, 0, 'Mới tạo', '2025-11-05', '2025-11-20');
 
 -- --------------------------------------------------------
 
@@ -512,6 +526,8 @@ INSERT INTO `nhacungcap` (`MaNhaCungCap`, `TenNhaCungCap`, `DiaChi`, `SoDienThoa
 CREATE TABLE `nhanvien` (
   `MaNV` varchar(10) NOT NULL COMMENT 'PK nhân viên (NDBGD25...)',
   `HoTen` varchar(100) NOT NULL,
+  `GioiTinh` enum('Nam','Nữ') NOT NULL,
+  `NamSinh` year(4) NOT NULL,
   `ChucVu` varchar(50) NOT NULL,
   `BoPhan` varchar(50) DEFAULT NULL,
   `SoDienThoai` varchar(15) DEFAULT NULL,
@@ -523,83 +539,83 @@ CREATE TABLE `nhanvien` (
 -- Đang đổ dữ liệu cho bảng `nhanvien`
 --
 
-INSERT INTO `nhanvien` (`MaNV`, `HoTen`, `ChucVu`, `BoPhan`, `SoDienThoai`, `Password`, `TrangThai`) VALUES
-('CN001', 'Nguyễn Văn A', 'Công nhân', 'Dây chuyền 1', NULL, NULL, 'Đang làm việc'),
-('CN002', 'Trần Văn B', 'Công nhân', 'Dây chuyền 1', NULL, NULL, 'Đang làm việc'),
-('CN003', 'Lê Văn C', 'Công nhân', 'Dây chuyền 2', NULL, NULL, 'Đang làm việc'),
-('CN004', 'Phạm Văn D', 'Công nhân', 'Dây chuyền 2', NULL, NULL, 'Đang làm việc'),
-('CN005', 'Đỗ Văn E', 'Công nhân', 'Dây chuyền 3', NULL, NULL, 'Đang làm việc'),
-('CN006', 'Nguyễn Văn 06', 'Công nhân', 'PX01', NULL, NULL, 'Đang làm việc'),
-('CN007', 'Nguyễn Văn 07', 'Công nhân', 'PX01', NULL, NULL, 'Đang làm việc'),
-('CN008', 'Nguyễn Văn 08', 'Công nhân', 'PX01', NULL, NULL, 'Đang làm việc'),
-('CN009', 'Nguyễn Văn 09', 'Công nhân', 'PX01', NULL, NULL, 'Đang làm việc'),
-('CN010', 'Nguyễn Văn 10', 'Công nhân', 'PX01', NULL, NULL, 'Đang làm việc'),
-('CN011', 'Nguyễn Văn 11', 'Công nhân', 'PX01', NULL, NULL, 'Đang làm việc'),
-('CN012', 'Nguyễn Văn 12', 'Công nhân', 'PX01', NULL, NULL, 'Đang làm việc'),
-('CN013', 'Nguyễn Văn 13', 'Công nhân', 'PX01', NULL, NULL, 'Đang làm việc'),
-('CN014', 'Nguyễn Văn 14', 'Công nhân', 'PX01', NULL, NULL, 'Đang làm việc'),
-('CN015', 'Nguyễn Văn 15', 'Công nhân', 'PX01', NULL, NULL, 'Đang làm việc'),
-('CN016', 'Nguyễn Văn 16', 'Công nhân', 'PX01', NULL, NULL, 'Đang làm việc'),
-('CN017', 'Nguyễn Văn 17', 'Công nhân', 'PX01', NULL, NULL, 'Đang làm việc'),
-('CN018', 'Nguyễn Văn 18', 'Công nhân', 'PX01', NULL, NULL, 'Đang làm việc'),
-('CN019', 'Nguyễn Văn 19', 'Công nhân', 'PX01', NULL, NULL, 'Đang làm việc'),
-('CN020', 'Nguyễn Văn 20', 'Công nhân', 'PX01', NULL, NULL, 'Đang làm việc'),
-('CN021', 'Nguyễn Văn 21', 'Công nhân', 'PX01', NULL, NULL, 'Đang làm việc'),
-('CN022', 'Nguyễn Văn 22', 'Công nhân', 'PX01', NULL, NULL, 'Đang làm việc'),
-('CN023', 'Nguyễn Văn 23', 'Công nhân', 'PX01', NULL, NULL, 'Đang làm việc'),
-('CN024', 'Nguyễn Văn 24', 'Công nhân', 'PX01', NULL, NULL, 'Đang làm việc'),
-('CN025', 'Nguyễn Văn 25', 'Công nhân', 'PX01', NULL, NULL, 'Đang làm việc'),
-('CN026', 'Nguyễn Văn 26', 'Công nhân', 'PX01', NULL, NULL, 'Đang làm việc'),
-('CN027', 'Nguyễn Văn 27', 'Công nhân', 'PX01', NULL, NULL, 'Đang làm việc'),
-('CN028', 'Nguyễn Văn 28', 'Công nhân', 'PX01', NULL, NULL, 'Đang làm việc'),
-('CN029', 'Nguyễn Văn 29', 'Công nhân', 'PX01', NULL, NULL, 'Đang làm việc'),
-('CN030', 'Nguyễn Văn 30', 'Công nhân', 'PX01', NULL, NULL, 'Đang làm việc'),
-('CN031', 'Nguyễn Văn 31', 'Công nhân', 'PX01', NULL, NULL, 'Đang làm việc'),
-('CN032', 'Nguyễn Văn 32', 'Công nhân', 'PX01', NULL, NULL, 'Đang làm việc'),
-('CN033', 'Nguyễn Văn 33', 'Công nhân', 'PX01', NULL, NULL, 'Đang làm việc'),
-('CN034', 'Nguyễn Văn 34', 'Công nhân', 'PX01', NULL, NULL, 'Đang làm việc'),
-('CN035', 'Nguyễn Văn 35', 'Công nhân', 'PX01', NULL, NULL, 'Đang làm việc'),
-('CN036', 'Nguyễn Văn 36', 'Công nhân', 'PX01', NULL, NULL, 'Đang làm việc'),
-('CN037', 'Nguyễn Văn 37', 'Công nhân', 'PX01', NULL, NULL, 'Đang làm việc'),
-('CN038', 'Nguyễn Văn 38', 'Công nhân', 'PX01', NULL, NULL, 'Đang làm việc'),
-('CN039', 'Nguyễn Văn 39', 'Công nhân', 'PX01', NULL, NULL, 'Đang làm việc'),
-('CN040', 'Nguyễn Văn 40', 'Công nhân', 'PX01', NULL, NULL, 'Đang làm việc'),
-('NAD001', 'Lư Minh Thuận', 'ADMIN', 'Phòng IT', '0908000008', '$2y$10$cHGFwvQW3FyQVJRNAzWWT.DXlhjr/2gtNkHltakxAXjVLIEwYZGji', 'Đang làm việc'),
-('NBGD001', 'Nguyễn Nhật Minh Quang', 'BGD', 'Ban Giám Đốc', '0901000001', '$2y$10$4aeZcC4/aFqA4lzkyfG3WOe1Zo7PHFENUvhSFY1iNaRqC9l2zT1yi', 'Đang làm việc'),
-('NCN001', 'Huỳnh Văn Nam', 'CN', 'Dây chuyền 2', '0907000007', '$2y$10$GyJpC20HAKai0b0on8/cEuW7rQcO52zD5HaJ0U1xlmDw/nnwEznc6', 'Đang làm việc'),
-('NKH001', 'Trần Thanh Trường', 'KH', 'Phòng Kế Hoạch', '0902000002', '$2y$10$sAQd1gCY2LRem4s9BnAO1uq8FvGW/7t64zlNf1xWSF1mOIXf7e6LC', 'Đang làm việc'),
-('NQC001', 'Phạm Thị Ngọc Diễm', 'QC', 'Phòng Kiểm Định', '0905000005', '$2y$10$ob6Jlaruf4oCTXYu4bYSTukp2fc9GuXb7rUkMNdndHsEkZpMxjuQu', 'Đang làm việc'),
-('NTT001', 'Trương Huỳnh Kim Yến', 'TT', 'Dây chuyền 1', '0904000004', '$2y$10$AObMwjQdWifQBa8MOchr1.iSgEkHUsxhAZfBQnv2k3QRLOC9j4eR2', 'Đang làm việc'),
-('NTT002', 'Lê Văn Cường', 'TT', 'Dây chuyền 2', '0904000002', '$2y$10$WIsUmtybJXQHIVEIYXGorOWlU6xPLRsi2xQ4PR5srSNcrcW/AvYL6', 'Đang làm việc'),
-('NTT003', 'Nguyễn Thị Tâm', 'TT', 'Dây chuyền 3', '0904000003', '$2y$10$6Oo/gmKHXaqstYky3OzRs.zqK3PwjlBQIB.IYcEerWZFNf9HMUiHq', 'Đang làm việc'),
-('NTT004', 'Phạm Văn Thành', 'TT', 'Dây chuyền 4', '0904000004', '$2y$10$abcdabcdabcdabcdabcdabCdEfGhIjKlMnOpQrStUvWxYzABCD1', 'Đang làm việc'),
-('NTT005', 'Lê Hoàng Phúc', 'TT', 'Dây chuyền 5', '0904000005', '$2y$10$abcdabcdabcdabcdabcdabCdEfGhIjKlMnOpQrStUvWxYzABCD2', 'Đang làm việc'),
-('NTT006', 'Ngô Minh Hòa', 'TT', 'Dây chuyền 6', '0904000006', '$2y$10$abcdabcdabcdabcdabcdabCdEfGhIjKlMnOpQrStUvWxYzABCD3', 'Đang làm việc'),
-('NTT007', 'Trần Nhật Tân', 'TT', 'Dây chuyền 7', '0904000007', '$2y$10$abcdabcdabcdabcdabcdabCdEfGhIjKlMnOpQrStUvWxYzABCD4', 'Đang làm việc'),
-('NTT008', 'Võ Thanh Duy', 'TT', 'Dây chuyền 8', '0904000008', '$2y$10$abcdabcdabcdabcdabcdabCdEfGhIjKlMnOpQrStUvWxYzABCD5', 'Đang làm việc'),
-('NTT009', 'Đỗ Hữu Trí', 'TT', 'Dây chuyền 9', '0904000009', '$2y$10$abcdabcdabcdabcdabcdabCdEfGhIjKlMnOpQrStUvWxYzABCD6', 'Đang làm việc'),
-('NTT010', 'Nguyễn Tấn Khải', 'TT', 'Dây chuyền 10', '0904000010', '$2y$10$abcdabcdabcdabcdabcdabCdEfGhIjKlMnOpQrStUvWxYzABCD7', 'Đang làm việc'),
-('NTT011', 'Nguyễn Văn Hải', 'TT', 'Dây chuyền 1', '0904000011', '$2y$10$abcdabcdabcdabcdabcdabCdEfGhIjKlMnOpQrStUvWxYzA11', 'Đang làm việc'),
-('NTT012', 'Lê Quốc Hưng', 'TT', 'Dây chuyền 2', '0904000012', '$2y$10$abcdabcdabcdabcdabcdabCdEfGhIjKlMnOpQrStUvWxYzA12', 'Đang làm việc'),
-('NTT013', 'Phạm Hoàng Duy', 'TT', 'Dây chuyền 3', '0904000013', '$2y$10$abcdabcdabcdabcdabcdabCdEfGhIjKlMnOpQrStUvWxYzA13', 'Đang làm việc'),
-('NTT014', 'Đỗ Quốc Việt', 'TT', 'Dây chuyền 4', '0904000014', '$2y$10$abcdabcdabcdabcdabcdabCdEfGhIjKlMnOpQrStUvWxYzA14', 'Đang làm việc'),
-('NTT015', 'Ngô Anh Kiệt', 'TT', 'Dây chuyền 5', '0904000015', '$2y$10$abcdabcdabcdabcdabcdabCdEfGhIjKlMnOpQrStUvWxYzA15', 'Đang làm việc'),
-('NTT016', 'Trần Minh Khoa', 'TT', 'Dây chuyền 6', '0904000016', '$2y$10$abcdabcdabcdabcdabcdabCdEfGhIjKlMnOpQrStUvWxYzA16', 'Đang làm việc'),
-('NTT017', 'Võ Tấn Phát', 'TT', 'Dây chuyền 7', '0904000017', '$2y$10$abcdabcdabcdabcdabcdabCdEfGhIjKlMnOpQrStUvWxYzA17', 'Đang làm việc'),
-('NTT018', 'Hồ Gia Bảo', 'TT', 'Dây chuyền 8', '0904000018', '$2y$10$abcdabcdabcdabcdabcdabCdEfGhIjKlMnOpQrStUvWxYzA18', 'Đang làm việc'),
-('NTT019', 'Lưu Hoàng Tú', 'TT', 'Dây chuyền 9', '0904000019', '$2y$10$abcdabcdabcdabcdabcdabCdEfGhIjKlMnOpQrStUvWxYzA19', 'Đang làm việc'),
-('NTT020', 'Nguyễn Trọng Tín', 'TT', 'Dây chuyền 10', '0904000020', '$2y$10$abcdabcdabcdabcdabcdabCdEfGhIjKlMnOpQrStUvWxYzA20', 'Đang làm việc'),
-('NVK001', 'Phạm Thành Khang', 'NVK', 'Kho Nguyên Liệu', '0906000006', '$2y$10$E08sjh6C4ityXIL5nW6SOewQ5OZJ3WfX79NlKWUGNosAjJASqBk6i', 'Đang làm việc'),
-('NXT001', 'Lư Minh Thuận', 'XT', 'Phân Xưởng 1', '0903000003', '$2y$10$AByV5tdEBi7dIj95hSaBnOP.a4yNwuoQShYDUNnTWXu2fMv1myuM2', 'Đang làm việc'),
-('NXT002', 'Nguyễn Văn Hậu', 'XT', 'Phân xưởng 2', '0903000004', '$2y$10$q011V/tMftYS2XAflRT0muR3hGX8Z8CJ5qCFqVTPpnIG6IcXYSH6i', 'Đang làm việc'),
-('NXT003', 'Lê Hoàng Phúc', 'Xưởng trưởng', 'Phân xưởng 3', '0903000005', '$2y$10$AbCdEf1234567890AbCdEfO12abcdEfghijkLmnoPqrstuV', 'Đang làm việc'),
-('NXT004', 'Trần Thị Ngọc Hân', 'Xưởng trưởng', 'Phân xưởng 4', '0903000006', '$2y$10$ZxcVbnm123456789QWERtyuIoPAsdFghJklMnOpQrstu12', 'Đang làm việc'),
-('NXT005', 'Võ Thành Đạt', 'Xưởng trưởng', 'Phân xưởng 5', '0903000007', '$2y$10$FghJKLmnOp123456789QweRTYuiopASDfghJKLmnBvCxz12', 'Đang làm việc'),
-('NXT006', 'Nguyễn Thùy Tiên', 'Xưởng trưởng', 'Phân xưởng 6', '0903000008', '$2y$10$QweRtyUiop123456789AsDfGhJkLzXcVbNmQweRtyUiop12', 'Đang làm việc'),
-('NXT007', 'Đặng Minh Khang', 'Xưởng trưởng', 'Phân xưởng 7', '0903000009', '$2y$10$MnBvCxZ123456789QWerTyUiOpAsDfGhJkLzXcVbNmErT12', 'Đang làm việc'),
-('NXT008', 'Hồ Quỳnh Như', 'Xưởng trưởng', 'Phân xưởng 8', '0903000010', '$2y$10$LpOiUyTrEwQ123456789AsDfGhJkLpOiUyTrEwQmNbVcX12', 'Đang làm việc'),
-('NXT009', 'Phạm Quốc Huy', 'Xưởng trưởng', 'Phân xưởng 9', '0903000011', '$2y$10$QazWsxEdC123456789RfVtGbYhnUjMikOlPqAzWsXeDc12', 'Đang làm việc'),
-('NXT010', 'Nguyễn Thảo Vy', 'Xưởng trưởng', 'Phân xưởng 10', '0903000012', '$2y$10$VfRgTgBhN123456789UjMiKoLpOiUhYgTfrEdCvBgNhUj12', 'Đang làm việc');
+INSERT INTO `nhanvien` (`MaNV`, `HoTen`, `GioiTinh`, `NamSinh`, `ChucVu`, `BoPhan`, `SoDienThoai`, `Password`, `TrangThai`) VALUES
+('CN001', 'Nguyễn Văn A', 'Nam', '1990', 'CN', 'Dây chuyền 1', '090800001', '$2y$10$wZP7oRXF.r8yYwZHwRWGPOdY4v0AuBqQH9iGzKB8KpYp1b7ZfMBqS', 'Đang làm việc'),
+('CN002', 'Trần Văn B', 'Nam', '1990', 'CN', 'Dây chuyền 1', '090800002', '$2y$10$wZP7oRXF.r8yYwZHwRWGPOdY4v0AuBqQH9iGzKB8KpYp1b7ZfMBqS', 'Đang làm việc'),
+('CN003', 'Lê Văn C', 'Nam', '1990', 'CN', 'Dây chuyền 2', '090800003', '$2y$10$wZP7oRXF.r8yYwZHwRWGPOdY4v0AuBqQH9iGzKB8KpYp1b7ZfMBqS', 'Đang làm việc'),
+('CN004', 'Phạm Văn D', 'Nam', '1990', 'CN', 'Dây chuyền 2', '090800004', '$2y$10$wZP7oRXF.r8yYwZHwRWGPOdY4v0AuBqQH9iGzKB8KpYp1b7ZfMBqS', 'Đang làm việc'),
+('CN005', 'Đỗ Văn E', 'Nam', '1990', 'CN', 'Dây chuyền 3', '090800005', '$2y$10$wZP7oRXF.r8yYwZHwRWGPOdY4v0AuBqQH9iGzKB8KpYp1b7ZfMBqS', 'Đang làm việc'),
+('CN006', 'Nguyễn Văn 06', 'Nam', '1990', 'CN', 'Phân xưởng 1', '090800006', '$2y$10$wZP7oRXF.r8yYwZHwRWGPOdY4v0AuBqQH9iGzKB8KpYp1b7ZfMBqS', 'Đang làm việc'),
+('CN007', 'Nguyễn Văn 07', 'Nam', '1990', 'CN', 'Phân xưởng 1', '090800007', '$2y$10$wZP7oRXF.r8yYwZHwRWGPOdY4v0AuBqQH9iGzKB8KpYp1b7ZfMBqS', 'Đang làm việc'),
+('CN008', 'Nguyễn Văn 08', 'Nam', '1990', 'CN', 'Phân xưởng 1', '090800008', '$2y$10$wZP7oRXF.r8yYwZHwRWGPOdY4v0AuBqQH9iGzKB8KpYp1b7ZfMBqS', 'Đang làm việc'),
+('CN009', 'Nguyễn Văn 09', 'Nam', '1990', 'CN', 'Phân xưởng 1', '090800009', '$2y$10$wZP7oRXF.r8yYwZHwRWGPOdY4v0AuBqQH9iGzKB8KpYp1b7ZfMBqS', 'Đang làm việc'),
+('CN010', 'Nguyễn Văn 10', 'Nam', '1990', 'CN', 'Phân xưởng 1', '090800010', '$2y$10$wZP7oRXF.r8yYwZHwRWGPOdY4v0AuBqQH9iGzKB8KpYp1b7ZfMBqS', 'Đang làm việc'),
+('CN011', 'Nguyễn Văn 11', 'Nam', '1990', 'CN', 'Phân xưởng 1', '090800011', '$2y$10$wZP7oRXF.r8yYwZHwRWGPOdY4v0AuBqQH9iGzKB8KpYp1b7ZfMBqS', 'Đang làm việc'),
+('CN012', 'Nguyễn Văn 12', 'Nam', '1990', 'CN', 'Phân xưởng 1', '090800012', '$2y$10$wZP7oRXF.r8yYwZHwRWGPOdY4v0AuBqQH9iGzKB8KpYp1b7ZfMBqS', 'Đang làm việc'),
+('CN013', 'Nguyễn Văn 13', 'Nam', '1990', 'CN', 'Phân xưởng 1', '090800013', '$2y$10$wZP7oRXF.r8yYwZHwRWGPOdY4v0AuBqQH9iGzKB8KpYp1b7ZfMBqS', 'Đang làm việc'),
+('CN014', 'Nguyễn Văn 14', 'Nam', '1990', 'CN', 'Phân xưởng 1', '090800014', '$2y$10$wZP7oRXF.r8yYwZHwRWGPOdY4v0AuBqQH9iGzKB8KpYp1b7ZfMBqS', 'Đang làm việc'),
+('CN015', 'Nguyễn Văn 15', 'Nam', '1990', 'CN', 'Phân xưởng 1', '090800015', '$2y$10$wZP7oRXF.r8yYwZHwRWGPOdY4v0AuBqQH9iGzKB8KpYp1b7ZfMBqS', 'Đang làm việc'),
+('CN016', 'Nguyễn Văn 16', 'Nam', '1990', 'CN', 'Phân xưởng 1', '090800016', '$2y$10$wZP7oRXF.r8yYwZHwRWGPOdY4v0AuBqQH9iGzKB8KpYp1b7ZfMBqS', 'Đang làm việc'),
+('CN017', 'Nguyễn Văn 17', 'Nam', '1990', 'CN', 'Phân xưởng 1', '090800017', '$2y$10$wZP7oRXF.r8yYwZHwRWGPOdY4v0AuBqQH9iGzKB8KpYp1b7ZfMBqS', 'Đang làm việc'),
+('CN018', 'Nguyễn Văn 18', 'Nam', '1990', 'CN', 'Phân xưởng 1', '090800018', '$2y$10$wZP7oRXF.r8yYwZHwRWGPOdY4v0AuBqQH9iGzKB8KpYp1b7ZfMBqS', 'Đang làm việc'),
+('CN019', 'Nguyễn Văn 19', 'Nam', '1990', 'CN', 'Phân xưởng 1', '090800019', '$2y$10$wZP7oRXF.r8yYwZHwRWGPOdY4v0AuBqQH9iGzKB8KpYp1b7ZfMBqS', 'Đang làm việc'),
+('CN020', 'Nguyễn Văn 20', 'Nam', '1990', 'CN', 'Phân xưởng 1', '090800020', '$2y$10$wZP7oRXF.r8yYwZHwRWGPOdY4v0AuBqQH9iGzKB8KpYp1b7ZfMBqS', 'Đang làm việc'),
+('CN021', 'Nguyễn Văn 21', 'Nam', '1990', 'CN', 'Phân xưởng 1', '090800021', '$2y$10$wZP7oRXF.r8yYwZHwRWGPOdY4v0AuBqQH9iGzKB8KpYp1b7ZfMBqS', 'Đang làm việc'),
+('CN022', 'Nguyễn Văn 22', 'Nam', '1990', 'CN', 'Phân xưởng 1', '090800022', '$2y$10$wZP7oRXF.r8yYwZHwRWGPOdY4v0AuBqQH9iGzKB8KpYp1b7ZfMBqS', 'Đang làm việc'),
+('CN023', 'Nguyễn Văn 23', 'Nam', '1990', 'CN', 'Phân xưởng 1', '090800023', '$2y$10$wZP7oRXF.r8yYwZHwRWGPOdY4v0AuBqQH9iGzKB8KpYp1b7ZfMBqS', 'Đang làm việc'),
+('CN024', 'Nguyễn Văn 24', 'Nam', '1990', 'CN', 'Phân xưởng 1', '090800024', '$2y$10$wZP7oRXF.r8yYwZHwRWGPOdY4v0AuBqQH9iGzKB8KpYp1b7ZfMBqS', 'Đang làm việc'),
+('CN025', 'Nguyễn Văn 25', 'Nam', '1990', 'CN', 'Phân xưởng 1', '090800025', '$2y$10$wZP7oRXF.r8yYwZHwRWGPOdY4v0AuBqQH9iGzKB8KpYp1b7ZfMBqS', 'Đang làm việc'),
+('CN026', 'Nguyễn Văn 26', 'Nam', '1990', 'CN', 'Phân xưởng 1', '090800026', '$2y$10$wZP7oRXF.r8yYwZHwRWGPOdY4v0AuBqQH9iGzKB8KpYp1b7ZfMBqS', 'Đang làm việc'),
+('CN027', 'Nguyễn Văn 27', 'Nam', '1990', 'CN', 'Phân xưởng 1', '090800027', '$2y$10$wZP7oRXF.r8yYwZHwRWGPOdY4v0AuBqQH9iGzKB8KpYp1b7ZfMBqS', 'Đang làm việc'),
+('CN028', 'Nguyễn Văn 28', 'Nam', '1990', 'CN', 'Phân xưởng 1', '090800028', '$2y$10$wZP7oRXF.r8yYwZHwRWGPOdY4v0AuBqQH9iGzKB8KpYp1b7ZfMBqS', 'Đang làm việc'),
+('CN029', 'Nguyễn Văn 29', 'Nam', '1990', 'CN', 'Phân xưởng 1', '090800029', '$2y$10$wZP7oRXF.r8yYwZHwRWGPOdY4v0AuBqQH9iGzKB8KpYp1b7ZfMBqS', 'Đang làm việc'),
+('CN030', 'Nguyễn Văn 30', 'Nam', '1990', 'CN', 'Phân xưởng 1', '090800030', '$2y$10$wZP7oRXF.r8yYwZHwRWGPOdY4v0AuBqQH9iGzKB8KpYp1b7ZfMBqS', 'Đang làm việc'),
+('CN031', 'Nguyễn Văn 31', 'Nam', '1990', 'CN', 'Phân xưởng 1', '090800031', '$2y$10$wZP7oRXF.r8yYwZHwRWGPOdY4v0AuBqQH9iGzKB8KpYp1b7ZfMBqS', 'Đang làm việc'),
+('CN032', 'Nguyễn Văn 32', 'Nam', '1990', 'CN', 'Phân xưởng 1', '090800032', '$2y$10$wZP7oRXF.r8yYwZHwRWGPOdY4v0AuBqQH9iGzKB8KpYp1b7ZfMBqS', 'Đang làm việc'),
+('CN033', 'Nguyễn Văn 33', 'Nam', '1990', 'CN', 'Phân xưởng 1', '090800033', '$2y$10$wZP7oRXF.r8yYwZHwRWGPOdY4v0AuBqQH9iGzKB8KpYp1b7ZfMBqS', 'Đang làm việc'),
+('CN034', 'Nguyễn Văn 34', 'Nam', '1990', 'CN', 'Phân xưởng 1', '090800034', '$2y$10$wZP7oRXF.r8yYwZHwRWGPOdY4v0AuBqQH9iGzKB8KpYp1b7ZfMBqS', 'Đang làm việc'),
+('CN035', 'Nguyễn Văn 35', 'Nam', '1990', 'CN', 'Phân xưởng 1', '090800035', '$2y$10$wZP7oRXF.r8yYwZHwRWGPOdY4v0AuBqQH9iGzKB8KpYp1b7ZfMBqS', 'Đang làm việc'),
+('CN036', 'Nguyễn Văn 36', 'Nam', '1990', 'CN', 'Phân xưởng 1', '090800036', '$2y$10$wZP7oRXF.r8yYwZHwRWGPOdY4v0AuBqQH9iGzKB8KpYp1b7ZfMBqS', 'Đang làm việc'),
+('CN037', 'Nguyễn Văn 37', 'Nam', '1990', 'CN', 'Phân xưởng 1', '090800037', '$2y$10$wZP7oRXF.r8yYwZHwRWGPOdY4v0AuBqQH9iGzKB8KpYp1b7ZfMBqS', 'Đang làm việc'),
+('CN038', 'Nguyễn Văn 38', 'Nam', '1990', 'CN', 'Phân xưởng 1', '090800038', '$2y$10$wZP7oRXF.r8yYwZHwRWGPOdY4v0AuBqQH9iGzKB8KpYp1b7ZfMBqS', 'Đang làm việc'),
+('CN039', 'Nguyễn Văn 39', 'Nam', '1990', 'CN', 'Phân xưởng 1', '090800039', '$2y$10$wZP7oRXF.r8yYwZHwRWGPOdY4v0AuBqQH9iGzKB8KpYp1b7ZfMBqS', 'Đang làm việc'),
+('CN040', 'Nguyễn Văn 40', 'Nam', '1990', 'CN', 'Phân xưởng 1', '090800040', '$2y$10$wZP7oRXF.r8yYwZHwRWGPOdY4v0AuBqQH9iGzKB8KpYp1b7ZfMBqS', 'Đang làm việc'),
+('NAD001', 'Lư Minh Thuận', 'Nam', '1995', 'ADMIN', 'Phòng IT', '0908000008', '$2y$10$cHGFwvQW3FyQVJRNAzWWT.DXlhjr/2gtNkHltakxAXjVLIEwYZGji', 'Đang làm việc'),
+('NBGD001', 'Nguyễn Nhật Minh Quang', 'Nam', '1995', 'BGD', 'Ban Giám Đốc', '0901000001', '$2y$10$4aeZcC4/aFqA4lzkyfG3WOe1Zo7PHFENUvhSFY1iNaRqC9l2zT1yi', 'Đang làm việc'),
+('NCN001', 'Huỳnh Văn Nam', 'Nam', '1995', 'CN', 'Dây chuyền 2', '0907000007', '$2y$10$GyJpC20HAKai0b0on8/cEuW7rQcO52zD5HaJ0U1xlmDw/nnwEznc6', 'Đang làm việc'),
+('NKH001', 'Trần Thanh Trường', 'Nam', '1995', 'KH', 'Phòng Kế Hoạch', '0902000002', '$2y$10$sAQd1gCY2LRem4s9BnAO1uq8FvGW/7t64zlNf1xWSF1mOIXf7e6LC', 'Đang làm việc'),
+('NQC001', 'Phạm Thị Ngọc Diễm', 'Nam', '1995', 'QC', 'Phòng Kiểm Định', '0905000005', '$2y$10$ob6Jlaruf4oCTXYu4bYSTukp2fc9GuXb7rUkMNdndHsEkZpMxjuQu', 'Đang làm việc'),
+('NTT001', 'Trương Huỳnh Kim Yến', 'Nam', '1995', 'TT', 'Dây chuyền 1', '0904000004', '$2y$10$AObMwjQdWifQBa8MOchr1.iSgEkHUsxhAZfBQnv2k3QRLOC9j4eR2', 'Đang làm việc'),
+('NTT002', 'Lê Văn Cường', 'Nam', '1995', 'TT', 'Dây chuyền 2', '0904000002', '$2y$10$WIsUmtybJXQHIVEIYXGorOWlU6xPLRsi2xQ4PR5srSNcrcW/AvYL6', 'Đang làm việc'),
+('NTT003', 'Nguyễn Thị Tâm', 'Nam', '1995', 'TT', 'Dây chuyền 3', '0904000003', '$2y$10$6Oo/gmKHXaqstYky3OzRs.zqK3PwjlBQIB.IYcEerWZFNf9HMUiHq', 'Đang làm việc'),
+('NTT004', 'Phạm Văn Thành', 'Nam', '1995', 'TT', 'Dây chuyền 4', '0904000004', '$2y$10$abcdabcdabcdabcdabcdabCdEfGhIjKlMnOpQrStUvWxYzABCD1', 'Đang làm việc'),
+('NTT005', 'Lê Hoàng Phúc', 'Nam', '1995', 'TT', 'Dây chuyền 5', '0904000005', '$2y$10$abcdabcdabcdabcdabcdabCdEfGhIjKlMnOpQrStUvWxYzABCD2', 'Đang làm việc'),
+('NTT006', 'Ngô Minh Hòa', 'Nam', '1995', 'TT', 'Dây chuyền 6', '0904000006', '$2y$10$abcdabcdabcdabcdabcdabCdEfGhIjKlMnOpQrStUvWxYzABCD3', 'Đang làm việc'),
+('NTT007', 'Trần Nhật Tân', 'Nam', '1995', 'TT', 'Dây chuyền 7', '0904000007', '$2y$10$abcdabcdabcdabcdabcdabCdEfGhIjKlMnOpQrStUvWxYzABCD4', 'Đang làm việc'),
+('NTT008', 'Võ Thanh Duy', 'Nam', '1995', 'TT', 'Dây chuyền 8', '0904000008', '$2y$10$abcdabcdabcdabcdabcdabCdEfGhIjKlMnOpQrStUvWxYzABCD5', 'Đang làm việc'),
+('NTT009', 'Đỗ Hữu Trí', 'Nam', '1995', 'TT', 'Dây chuyền 9', '0904000009', '$2y$10$abcdabcdabcdabcdabcdabCdEfGhIjKlMnOpQrStUvWxYzABCD6', 'Đang làm việc'),
+('NTT010', 'Nguyễn Tấn Khải', 'Nam', '1995', 'TT', 'Dây chuyền 10', '0904000010', '$2y$10$abcdabcdabcdabcdabcdabCdEfGhIjKlMnOpQrStUvWxYzABCD7', 'Đang làm việc'),
+('NTT011', 'Nguyễn Văn Hải', 'Nam', '1995', 'TT', 'Dây chuyền 1', '0904000011', '$2y$10$abcdabcdabcdabcdabcdabCdEfGhIjKlMnOpQrStUvWxYzA11', 'Đang làm việc'),
+('NTT012', 'Lê Quốc Hưng', 'Nam', '1995', 'TT', 'Dây chuyền 2', '0904000012', '$2y$10$abcdabcdabcdabcdabcdabCdEfGhIjKlMnOpQrStUvWxYzA12', 'Đang làm việc'),
+('NTT013', 'Phạm Hoàng Duy', 'Nam', '1995', 'TT', 'Dây chuyền 3', '0904000013', '$2y$10$abcdabcdabcdabcdabcdabCdEfGhIjKlMnOpQrStUvWxYzA13', 'Đang làm việc'),
+('NTT014', 'Đỗ Quốc Việt', 'Nam', '1995', 'TT', 'Dây chuyền 4', '0904000014', '$2y$10$abcdabcdabcdabcdabcdabCdEfGhIjKlMnOpQrStUvWxYzA14', 'Đang làm việc'),
+('NTT015', 'Ngô Anh Kiệt', 'Nam', '1995', 'TT', 'Dây chuyền 5', '0904000015', '$2y$10$abcdabcdabcdabcdabcdabCdEfGhIjKlMnOpQrStUvWxYzA15', 'Đang làm việc'),
+('NTT016', 'Trần Minh Khoa', 'Nam', '1995', 'TT', 'Dây chuyền 6', '0904000016', '$2y$10$abcdabcdabcdabcdabcdabCdEfGhIjKlMnOpQrStUvWxYzA16', 'Đang làm việc'),
+('NTT017', 'Võ Tấn Phát', 'Nam', '1995', 'TT', 'Dây chuyền 7', '0904000017', '$2y$10$abcdabcdabcdabcdabcdabCdEfGhIjKlMnOpQrStUvWxYzA17', 'Đang làm việc'),
+('NTT018', 'Hồ Gia Bảo', 'Nam', '1995', 'TT', 'Dây chuyền 8', '0904000018', '$2y$10$abcdabcdabcdabcdabcdabCdEfGhIjKlMnOpQrStUvWxYzA18', 'Đang làm việc'),
+('NTT019', 'Lưu Hoàng Tú', 'Nam', '1995', 'TT', 'Dây chuyền 9', '0904000019', '$2y$10$abcdabcdabcdabcdabcdabCdEfGhIjKlMnOpQrStUvWxYzA19', 'Đang làm việc'),
+('NTT020', 'Nguyễn Trọng Tín', 'Nam', '1995', 'TT', 'Dây chuyền 10', '0904000020', '$2y$10$abcdabcdabcdabcdabcdabCdEfGhIjKlMnOpQrStUvWxYzA20', 'Đang làm việc'),
+('NVK001', 'Phạm Thành Khang', 'Nam', '1995', 'NVK', 'Kho Nguyên Liệu', '0906000006', '$2y$10$E08sjh6C4ityXIL5nW6SOewQ5OZJ3WfX79NlKWUGNosAjJASqBk6i', 'Đang làm việc'),
+('NXT001', 'Lư Minh Thuận', 'Nam', '1995', 'XT', 'Phân Xưởng 1', '0903000003', '$2y$10$AByV5tdEBi7dIj95hSaBnOP.a4yNwuoQShYDUNnTWXu2fMv1myuM2', 'Đang làm việc'),
+('NXT002', 'Nguyễn Văn Hậu', 'Nam', '1995', 'XT', 'Phân xưởng 2', '0903000004', '$2y$10$q011V/tMftYS2XAflRT0muR3hGX8Z8CJ5qCFqVTPpnIG6IcXYSH6i', 'Đang làm việc'),
+('NXT003', 'Lê Hoàng Phúc', 'Nam', '1995', 'XT', 'Phân xưởng 3', '0903000005', '$2y$10$AbCdEf1234567890AbCdEfO12abcdEfghijkLmnoPqrstuV', 'Đang làm việc'),
+('NXT004', 'Trần Thị Ngọc Hân', 'Nam', '1995', 'XT', 'Phân xưởng 4', '0903000006', '$2y$10$ZxcVbnm123456789QWERtyuIoPAsdFghJklMnOpQrstu12', 'Đang làm việc'),
+('NXT005', 'Võ Thành Đạt', 'Nam', '1995', 'XT', 'Phân xưởng 5', '0903000007', '$2y$10$FghJKLmnOp123456789QweRTYuiopASDfghJKLmnBvCxz12', 'Đang làm việc'),
+('NXT006', 'Nguyễn Thùy Tiên', 'Nam', '1995', 'XT', 'Phân xưởng 6', '0903000008', '$2y$10$QweRtyUiop123456789AsDfGhJkLzXcVbNmQweRtyUiop12', 'Đang làm việc'),
+('NXT007', 'Đặng Minh Khang', 'Nam', '1995', 'XT', 'Phân xưởng 7', '0903000009', '$2y$10$MnBvCxZ123456789QWerTyUiOpAsDfGhJkLzXcVbNmErT12', 'Đang làm việc'),
+('NXT008', 'Hồ Quỳnh Như', 'Nam', '1995', 'XT', 'Phân xưởng 8', '0903000010', '$2y$10$LpOiUyTrEwQ123456789AsDfGhJkLpOiUyTrEwQmNbVcX12', 'Đang làm việc'),
+('NXT009', 'Phạm Quốc Huy', 'Nam', '1995', 'XT', 'Phân xưởng 9', '0903000011', '$2y$10$QazWsxEdC123456789RfVtGbYhnUjMikOlPqAzWsXeDc12', 'Đang làm việc'),
+('NXT010', 'Nguyễn Thảo Vy', 'Nam', '1995', 'XT', 'Phân xưởng 10', '0903000012', '$2y$10$VfRgTgBhN123456789UjMiKoLpOiUhYgTfrEdCvBgNhUj12', 'Đang làm việc');
 
 -- --------------------------------------------------------
 
@@ -1297,7 +1313,7 @@ ALTER TABLE `chitietphieudatnvl`
 -- AUTO_INCREMENT cho bảng `lenhsanxuat`
 --
 ALTER TABLE `lenhsanxuat`
-  MODIFY `MaLenhSX` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Mã lệnh sản xuất tự tăng', AUTO_INCREMENT=17;
+  MODIFY `MaLenhSX` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Mã lệnh sản xuất tự tăng', AUTO_INCREMENT=32;
 
 --
 -- AUTO_INCREMENT cho bảng `phancongcalam`

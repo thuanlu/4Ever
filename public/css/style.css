@@ -206,6 +206,7 @@ body {
     box-shadow: 0 10px 25px rgba(0,0,0,0.15);
 }
 
+
 /* Buttons placed on colored headers/panels should be high-contrast and blue */
 .card-header .btn,
 .panel-colored .btn,
@@ -229,10 +230,12 @@ body {
     color: #fff;
     background: linear-gradient(135deg, #2b6cb0 0%, #2c7be5 100%);
     border-color: transparent;
+
     border: none;
     border-radius: var(--border-radius);
     box-shadow: var(--shadow-medium);
 }
+
 
 /* Ensure 'Mở trang quản lý' and similar header buttons use blue even when header background is purple */
 .card .card-header .btn-primary,

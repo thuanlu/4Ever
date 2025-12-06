@@ -21,20 +21,18 @@ class LenhSanXuat extends BaseModel {
         try {
             // Câu SQL phải khớp với tên cột trong CSDL
             $sql = "INSERT INTO {$this->tableName} 
-                        (ma_ke_hoach_tong, ngay_lap_lenh, ma_day_chuyen, ma_to_truong, san_luong_muc_tieu, trang_thai) 
+                        (ma_ke_hoach_tong, ngay_lap_lenh, ma_day_chuyen, ma_to_truong, san_luong_muc_tieu, trang_thai, ngay_bat_dau_thuc_te, ngay_ket_thuc_thuc_te) 
                     VALUES 
-                        (:ma_ke_hoach_tong, :ngay_lap_lenh, :ma_day_chuyen, :ma_to_truong, :san_luong_muc_tieu, :trang_thai)";
-            
+                        (:ma_ke_hoach_tong, :ngay_lap_lenh, :ma_day_chuyen, :ma_to_truong, :san_luong_muc_tieu, :trang_thai, :ngay_bat_dau_thuc_te, :ngay_ket_thuc_thuc_te)";
             $stmt = $this->db->prepare($sql);
-            
-            // Bind param phải khớp với $data từ controller
             $stmt->bindParam(':ma_ke_hoach_tong', $data['ma_ke_hoach_tong']);
             $stmt->bindParam(':ngay_lap_lenh', $data['ngay_lap_lenh']);
             $stmt->bindParam(':ma_day_chuyen', $data['ma_day_chuyen']);
             $stmt->bindParam(':ma_to_truong', $data['ma_to_truong']);
             $stmt->bindParam(':san_luong_muc_tieu', $data['san_luong_muc_tieu']);
             $stmt->bindParam(':trang_thai', $data['trang_thai']);
-            
+            $stmt->bindParam(':ngay_bat_dau_thuc_te', $data['ngay_bat_dau_thuc_te']);
+            $stmt->bindParam(':ngay_ket_thuc_thuc_te', $data['ngay_ket_thuc_thuc_te']);
             return $stmt->execute();
 
         } catch (PDOException $e) {

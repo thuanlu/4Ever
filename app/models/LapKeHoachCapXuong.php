@@ -1,7 +1,7 @@
 <?php
 require_once APP_PATH . '/models/BaseModel.php';
 
-class LapKeHoachCapXuongModel extends BaseModel {
+class LapKeHoachCapXuong extends BaseModel {
     protected $tableName = 'kehoachcapxuong';
     protected $primaryKey = 'MaKHCapXuong';
 
@@ -40,9 +40,16 @@ class LapKeHoachCapXuongModel extends BaseModel {
      */
     public function create($data) {
         try {
-            $sql = "INSERT INTO {$this->tableName} (MaKeHoach, MaPhanXuong, NgayLap, SoLuong, CongSuatDuKien, TrangThai) VALUES (?, ?, ?, ?, ?, ?)";
+            // Chỉ lưu đúng mã KCX truyền vào, giống như sinh ra ở view
+            $maKHCapXuong = $data['ma_kh_cap_xuong'];
+            // Nếu đã tồn tại mã này thì báo lỗi, không tự động tăng hậu tố
+            if ($this->getById($maKHCapXuong)) {
+                throw new PDOException('Mã kế hoạch cấp xưởng đã tồn tại: ' . $maKHCapXuong);
+            }
+            $sql = "INSERT INTO {$this->tableName} (MaKHCapXuong, MaKeHoach, MaPhanXuong, NgayLap, SoLuong, CongSuatDuKien, TrangThai) VALUES (?, ?, ?, ?, ?, ?, ?)";
             $stmt = $this->db->prepare($sql);
             $stmt->execute([
+                $maKHCapXuong,
                 $data['ma_kehoach'],
                 $data['ma_phan_xuong'],
                 $data['ngay_lap'],
@@ -50,7 +57,7 @@ class LapKeHoachCapXuongModel extends BaseModel {
                 $data['cong_suat_du_kien'] ?? 0,
                 $data['trang_thai'] ?? 'Chưa thực hiện'
             ]);
-            return $this->db->lastInsertId();
+            return $maKHCapXuong;
         } catch (PDOException $e) {
             error_log(__METHOD__ . '::Error: ' . $e->getMessage());
             return false;

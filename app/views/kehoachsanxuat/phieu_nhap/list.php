@@ -16,7 +16,11 @@ ob_start();
                     <div class="row align-items-center">
                         <div class="col">
                             <h3 class="card-title">
+<<<<<<< HEAD
+                                <i class="fas fa-list"></i> Danh sách Phiếu Đặt Nguyên Vật Liệu
+=======
                                 <i class="fas fa-list"></i> Danh sách Phiếu Nhập Nguyên Vật Liệu
+>>>>>>> 846529c2f597edacc8365b20a207f0deb2f52c10
                             </h3>
                         </div>
                         <div class="col-auto">

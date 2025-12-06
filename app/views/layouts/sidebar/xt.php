@@ -14,9 +14,10 @@
     <a class="nav-link" href="<?php echo BASE_URL; ?>yeucauxuat/list">
         <i class="fas fa-list me-2"></i>Quản lý phiếu xuất
     </a>
-     <a class="nav-link" href="<?php echo BASE_URL; ?>xuongtruong/quanlycongnhan">
-        <i class="fas fa-file-alt me-2"></i>Quản lý công nhân
+    <a class="nav-link" href="<?php echo BASE_URL; ?>xuongtruong/quanlynhanvien">
+        <i class="fas fa-file-alt me-2"></i>Quản lý nhân viên
     </a>
+
     
     <!-- QC ticket links for Xưởng trưởng -->
     <a class="nav-link" href="<?php echo BASE_URL; ?>phieu-kiem-tra/create">

@@ -9,9 +9,37 @@ require_once APP_PATH . '/controllers/BaseController.php';
 class AuthController extends BaseController {
     
     public function showLogin() {
-        // Nếu đã đăng nhập, chuyển về dashboard
-        if (isset($_SESSION['user_id'])) {
-            $this->redirect('dashboard');
+        // Nếu đã đăng nhập, chuyển về dashboard theo vai trò
+        if (isset($_SESSION['user_id']) || (isset($_SESSION['user']) && !empty($_SESSION['user']['MaNV']))) {
+            $userRole = $_SESSION['user_role'] ?? $_SESSION['user']['ChucVu'] ?? '';
+            
+            switch (strtoupper($userRole)) {
+                case 'KH':
+                    $this->redirect('kehoachsanxuat/dashboard');
+                    break;
+                case 'BGD':
+                    $this->redirect('giamdoc/dashboard');
+                    break;
+                case 'XT':
+                    $this->redirect('xuongtruong/dashboard');
+                    break;
+                case 'TT':
+                    $this->redirect('totruong/dashboard');
+                    break;
+                case 'QC':
+                    $this->redirect('qc/dashboard');
+                    break;
+                case 'NVK':
+                    $this->redirect('kho/dashboard');
+                    break;
+                case 'CN':
+                    $this->redirect('congnhan/dashboard');
+                    break;
+                default:
+                    $this->redirect('dashboard');
+                    break;
+            }
+            return;
         }
         
         $this->loadView('auth/login');
@@ -37,6 +65,7 @@ class AuthController extends BaseController {
                 $_SESSION['full_name'] = $user['HoTen'];
                 $_SESSION['user_role'] = $user['ChucVu'];
                 $_SESSION['bo_phan'] = $user['BoPhan'];
+                $_SESSION['user'] = $user;
 
                 // if (strtoupper($user['ChucVu']) === 'QC') {
                 //     $_SESSION['MaNV_QC'] = $user['MaNV'];

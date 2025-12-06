@@ -43,9 +43,10 @@ class KeHoachSanXuat extends BaseModel {
      * Lấy danh sách kế hoạch đã duyệt
      * @param string|null $maPhanXuong Nếu truyền vào thì chỉ lấy kế hoạch thuộc phân xưởng đó
      */
-    public function getApprovedPlans(?string $maPhanXuong = null) {
+    // Lấy kế hoạch đã duyệt mà xưởng trưởng hiện tại phụ trách ít nhất một phân xưởng liên quan
+    public function getApprovedPlansByXuongTruong($maXuongTruong) {
         try {
-            $sql = "SELECT k.*, n.HoTen AS NguoiLap, d.TenDonHang
+            $sql = "SELECT DISTINCT k.*, n.HoTen AS NguoiLap, d.TenDonHang
                     FROM {$this->tableName} k
                     LEFT JOIN nhanvien n ON k.MaNV = n.MaNV
                     LEFT JOIN donhang d ON k.MaDonHang = d.MaDonHang
@@ -62,6 +63,12 @@ class KeHoachSanXuat extends BaseModel {
             
             $stmt = $this->db->prepare($sql);
             $stmt->execute($params);
+                    JOIN chitietkehoach ct ON ct.MaKeHoach = k.MaKeHoach
+                    JOIN phanxuong px ON ct.MaPhanXuong = px.MaPhanXuong
+                    WHERE k.TrangThai = 'Đã duyệt' AND px.MaXuongTruong = ?
+                    ORDER BY k.NgayBatDau DESC";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute([$maXuongTruong]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
             error_log(__METHOD__ . "::Error: " . $e->getMessage());

@@ -1,3 +1,4 @@
+
 <?php ob_start(); ?>
 <div class="container mt-3">
 	<div class="d-flex justify-content-between align-items-center mb-3">
@@ -59,3 +60,4 @@
 </div>
 
 <?php $content = ob_get_clean(); include APP_PATH . '/views/layouts/main.php'; ?>
+

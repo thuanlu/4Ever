@@ -28,4 +28,18 @@ class Database {
         return $this->conn;
     }
 }
+
+
+if (!function_exists('getPDO')) {
+    function getPDO() {
+        static $pdo = null;
+        if ($pdo) return $pdo;
+
+        // Tạo instance Database và lấy kết nối
+        $db = new Database();
+        $pdo = $db->getConnection();
+        return $pdo;
+    }
+}
+
 ?>

@@ -40,33 +40,55 @@ class KeHoachSanXuat extends BaseModel {
 
 
     /**
-     * Lấy danh sách kế hoạch đã duyệt
-     * @param string|null $maPhanXuong Nếu truyền vào thì chỉ lấy kế hoạch thuộc phân xưởng đó
+     * Lấy danh sách kế hoạch đã duyệt theo phân xưởng
+     * @param string|null $maPhanXuong Mã phân xưởng để lọc
      */
-    // Lấy kế hoạch đã duyệt mà xưởng trưởng hiện tại phụ trách ít nhất một phân xưởng liên quan
+    public function getApprovedPlans($maPhanXuong = null) {
+        try {
+            if ($maPhanXuong) {
+                $sql = "SELECT DISTINCT k.*, n.HoTen AS NguoiLap, d.TenDonHang
+                        FROM {$this->tableName} k
+                        LEFT JOIN nhanvien n ON k.MaNV = n.MaNV
+                        LEFT JOIN donhang d ON k.MaDonHang = d.MaDonHang
+                        JOIN chitietkehoach ct ON ct.MaKeHoach = k.MaKeHoach
+                        WHERE k.TrangThai = 'Đã duyệt' AND ct.MaPhanXuong = ?
+                        ORDER BY k.NgayBatDau DESC";
+                
+                $stmt = $this->db->prepare($sql);
+                $stmt->execute([$maPhanXuong]);
+            } else {
+                $sql = "SELECT k.*, n.HoTen AS NguoiLap, d.TenDonHang
+                        FROM {$this->tableName} k
+                        LEFT JOIN nhanvien n ON k.MaNV = n.MaNV
+                        LEFT JOIN donhang d ON k.MaDonHang = d.MaDonHang
+                        WHERE k.TrangThai = 'Đã duyệt'
+                        ORDER BY k.NgayBatDau DESC";
+                
+                $stmt = $this->db->prepare($sql);
+                $stmt->execute();
+            }
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log(__METHOD__ . "::Error: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Lấy kế hoạch đã duyệt theo xưởng trưởng
+     * @param string $maXuongTruong Mã xưởng trưởng
+     */
     public function getApprovedPlansByXuongTruong($maXuongTruong) {
         try {
             $sql = "SELECT DISTINCT k.*, n.HoTen AS NguoiLap, d.TenDonHang
                     FROM {$this->tableName} k
                     LEFT JOIN nhanvien n ON k.MaNV = n.MaNV
                     LEFT JOIN donhang d ON k.MaDonHang = d.MaDonHang
-                    WHERE k.TrangThai = 'Đã duyệt'";
-            
-            $params = [];
-            // Lọc theo phân xưởng nếu được truyền vào (dùng chitietkehoach để không bỏ sót KH05, KH06)
-            if ($maPhanXuong !== null && $maPhanXuong !== '') {
-                $sql .= " AND EXISTS(SELECT 1 FROM chitietkehoach ct WHERE ct.MaKeHoach = k.MaKeHoach AND ct.MaPhanXuong = :ma_px)";
-                $params[':ma_px'] = trim($maPhanXuong);
-            }
-            
-            $sql .= " ORDER BY k.NgayBatDau DESC";
-            
-            $stmt = $this->db->prepare($sql);
-            $stmt->execute($params);
                     JOIN chitietkehoach ct ON ct.MaKeHoach = k.MaKeHoach
                     JOIN phanxuong px ON ct.MaPhanXuong = px.MaPhanXuong
                     WHERE k.TrangThai = 'Đã duyệt' AND px.MaXuongTruong = ?
                     ORDER BY k.NgayBatDau DESC";
+            
             $stmt = $this->db->prepare($sql);
             $stmt->execute([$maXuongTruong]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);

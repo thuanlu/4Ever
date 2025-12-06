@@ -22,14 +22,16 @@ class XuongTruongXemKeHoachSanXuatController extends BaseController {
         
         // Lấy danh sách kế hoạch đã phê duyệt cho phân xưởng của xưởng trưởng
         $kehoachModel = $this->loadModel('KeHoachSanXuat');
-        $kehoachs = $kehoachModel->getApprovedPlans($maPX);
         
         // Lấy tham số lọc từ form
         $ky = isset($_GET['ky']) ? $_GET['ky'] : '';
         $makehoach = isset($_GET['makehoach']) ? $_GET['makehoach'] : '';
         $donhang = isset($_GET['donhang']) ? $_GET['donhang'] : '';
-        $kehoachs = $this->getApprovedPlans($ky, $makehoach, $donhang);
-        // Sắp xếp kế hoạch theo ngày bắt đầu tăng dần (kế hoạch lập trước ở trên)
+        
+        // Lấy kế hoạch với bộ lọc (có kèm MaPhanXuong)
+        $kehoachs = $this->getApprovedPlans($maPX, $ky, $makehoach, $donhang);
+        
+        // Sắp xếp kế hoạch theo ngày bắt đầu tăng dần
         usort($kehoachs, function($a, $b) {
             $dateA = strtotime($a['NgayBatDau'] ?? '');
             $dateB = strtotime($b['NgayBatDau'] ?? '');
@@ -78,11 +80,17 @@ class XuongTruongXemKeHoachSanXuatController extends BaseController {
         ];
         $this->loadView('xuongtruong/xemkehoachsanxuat', $data);
     }
-    private function getApprovedPlans($ky = '', $makehoach = '', $donhang = '') {
+    private function getApprovedPlans($maPX = null, $ky = '', $makehoach = '', $donhang = '') {
         $database = new Database();
         $conn = $database->getConnection();
         $where = "WHERE k.TrangThai = 'Đã duyệt'";
         $params = [];
+
+        // Lọc theo phân xưởng
+        if ($maPX) {
+            $where .= " AND EXISTS (SELECT 1 FROM chitietkehoach ct WHERE ct.MaKeHoach = k.MaKeHoach AND ct.MaPhanXuong = ?)";
+            $params[] = $maPX;
+        }
 
         if ($makehoach) {
             $where .= " AND k.MaKeHoach LIKE ?";

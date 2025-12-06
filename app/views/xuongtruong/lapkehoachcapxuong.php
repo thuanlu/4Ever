@@ -484,24 +484,6 @@ if (empty($_SESSION['user'])) {
                         <h5 class="fw-bold mb-3">Sửa kế hoạch cấp xưởng</h5>
                         <form method="post" action="/4Ever/xuongtruong/suakehoachcapxuong">
                             <input type="hidden" name="makhcx" value="<?= htmlspecialchars($khcxEdit['MaKHCapXuong']) ?>">
-                            <?php if (!empty($kehoach) && !empty($kehoach['MaKeHoach'])): ?>
-                            <div class="pt-4 mt-2">
-                                <div class="card mb-4">
-                                    <div class="card-header gradient-header">
-                                        <h4 class="mb-0 fw-bold" style="letter-spacing:0.5px;">Lập Kế hoạch Cấp Xưởng</h4>
-                                        <div class="mt-1" style="font-size:1.1rem; color:#fff;">Phân bổ sản lượng từ kế hoạch tổng xuống từng ca làm việc và Tổ trưởng phụ trách.</div>
-                                    </div>
-                                    <form method="POST" action="<?= BASE_URL ?>xuongtruong/lapkehoachcapxuong/store" id="form-lapkehoach" class="p-3">
-                                        <input type="hidden" name="ma_kehoach" value="<?= $kehoach['MaKeHoach'] ?>">
-                                        <div class="mb-3">
-                                            <h5 class="fw-bold mb-3" style="font-size:1.15rem;">Tham chiếu Kế hoạch Tổng</h5>
-                                            ...existing code...
-                                        </div>
-                                        ...existing code...
-                                    </form>
-                                </div>
-                            </div>
-                            <?php endif; ?>
                                     <label>Số lượng</label>
                                     <input type="number" class="form-control" name="so_luong" value="<?= htmlspecialchars($khcxEdit['SoLuong']) ?>">
                                 </div>

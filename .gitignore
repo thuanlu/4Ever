@@ -1,0 +1,14 @@
+# VS Code Local History
+.history/
+
+# Application logs
+app/logs/
+*.log
+
+# Environment files
+.env
+.env.local
+
+# OS files
+.DS_Store
+Thumbs.db

@@ -16,6 +16,7 @@ class LapKeHoachCapXuongController extends BaseController {
                 'kehoach' => null,
                 'dayChuyenList' => [],
                 'toTruongList' => [],
+                'kehoachCapXuongs' => [],
                 'pageTitle' => 'Lập kế hoạch cấp xưởng',
                 'error' => 'Không xác định phân xưởng cho tài khoản hiện tại. Vui lòng liên hệ quản trị.'
             ]);
@@ -23,37 +24,20 @@ class LapKeHoachCapXuongController extends BaseController {
         }
         
         $kehoachModel = $this->loadModel('KeHoachSanXuat');
-        // Chỉ lấy kế hoạch thuộc phân xưởng của xưởng trưởng
-        $kehoachs = $kehoachModel->getApprovedPlans($maPX);
-        $selectedKeHoach = null;
-        if (isset($_GET['kehoach'])) {
-            $selectedKeHoach = $kehoachModel->getById($_GET['kehoach']);
-            // Kiểm tra kế hoạch có thuộc phân xưởng không
-            if ($selectedKeHoach) {
-                $sanLuongTong = $kehoachModel->getSanLuongTong($_GET['kehoach']);
-                $selectedKeHoach['SanLuongTong'] = $sanLuongTong;
-
         $lapKeHoachCapXuongModel = $this->loadModel('LapKeHoachCapXuong');
-        // Lấy mã xưởng trưởng từ session
-        $maXuongTruong = $_SESSION['user']['MaNV'] ?? '';
-        $allKeHoachs = $kehoachModel->getApprovedPlansByXuongTruong($maXuongTruong);
+        
+        // Lấy danh sách kế hoạch cấp xưởng đã lập
         $kehoachCapXuongs = $lapKeHoachCapXuongModel->getAll();
-        // Bổ sung MaDayChuyen và NgayKetThuc cho từng kế hoạch cấp xưởng
-        $lenhModel = $this->loadModel('LenhSanXuat');
-        foreach ($kehoachCapXuongs as &$khcx) {
-            // Truy vấn lệnh sản xuất theo MaKHCapXuong
-            $stmt = $this->db->prepare('SELECT ma_day_chuyen, ngay_ket_thuc_thuc_te FROM lenhsanxuat WHERE ma_ke_hoach_tong = ? LIMIT 1');
-            $stmt->execute([$khcx['MaKeHoach']]);
-            $row = $stmt->fetch(PDO::FETCH_ASSOC);
-            $khcx['MaDayChuyen'] = $row['ma_day_chuyen'] ?? null;
-            $khcx['NgayKetThuc'] = $row['ngay_ket_thuc_thuc_te'] ?? null;
-        }
-        unset($khcx);
-        // Lọc các kế hoạch chưa được lập cấp xưởng
+        
+        // Chỉ lấy kế hoạch thuộc phân xưởng của xưởng trưởng
+        $allKeHoachs = $kehoachModel->getApprovedPlans($maPX);
+        
+        // Loại bỏ các kế hoạch đã được lập cấp xưởng
         $kehoachCapXuongMaKeHoachArr = array_column($kehoachCapXuongs, 'MaKeHoach');
         $kehoachs = array_filter($allKeHoachs, function($kh) use ($kehoachCapXuongMaKeHoachArr) {
             return !in_array($kh['MaKeHoach'], $kehoachCapXuongMaKeHoachArr);
         });
+        
         // Lọc theo từ khóa tìm kiếm nếu có
         if (!empty($_GET['search'])) {
             $keyword = mb_strtolower(trim($_GET['search']));
@@ -66,37 +50,28 @@ class LapKeHoachCapXuongController extends BaseController {
                     || strpos($donhang, $keyword) !== false;
             });
         }
-        // Sắp xếp kế hoạch theo ngày bắt đầu tăng dần (kế hoạch lập trước ở trên)
+        
+        // Sắp xếp kế hoạch theo ngày bắt đầu tăng dần
         usort($kehoachs, function($a, $b) {
             $dateA = strtotime($a['NgayBatDau'] ?? '');
             $dateB = strtotime($b['NgayBatDau'] ?? '');
             return $dateA <=> $dateB;
         });
+        
+        // Xử lý kế hoạch được chọn
         $selectedKeHoach = null;
         if (isset($_GET['kehoach'])) {
             $selectedKeHoach = $kehoachModel->getById($_GET['kehoach']);
-            $sanLuongTong = $kehoachModel->getSanLuongTong($_GET['kehoach']);
-            $selectedKeHoach['SanLuongTong'] = $sanLuongTong;
-
-            // Lấy mã phân xưởng của xưởng trưởng đang đăng nhập (mapping trực tiếp từ bảng phanxuong)
-            $maPhanXuong = null;
-            if (!empty($_SESSION['user']) && !empty($_SESSION['user']['MaNV'])) {
-                $maNV = $_SESSION['user']['MaNV'];
-                $stmt = $this->db->prepare('SELECT MaPhanXuong FROM phanxuong WHERE MaXuongTruong = ? LIMIT 1');
-                $stmt->execute([$maNV]);
-                $row = $stmt->fetch(PDO::FETCH_ASSOC);
-                if ($row && !empty($row['MaPhanXuong'])) {
-                    $maPhanXuong = $row['MaPhanXuong'];
-                }
-            }
-            // Bổ sung lấy mã sản phẩm, tên sản phẩm, số lượng sản phẩm từ ChiTietKeHoach, chỉ lấy đúng phân xưởng
-            $chiTietModel = $this->loadModel('ChiTietKeHoach');
-            $chiTietList = $chiTietModel->getByMaKeHoach($selectedKeHoach['MaKeHoach']);
-            // Lọc chi tiết theo phân xưởng
-            $chiTietListFiltered = array_filter($chiTietList, function($item) use ($maPhanXuong) {
-                return $item['MaPhanXuong'] === $maPhanXuong;
-            });
-            if (!empty($chiTietListFiltered)) {
+            if ($selectedKeHoach) {
+                $sanLuongTong = $kehoachModel->getSanLuongTong($_GET['kehoach']);
+                $selectedKeHoach['SanLuongTong'] = $sanLuongTong;
+                
+                // Lấy danh sách sản phẩm từ ChiTietKeHoach, chỉ lấy đúng phân xưởng
+                $chiTietModel = $this->loadModel('ChiTietKeHoach');
+                $chiTietList = $chiTietModel->getByMaKeHoach($selectedKeHoach['MaKeHoach']);
+                $chiTietListFiltered = array_filter($chiTietList, function($item) use ($maPX) {
+                    return ($item['MaPhanXuong'] ?? null) === $maPX;
+                });
                 $selectedKeHoach['SanPhamList'] = array_map(function($item) {
                     return [
                         'MaSanPham' => $item['MaSanPham'] ?? '',
@@ -104,16 +79,17 @@ class LapKeHoachCapXuongController extends BaseController {
                         'SanLuongMucTieu' => $item['SanLuongMucTieu'] ?? ''
                     ];
                 }, $chiTietListFiltered);
-            } else {
-                $selectedKeHoach['SanPhamList'] = [];
             }
         }
+        
         // Truy vấn danh sách dây chuyền - chỉ lấy dây chuyền thuộc phân xưởng
         $dayChuyenModel = $this->loadModel('DayChuyen');
-        $dayChuyenList = $dayChuyenModel->getByPhanXuong($maPhanXuong) ?? []; // [{MaDayChuyen, TenDayChuyen}]
+        $dayChuyenList = $dayChuyenModel->getByPhanXuong($maPX) ?? [];
+        
         // Truy vấn danh sách tổ trưởng
         $nhanVienModel = $this->loadModel('NhanVien');
         $toTruongList = $nhanVienModel->getToTruongList();
+        
         // Truy vấn danh sách phân xưởng
         $phanXuongModel = $this->loadModel('PhanXuong');
         $phanXuongList = $phanXuongModel->getAll();
@@ -129,6 +105,7 @@ class LapKeHoachCapXuongController extends BaseController {
             'db' => $this->db
         ]);
     }
+    
     // Xóa hàm create, không cần chuyển trang nữa
     public function store() {
         $this->requireAuth();

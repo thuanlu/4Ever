@@ -6,10 +6,11 @@ class TienDoModel extends BaseModel {
     protected $primaryKey = 'MaDayChuyen';
 
     /**
-     * Lấy danh sách dây chuyền (MaDayChuyen, TenDayChuyen, MaPhanXuong)
+     * Lấy danh sách tất cả dây chuyền
+     * (gồm trạng thái để hiển thị màu sắc, số lượng CN nếu cần).
      */
     public function getAllLines() {
-        $sql = "SELECT MaDayChuyen, TenDayChuyen, MaPhanXuong FROM daychuyen ORDER BY TenDayChuyen";
+        $sql = "SELECT MaDayChuyen, TenDayChuyen, MaPhanXuong, TrangThai, SoLuongCongNhan FROM daychuyen ORDER BY TenDayChuyen";
         $stmt = $this->db->prepare($sql);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -17,10 +18,14 @@ class TienDoModel extends BaseModel {
 
     /**
      * Lấy danh sách dây chuyền cho một phân xưởng
+     * kèm trạng thái (TrangThai) để render badge màu trong UI.
      */
     public function getLinesByPhanXuong($maPhanXuong) {
         // Use TRIM in SQL to avoid mismatches due to stray spaces in DB or input
-        $sql = "SELECT MaDayChuyen, TenDayChuyen, MaPhanXuong FROM daychuyen WHERE TRIM(MaPhanXuong) = TRIM(:mapx) ORDER BY TenDayChuyen";
+        $sql = "SELECT MaDayChuyen, TenDayChuyen, MaPhanXuong, TrangThai, SoLuongCongNhan
+                FROM daychuyen
+                WHERE TRIM(MaPhanXuong) = TRIM(:mapx)
+                ORDER BY TenDayChuyen";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([':mapx' => trim((string)$maPhanXuong)]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);

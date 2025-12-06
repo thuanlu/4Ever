@@ -3,9 +3,28 @@ require_once APP_PATH . '/controllers/BaseController.php';
 class XuongTruongXemKeHoachSanXuatController extends BaseController {
     public function index() {
         $this->requireAuth();
+        $this->requireRole(['XT']); // Chỉ xưởng trưởng mới được xem
         $currentUser = $this->getCurrentUser();
-        // Lấy danh sách kế hoạch đã phê duyệt cho xưởng
-    $kehoachs = $this->getApprovedPlans();
+        
+        // Xác định phân xưởng của xưởng trưởng đang đăng nhập
+        $ycModel = $this->loadModel('YeuCauXuat');
+        $maNV = $_SESSION['user_id'] ?? ($_SESSION['username'] ?? null);
+        $maPX = $maNV ? $ycModel->getPhanXuongForUser($maNV) : null;
+        
+        if (!$maPX) {
+            $this->loadView('xuongtruong/xemkehoachsanxuat', [
+                'currentUser' => $currentUser,
+                'kehoachs' => [],
+                'pageTitle' => 'Xem kế hoạch sản xuất',
+                'error' => 'Không xác định phân xưởng cho tài khoản hiện tại. Vui lòng liên hệ quản trị.'
+            ]);
+            return;
+        }
+        
+        // Lấy danh sách kế hoạch đã phê duyệt cho phân xưởng của xưởng trưởng
+        $kehoachModel = $this->loadModel('KeHoachSanXuat');
+        $kehoachs = $kehoachModel->getApprovedPlans($maPX);
+        
         $data = [
             'currentUser' => $currentUser,
             'kehoachs' => $kehoachs,
@@ -13,18 +32,6 @@ class XuongTruongXemKeHoachSanXuatController extends BaseController {
         ];
         $this->loadView('xuongtruong/xemkehoachsanxuat', $data);
     }
-        private function getApprovedPlans() {
-            $database = new Database();
-            $conn = $database->getConnection();
-            $query = "SELECT k.*, nv.HoTen as NguoiLap, dh.TenDonHang FROM KeHoachSanXuat k
-                      LEFT JOIN NhanVien nv ON k.MaNV = nv.MaNV
-                      LEFT JOIN DonHang dh ON k.MaDonHang = dh.MaDonHang
-                      WHERE k.TrangThai = 'Đã duyệt'
-                      ORDER BY k.NgayBatDau DESC";
-            $stmt = $conn->prepare($query);
-            $stmt->execute();
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
-        }
     public function exportPDF($maKeHoach) {
         // ... code xuất PDF ...
         $this->logAudit('export_pdf', $maKeHoach);

@@ -3,7 +3,7 @@
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h4 class="mb-0">Tạo phiếu yêu cầu kiểm tra lô/sản phẩm</h4>
     <div>
-      <a class="btn btn-outline-secondary btn-sm" href="<?php echo BASE_URL; ?>">Về Dashboard</a>
+      <a class="btn btn-outline-secondary btn-sm" href="<?php echo BASE_URL; ?>xuongtruong/dashboard">Về Dashboard</a>
       <a class="btn btn-outline-primary btn-sm" href="<?php echo BASE_URL; ?>phieu-kiem-tra/index">Danh sách phiếu</a>
     </div>
   </div>
@@ -45,7 +45,11 @@
               </div>
               <div class="col-md-6">
                 <div class="fw-semibold">Mã phân xưởng</div>
-                <div id="pi-px" class="text-muted"></div>
+                <div id="pi-px" class="text-muted">
+                  <?php if (!empty($maPX ?? '')): ?>
+                    <span class="badge bg-info text-dark"><?php echo htmlspecialchars($maPX); ?></span>
+                  <?php endif; ?>
+                </div>
               </div>
               <div class="col-12 mt-2">
                 <div class="fw-semibold">Sản phẩm</div>
@@ -78,7 +82,8 @@
 
     <div class="col-md-3">
       <label class="form-label">Ngày yêu cầu</label>
-      <input type="date" name="ngay_kiemtra" class="form-control" value="<?php echo htmlspecialchars($minDate ?? date('Y-m-d')); ?>" required>
+      <input type="date" id="ngay_kiemtra" name="ngay_kiemtra" class="form-control" value="<?php echo htmlspecialchars($minDate ?? date('Y-m-d')); ?>" required>
+      <small id="date-error" class="form-text text-danger" style="display:none;">Ngày không được nhỏ hơn ngày hôm nay</small>
     </div>
 
     <div class="col-12 d-flex gap-2 justify-content-end">
@@ -106,11 +111,34 @@
           </thead>
           <tbody>
             <?php foreach ($tickets as $t): ?>
+              <?php
+                $trangThai = $t['TrangThai'] ?? '';
+                $badgeClass = 'secondary';
+                
+                // Kiểm tra trạng thái có chứa "Đạt" → màu xanh
+                if (stripos($trangThai, 'Đạt') !== false || stripos($trangThai, 'đạt') !== false) {
+                    $badgeClass = 'success';
+                }
+                // Kiểm tra trạng thái có chứa "Không đạt" → màu đỏ
+                elseif (stripos($trangThai, 'Không đạt') !== false || stripos($trangThai, 'không đạt') !== false) {
+                    $badgeClass = 'danger';
+                }
+                // Các trạng thái khác
+                elseif ($trangThai === 'Chờ xử lý' || $trangThai === 'Chờ kiểm tra') {
+                    $badgeClass = 'warning text-dark';
+                }
+                elseif ($trangThai === 'Đã duyệt') {
+                    $badgeClass = 'success';
+                }
+                elseif ($trangThai === 'Nháp') {
+                    $badgeClass = 'secondary';
+                }
+              ?>
               <tr>
                 <td><?php echo htmlspecialchars($t['MaPhieuKT'] ?? ''); ?></td>
                 <td><?php echo htmlspecialchars($t['MaLoHang'] ?? ''); ?></td>
                 <td><?php echo htmlspecialchars($t['ngay_kiemtra'] ?? ''); ?></td>
-                <td><?php echo htmlspecialchars($t['TrangThai'] ?? ''); ?></td>
+                <td><span class="badge bg-<?php echo $badgeClass; ?>"><?php echo htmlspecialchars($trangThai); ?></span></td>
                 <td><?php echo htmlspecialchars($t['MaNV'] ?? ''); ?></td>
               </tr>
             <?php endforeach; ?>
@@ -128,6 +156,50 @@
     const selPlan = document.getElementById('select-kehoach');
     const selLot = document.getElementById('select-lohang');
     const info = document.getElementById('plan-info');
+    const dateInput = document.getElementById('ngay_kiemtra');
+    const dateError = document.getElementById('date-error');
+    const form = document.querySelector('form');
+    
+    // Set minimum date to today
+    const today = new Date();
+    const todayStr = today.getFullYear() + '-' + 
+                     String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+                     String(today.getDate()).padStart(2, '0');
+    if (dateInput) {
+      dateInput.setAttribute('min', todayStr);
+    }
+
+    // Real-time date validation
+    function validateDate() {
+      if (!dateInput || !dateInput.value) return true;
+      const selectedDate = new Date(dateInput.value + 'T00:00:00');
+      const todayDate = new Date();
+      todayDate.setHours(0, 0, 0, 0);
+      
+      if (selectedDate < todayDate) {
+        dateInput.classList.add('is-invalid');
+        if (dateError) dateError.style.display = '';
+        return false;
+      } else {
+        dateInput.classList.remove('is-invalid');
+        if (dateError) dateError.style.display = 'none';
+        return true;
+      }
+    }
+
+    // Validate on input change
+    dateInput?.addEventListener('change', validateDate);
+    dateInput?.addEventListener('input', validateDate);
+
+    // Validate on form submission
+    form?.addEventListener('submit', function(e) {
+      if (!validateDate()) {
+        e.preventDefault();
+        dateInput?.focus();
+        if (dateError) dateError.style.display = '';
+      }
+    });
+
     const pi = {
       ma: document.getElementById('pi-ma'),
       px: document.getElementById('pi-px'),
@@ -179,7 +251,11 @@
       const ten = opt.getAttribute('data-ten') || '';
 
       pi.ma.textContent = ma;
-      pi.px.textContent = px;
+      if (px) {
+        pi.px.innerHTML = '<span class="badge bg-info text-dark">' + px + '</span>';
+      } else {
+        pi.px.innerHTML = '<span class="text-muted small">Chưa xác định</span>';
+      }
       // show names if available
       if (productsNamed) {
         const parts = productsNamed.split(',').map(s => (s.split(':')[1] || s.split(':')[0]).trim());

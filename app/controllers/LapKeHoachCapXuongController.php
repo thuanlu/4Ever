@@ -3,17 +3,40 @@ require_once APP_PATH . '/controllers/BaseController.php';
 class LapKeHoachCapXuongController extends BaseController {
     public function index() {
         $this->requireAuth();
+        $this->requireRole(['XT']); // Chỉ xưởng trưởng mới được lập kế hoạch cấp xưởng
+        
+        // Xác định phân xưởng của xưởng trưởng đang đăng nhập
+        $ycModel = $this->loadModel('YeuCauXuat');
+        $maNV = $_SESSION['user_id'] ?? ($_SESSION['username'] ?? null);
+        $maPX = $maNV ? $ycModel->getPhanXuongForUser($maNV) : null;
+        
+        if (!$maPX) {
+            $this->loadView('xuongtruong/lapkehoachcapxuong', [
+                'kehoachs' => [],
+                'kehoach' => null,
+                'dayChuyenList' => [],
+                'toTruongList' => [],
+                'pageTitle' => 'Lập kế hoạch cấp xưởng',
+                'error' => 'Không xác định phân xưởng cho tài khoản hiện tại. Vui lòng liên hệ quản trị.'
+            ]);
+            return;
+        }
+        
         $kehoachModel = $this->loadModel('KeHoachSanXuat');
-        $kehoachs = $kehoachModel->getApprovedPlans();
+        // Chỉ lấy kế hoạch thuộc phân xưởng của xưởng trưởng
+        $kehoachs = $kehoachModel->getApprovedPlans($maPX);
         $selectedKeHoach = null;
         if (isset($_GET['kehoach'])) {
             $selectedKeHoach = $kehoachModel->getById($_GET['kehoach']);
-            $sanLuongTong = $kehoachModel->getSanLuongTong($_GET['kehoach']);
-            $selectedKeHoach['SanLuongTong'] = $sanLuongTong;
+            // Kiểm tra kế hoạch có thuộc phân xưởng không
+            if ($selectedKeHoach) {
+                $sanLuongTong = $kehoachModel->getSanLuongTong($_GET['kehoach']);
+                $selectedKeHoach['SanLuongTong'] = $sanLuongTong;
+            }
         }
-        // Truy vấn danh sách dây chuyền
+        // Truy vấn danh sách dây chuyền - chỉ lấy dây chuyền thuộc phân xưởng
         $dayChuyenModel = $this->loadModel('DayChuyen');
-        $dayChuyenList = $dayChuyenModel->getAll(); // [{MaDayChuyen, TenDayChuyen}]
+        $dayChuyenList = $dayChuyenModel->getByPhanXuong($maPX) ?? []; // [{MaDayChuyen, TenDayChuyen}]
         // Truy vấn danh sách tổ trưởng
         $nhanVienModel = $this->loadModel('NhanVien');
         $toTruongList = $nhanVienModel->getToTruongList(); // [{MaNV, HoTen}]

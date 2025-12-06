@@ -21,16 +21,6 @@ class TienDoController extends BaseController {
         // Only fetch dây chuyền that belong to this phân xưởng
         $lines = $model->getLinesByPhanXuong($maPX);
 
-        // Debug logging: record MaPhanXuong and fetched rows count (helpful when UI shows empty select)
-        try {
-            $dbg = 'TienDoController::index - MaPhanXuong=' . ($maPX ?? 'NULL') . ' - fetched=' . count($lines);
-            error_log($dbg . "\n", 3, APP_PATH . '/logs/error.log');
-            error_log('TienDoController::index - rows: ' . json_encode($lines, JSON_UNESCAPED_UNICODE) . "\n", 3, APP_PATH . '/logs/error.log');
-        } catch (Exception $e) {
-            // ignore logging errors
-        }
-
-
         // Reorder / prioritize the six standard dây chuyền the factory uses
         // Desired order: Cắt, May, Gấp đế, Hoàn thiện, Kiểm tra, Đóng gói
         $preferred = [
@@ -59,22 +49,49 @@ class TienDoController extends BaseController {
                     break;
                 }
             }
-            if ($found) {
-                $found['is_placeholder'] = false;
-                $final[] = $found;
-            } else {
-                // placeholder entry
-                $final[] = [
-                    'MaDayChuyen' => '',
-                    'TenDayChuyen' => 'Dây chuyền ' . $p['label'],
-                    'MaPhanXuong' => '',
-                    'is_placeholder' => true
-                ];
+                if ($found) {
+                    $found['is_placeholder'] = false;
+                    $final[] = $found;
+                } else {
+                    // placeholder entry: do NOT invent a TenDayChuyen from the label.
+                    // Leave TenDayChuyen empty so the UI shows the database name when available,
+                    // otherwise render a clear "Chưa cấu hình" state.
+                    $final[] = [
+                        'MaDayChuyen'   => '',
+                        'TenDayChuyen'  => '',
+                        'MaPhanXuong'   => '',
+                        'TrangThai'     => 'Chưa cấu hình',
+                        'SoLuongCongNhan' => null,
+                        'is_placeholder' => true,
+                        'preferredLabel' => $p['label'],
+                    ];
+                }
+        }
+
+        // If some preferred slots are placeholders, try to fill them with any remaining real lines
+        $unusedRows = [];
+        foreach ($all as $i => $row) {
+            if (!in_array($i, $usedIndexes)) $unusedRows[] = $row;
+        }
+        if (!empty($unusedRows)) {
+            foreach ($final as $k => $entry) {
+                if (count($unusedRows) === 0) break;
+                if (!empty($entry['is_placeholder'])) {
+                    $r = array_shift($unusedRows);
+                    $r['is_placeholder'] = false;
+                    $final[$k] = $r;
+                }
             }
         }
 
         // Ensure exactly 6 entries (we already have 6 preferred entries)
-        $this->loadView('xuongtruong/tien_do/index', ['lines' => $final]);
+            // Ensure view receives the full DB list (show all lines for the phân xưởng)
+            $viewData = ['lines' => $all, 'resolvedMaNV' => $maNV, 'resolvedMaPX' => $maPX];
+        // If debug flag present, also include raw fetched DB rows for inspection
+        if (isset($_GET['_dbg']) && $_GET['_dbg'] == '1') {
+            $viewData['rawLines'] = $lines;
+        }
+        $this->loadView('xuongtruong/tien_do/index', $viewData);
     }
 
     /**
@@ -100,6 +117,118 @@ class TienDoController extends BaseController {
             $lines = $model->getLinesByPhanXuong($maPX);
 
             echo json_encode(['MaPhanXuong' => $maPX, 'lines' => $lines], JSON_UNESCAPED_UNICODE);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Lỗi nội bộ', 'message' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * API: trả về 6 dây chuyền canonical (Cắt, May, Gấp đế, Hoàn thiện, Kiểm tra, Đóng gói)
+     * cho phân xưởng của người đang đăng nhập. Trả về placeholder entries nếu thiếu.
+     * GET /xuongtruong/tien-do/api-canonical-lines
+     */
+    public function apiCanonicalLines() {
+        header('Content-Type: application/json; charset=utf-8');
+        try {
+            $this->requireAuth();
+            $this->requireRole(['xuong_truong','ban_giam_doc','nhan_vien_ke_hoach']);
+
+            $ycModel = $this->loadModel('YeuCauXuat');
+            $maNV = $_SESSION['user_id'] ?? ($_SESSION['username'] ?? null);
+            $maPX = $maNV ? $ycModel->getPhanXuongForUser($maNV) : null;
+
+            if (!$maPX) {
+                echo json_encode(['error' => 'Không xác định phân xưởng cho tài khoản hiện tại.']);
+                return;
+            }
+
+            $model = $this->loadModel('TienDoModel');
+            $all = $model->getLinesByPhanXuong($maPX);
+
+            // canonical ordering
+            $preferred = [
+                ['label' => 'Cắt', 'keyword' => 'cắt'],
+                ['label' => 'May', 'keyword' => 'may'],
+                ['label' => 'Gấp đế', 'keyword' => 'đế'],
+                ['label' => 'Hoàn thiện', 'keyword' => 'hoàn'],
+                ['label' => 'Kiểm tra', 'keyword' => 'kiểm'],
+                ['label' => 'Đóng gói', 'keyword' => 'đóng']
+            ];
+
+            $usedIndexes = [];
+            $final = [];
+            foreach ($preferred as $p) {
+                $kw = mb_strtolower($p['keyword'], 'UTF-8');
+                $found = null;
+                foreach ($all as $i => $row) {
+                    if (in_array($i, $usedIndexes)) continue;
+                    $nameLower = mb_strtolower($row['TenDayChuyen'] ?? '', 'UTF-8');
+                    if ($kw !== '' && mb_stripos($nameLower, $kw, 0, 'UTF-8') !== false) {
+                        $found = $row;
+                        $usedIndexes[] = $i;
+                        break;
+                    }
+                }
+                if ($found) {
+                    $found['is_placeholder'] = false;
+                    $final[] = $found;
+                } else {
+                    // placeholder: do not invent a DB name here
+                    $final[] = [
+                        'MaDayChuyen' => '',
+                        'TenDayChuyen' => '',
+                        'MaPhanXuong' => $maPX,
+                        'TrangThai' => 'Chưa cấu hình',
+                        'SoLuongCongNhan' => null,
+                        'is_placeholder' => true,
+                        'preferredLabel' => $p['label'],
+                    ];
+                }
+            }
+
+            echo json_encode(['MaPhanXuong' => $maPX, 'lines' => $final], JSON_UNESCAPED_UNICODE);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Lỗi nội bộ', 'message' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * API: trả về tên các dây chuyền cho MaNV của xưởng trưởng (hoặc MaNV được truyền vào)
+     * GET /xuongtruong/tien-do/api-lines-by-user?manv=XT01
+     */
+    public function apiLinesByUser() {
+        header('Content-Type: application/json; charset=utf-8');
+        try {
+            $this->requireAuth();
+            $this->requireRole(['xuong_truong','ban_giam_doc','nhan_vien_ke_hoach']);
+
+            // allow passing manv as query param; if omitted, use current session
+            $maNV = isset($_GET['manv']) && trim($_GET['manv']) !== '' ? trim($_GET['manv']) : ($_SESSION['user_id'] ?? ($_SESSION['username'] ?? null));
+            if (!$maNV) {
+                http_response_code(400);
+                echo json_encode(['error' => 'Thiếu tham số manv hoặc chưa đăng nhập']);
+                return;
+            }
+
+            $ycModel = $this->loadModel('YeuCauXuat');
+            $maPX = $ycModel->getPhanXuongForUser($maNV);
+            if (!$maPX) {
+                echo json_encode(['error' => 'Không xác định phân xưởng cho MaNV được cung cấp', 'MaNV' => $maNV], JSON_UNESCAPED_UNICODE);
+                return;
+            }
+
+            $model = $this->loadModel('TienDoModel');
+            $lines = $model->getLinesByPhanXuong($maPX);
+
+            // extract names
+            $names = [];
+            foreach ($lines as $r) {
+                if (!empty($r['TenDayChuyen'])) $names[] = $r['TenDayChuyen'];
+            }
+
+            echo json_encode(['MaNV' => $maNV, 'MaPhanXuong' => $maPX, 'names' => $names, 'lines' => $lines], JSON_UNESCAPED_UNICODE);
         } catch (Exception $e) {
             http_response_code(500);
             echo json_encode(['error' => 'Lỗi nội bộ', 'message' => $e->getMessage()]);
@@ -180,12 +309,6 @@ class TienDoController extends BaseController {
             }
 
             // Ensure the requested dây chuyền belongs to the current user's phân xưởng
-            // Debug: log user and line phân xưởng to help diagnose authorization issues
-            try {
-                error_log("TienDoController::show - maNV={$maNV} maPXUser={$maPXUser} line.MaPhanXuong=" . ($lineInfo['MaPhanXuong'] ?? 'NULL') . " maDayChuyen={$maDayChuyen}\n", 3, APP_PATH . '/logs/error.log');
-                error_log('TienDoController::show - lineInfo: ' . json_encode($lineInfo, JSON_UNESCAPED_UNICODE) . "\n", 3, APP_PATH . '/logs/error.log');
-            } catch (Exception $e) {}
-
             // Normalize both sides (trim + lowercase) to avoid format/case/whitespace mismatches
             $norm = function($s) { return mb_strtolower(trim((string)$s), 'UTF-8'); };
 
@@ -200,14 +323,12 @@ class TienDoController extends BaseController {
             // We have validated startDate and endDate above — use them
             $stats = $model->getStatistics($maDayChuyen, 30, $startDate, $endDate);
             if ($stats === null) {
-                error_log("TienDoController::show - no stats for $maDayChuyen\n", 3, APP_PATH . '/logs/error.log');
                 $this->loadView('xuongtruong/tien_do/detail', ['line' => $lineInfo, 'stats' => null]);
                 return;
             }
 
             $this->loadView('xuongtruong/tien_do/detail', ['line' => $lineInfo, 'stats' => $stats]);
         } catch (Exception $e) {
-            error_log("TienDoController::show error: " . $e->getMessage() . "\n", 3, APP_PATH . '/logs/error.log');
             $this->loadView('errors/500', ['message' => 'Lỗi khi lấy dữ liệu thống kê']);
         }
     }

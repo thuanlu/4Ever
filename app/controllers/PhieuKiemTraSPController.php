@@ -26,11 +26,31 @@ class PhieuKiemTraSPController extends BaseController
             }
         }
 
+        // If still empty, try a direct DB lookup as fallback (some deployments may have slight schema differences)
+        if (empty($maPX) && $maNV) {
+            try {
+                $db = new Database();
+                $pdo = $db->getConnection();
+                $q = $pdo->prepare('SELECT MaPhanXuong FROM phanxuong WHERE MaXuongTruong = :maNV LIMIT 1');
+                $q->execute([':maNV' => $maNV]);
+                $r = $q->fetch(PDO::FETCH_ASSOC);
+                if ($r && !empty($r['MaPhanXuong'])) {
+                    $maPX = $r['MaPhanXuong'];
+                }
+            } catch (Throwable $e) {
+                // swallow
+            }
+        }
+
+        // Diagnostic log: record which MaNV and resolved MaPhanXuong are being used
+        @file_put_contents(__DIR__ . '/../../app/logs/error.log', "[PhieuKiemTraSPController::create] user_id={$maNV} resolved_maPX={$maPX}\n", FILE_APPEND);
+
         $plans = $model->getPlans($maPX);
+    @file_put_contents(__DIR__ . '/../../app/logs/error.log', "[PhieuKiemTraSPController::create] plans_count=" . count($plans) . " plan_pxs=" . implode(',', array_map(function($p){ return $p['MaPhanXuong'] ?? ''; }, $plans)) . "\n", FILE_APPEND);
         $lots = $model->getLots($maPX);
 
-    // Also load recent tickets to show under the form
-    $tickets = $model->listTickets();
+        // Also load recent tickets to show under the form (chỉ trong phân xưởng hiện tại nếu có)
+        $tickets = $model->listTickets($maPX);
 
         // Default date = system date in Y-m-d (suitable for input[type=date])
         $minDate = (new DateTime('today'))->format('Y-m-d');
@@ -40,6 +60,7 @@ class PhieuKiemTraSPController extends BaseController
             'lots' => $lots,
             'minDate' => $minDate,
             'tickets' => $tickets,
+            'maPX' => $maPX, // Truyền mã phân xưởng để hiển thị trong view
         ]);
     }
 
@@ -103,6 +124,18 @@ class PhieuKiemTraSPController extends BaseController
                 // ignore
             }
 
+            // Fallback direct lookup if model didn't resolve
+            if (empty($maPX) && $maNV) {
+                try {
+                    $db = new Database();
+                    $pdo = $db->getConnection();
+                    $q = $pdo->prepare('SELECT MaPhanXuong FROM phanxuong WHERE MaXuongTruong = :maNV LIMIT 1');
+                    $q->execute([':maNV' => $maNV]);
+                    $r = $q->fetch(PDO::FETCH_ASSOC);
+                    if ($r && !empty($r['MaPhanXuong'])) $maPX = $r['MaPhanXuong'];
+                } catch (Throwable $e) { /* ignore */ }
+            }
+
             $allowedLots = $model->getLots($maPX);
             $found = false;
             foreach ($allowedLots as $l) {
@@ -131,7 +164,36 @@ class PhieuKiemTraSPController extends BaseController
     {
         $this->requireRole(['XT','QC']);
         $model = $this->loadModel('PhieuKiemTraSP');
-        $rows = $model->listTickets();
+
+        // Nếu là xưởng trưởng thì chỉ xem các phiếu của phân xưởng mình;
+        // nếu không xác định được phân xưởng (VD QC) thì hiển thị tất cả.
+        $maPX = '';
+        $maNV = $_SESSION['user_id'] ?? ($_SESSION['username'] ?? null);
+        if ($maNV) {
+            try {
+                $ycModel = $this->loadModel('YeuCauXuat');
+                $maPX = $ycModel->getPhanXuongForUser($maNV) ?? '';
+            } catch (Throwable $e) {
+                $maPX = '';
+            }
+        }
+
+        // Fallback: if mapping missing, do a direct DB lookup
+        if (empty($maPX) && $maNV) {
+            try {
+                $db = new Database();
+                $pdo = $db->getConnection();
+                $q = $pdo->prepare('SELECT MaPhanXuong FROM phanxuong WHERE MaXuongTruong = :maNV LIMIT 1');
+                $q->execute([':maNV' => $maNV]);
+                $r = $q->fetch(PDO::FETCH_ASSOC);
+                if ($r && !empty($r['MaPhanXuong'])) $maPX = $r['MaPhanXuong'];
+            } catch (Throwable $e) { /* ignore */ }
+        }
+
+        // Diagnostic log: when listing, capture caller user and resolved px
+        @file_put_contents(__DIR__ . '/../../app/logs/error.log', "[PhieuKiemTraSPController::index] user_id={$maNV} resolved_maPX={$maPX}\n", FILE_APPEND);
+
+        $rows = $model->listTickets($maPX);
         $this->loadView('xuongtruong/phieu_kiem_tra_sp/list', ['rows' => $rows]);
     }
 

@@ -16,38 +16,109 @@ class YeuCauXuat {
      * Trả về MaPhanXuong nếu user (xưởng trưởng) được gán trong bảng phanxuong
      */
     public function getPhanXuongForUser(string $maNV): ?string {
+        // Normalize input
+        $input = trim((string)$maNV);
+        $logPrefix = "[YeuCauXuat::getPhanXuongForUser] input={$input} ";
+
+        // 1) Direct match (exact)
         $stmt = $this->pdo->prepare('SELECT MaPhanXuong FROM phanxuong WHERE MaXuongTruong = :maNV LIMIT 1');
-        $stmt->execute([':maNV' => $maNV]);
+        $stmt->execute([':maNV' => $input]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $row['MaPhanXuong'] ?? null;
+        if ($row && !empty($row['MaPhanXuong'])) {
+            @file_put_contents(__DIR__ . '/../../app/logs/error.log', $logPrefix . "found_direct=" . $row['MaPhanXuong'] . "\n", FILE_APPEND);
+            return $row['MaPhanXuong'];
+        }
+
+        // 2) Normalized match (case & spaces)
+        $stmt2 = $this->pdo->prepare('SELECT MaPhanXuong FROM phanxuong WHERE UPPER(TRIM(MaXuongTruong)) = UPPER(TRIM(:maNV)) LIMIT 1');
+        $stmt2->execute([':maNV' => $input]);
+        $row2 = $stmt2->fetch(PDO::FETCH_ASSOC);
+        if ($row2 && !empty($row2['MaPhanXuong'])) {
+            @file_put_contents(__DIR__ . '/../../app/logs/error.log', $logPrefix . "found_normalized=" . $row2['MaPhanXuong'] . "\n", FILE_APPEND);
+            return $row2['MaPhanXuong'];
+        }
+
+        // 3) Try treating input as a display name: find matching nhanvien.HoTen -> MaNV, then lookup phanxuong
+        $stmt3 = $this->pdo->prepare('SELECT MaNV FROM nhanvien WHERE UPPER(TRIM(HoTen)) = UPPER(TRIM(:name)) LIMIT 1');
+        $stmt3->execute([':name' => $input]);
+        $nv = $stmt3->fetch(PDO::FETCH_ASSOC);
+        if ($nv && !empty($nv['MaNV'])) {
+            $maNVreal = $nv['MaNV'];
+            $stmt4 = $this->pdo->prepare('SELECT MaPhanXuong FROM phanxuong WHERE MaXuongTruong = :maNV LIMIT 1');
+            $stmt4->execute([':maNV' => $maNVreal]);
+            $row4 = $stmt4->fetch(PDO::FETCH_ASSOC);
+            if ($row4 && !empty($row4['MaPhanXuong'])) {
+                @file_put_contents(__DIR__ . '/../../app/logs/error.log', $logPrefix . "found_via_hoten_input_name=" . $row4['MaPhanXuong'] . " (matched MaNV=" . $maNVreal . ")\n", FILE_APPEND);
+                return $row4['MaPhanXuong'];
+            }
+        }
+
+        // 4) Last resort: try to find any phanxuong row where MaXuongTruong contains the input as substring
+        $stmt5 = $this->pdo->prepare('SELECT MaPhanXuong FROM phanxuong WHERE MaXuongTruong LIKE :pat LIMIT 1');
+        $stmt5->execute([':pat' => "%{$input}%"]);
+        $row5 = $stmt5->fetch(PDO::FETCH_ASSOC);
+        if ($row5 && !empty($row5['MaPhanXuong'])) {
+            @file_put_contents(__DIR__ . '/../../app/logs/error.log', $logPrefix . "found_like=" . $row5['MaPhanXuong'] . "\n", FILE_APPEND);
+            return $row5['MaPhanXuong'];
+        }
+
+        @file_put_contents(__DIR__ . '/../../app/logs/error.log', $logPrefix . "not_found\n", FILE_APPEND);
+        return null;
     }
 
     public function getPlans(?string $maPhanXuong = null): array {
-        $sql = "
-            SELECT
-                k.MaKeHoach AS ma_kehoach,
-                (SELECT kc.MaPhanXuong FROM kehoachcapxuong kc WHERE kc.MaKeHoach = k.MaKeHoach LIMIT 1) AS ma_px,
-                k.TenKeHoach AS sanpham,
-                COALESCE(kcx.total_qty, cts.total_ct_qty, 0) AS soluong,
-                k.NgayBatDau AS ngay_batdau
-            FROM kehoachsanxuat k
-            LEFT JOIN (
-                SELECT MaKeHoach, SUM(SoLuong) AS total_qty FROM kehoachcapxuong GROUP BY MaKeHoach
-            ) kcx ON kcx.MaKeHoach = k.MaKeHoach
-            LEFT JOIN (
-                SELECT MaKeHoach, SUM(SanLuongMucTieu) AS total_ct_qty FROM chitietkehoach GROUP BY MaKeHoach
-            ) cts ON cts.MaKeHoach = k.MaKeHoach
-            WHERE k.TrangThai = 'Đã duyệt'
-        ";
-
-        // Nếu truyền MaPhanXuong thì chỉ lấy các kế hoạch có cấp xưởng cho phân xưởng đó
+        // Danh sách kế hoạch đã duyệt, ưu tiên số lượng lấy từ bảng chi tiết kế hoạch (chitietkehoach)
+        // để không phụ thuộc vào việc đã có bản ghi kehoachcapxuong hay chưa.
+        
+        // Nếu truyền MaPhanXuong thì chỉ lấy kế hoạch thuộc phân xưởng đó và ma_px phải là phân xưởng đó
         if ($maPhanXuong !== null && $maPhanXuong !== '') {
-            $sql .= " AND EXISTS(SELECT 1 FROM kehoachcapxuong kc2 WHERE kc2.MaKeHoach = k.MaKeHoach AND kc2.MaPhanXuong = :ma_px)";
-            $sql .= " ORDER BY k.NgayBatDau DESC";
+            $trimPx = trim($maPhanXuong);
+            $sql = "
+                SELECT
+                    k.MaKeHoach AS ma_kehoach,
+                    :ma_px AS ma_px,
+                    k.TenKeHoach AS sanpham,
+                    COALESCE(kcx.total_qty, cts.total_ct_qty, 0) AS soluong,
+                    k.NgayBatDau AS ngay_batdau
+                FROM kehoachsanxuat k
+                LEFT JOIN (
+                    SELECT MaKeHoach, SUM(SoLuong) AS total_qty FROM kehoachcapxuong GROUP BY MaKeHoach
+                ) kcx ON kcx.MaKeHoach = k.MaKeHoach
+                LEFT JOIN (
+                    SELECT MaKeHoach, SUM(SanLuongMucTieu) AS total_ct_qty 
+                    FROM chitietkehoach 
+                    WHERE TRIM(MaPhanXuong) = TRIM(:ma_px)
+                    GROUP BY MaKeHoach
+                ) cts ON cts.MaKeHoach = k.MaKeHoach
+                WHERE k.TrangThai = 'Đã duyệt'
+                  AND EXISTS(
+                      SELECT 1 FROM chitietkehoach ct2 
+                      WHERE ct2.MaKeHoach = k.MaKeHoach 
+                        AND TRIM(ct2.MaPhanXuong) = TRIM(:ma_px)
+                  )
+                ORDER BY k.NgayBatDau DESC
+            ";
             $stmt = $this->pdo->prepare($sql);
-            $stmt->execute([':ma_px' => $maPhanXuong]);
+            $stmt->execute([':ma_px' => $trimPx]);
         } else {
-            $sql .= " ORDER BY k.NgayBatDau DESC";
+            // Không lọc phân xưởng: lấy tất cả và ma_px là phân xưởng đầu tiên tìm thấy
+            $sql = "
+                SELECT
+                    k.MaKeHoach AS ma_kehoach,
+                    (SELECT ct.MaPhanXuong FROM chitietkehoach ct WHERE ct.MaKeHoach = k.MaKeHoach LIMIT 1) AS ma_px,
+                    k.TenKeHoach AS sanpham,
+                    COALESCE(kcx.total_qty, cts.total_ct_qty, 0) AS soluong,
+                    k.NgayBatDau AS ngay_batdau
+                FROM kehoachsanxuat k
+                LEFT JOIN (
+                    SELECT MaKeHoach, SUM(SoLuong) AS total_qty FROM kehoachcapxuong GROUP BY MaKeHoach
+                ) kcx ON kcx.MaKeHoach = k.MaKeHoach
+                LEFT JOIN (
+                    SELECT MaKeHoach, SUM(SanLuongMucTieu) AS total_ct_qty FROM chitietkehoach GROUP BY MaKeHoach
+                ) cts ON cts.MaKeHoach = k.MaKeHoach
+                WHERE k.TrangThai = 'Đã duyệt'
+                ORDER BY k.NgayBatDau DESC
+            ";
             $stmt = $this->pdo->query($sql);
         }
 
@@ -55,30 +126,64 @@ class YeuCauXuat {
         return $rows;
     }
 
-    public function getPlan(string $maKeHoach): ?array {
-        // Lấy thông tin kế hoạch kèm một MaPhanXuong (nếu có) và tổng số lượng
-        $sql = "
-            SELECT
-                k.MaKeHoach AS ma_kehoach,
-                (SELECT kc.MaPhanXuong FROM kehoachcapxuong kc WHERE kc.MaKeHoach = k.MaKeHoach LIMIT 1) AS ma_px,
-                k.TenKeHoach AS sanpham,
-                COALESCE(kcx.total_qty, cts.total_ct_qty, 0) AS soluong,
-                k.NgayBatDau AS ngay_batdau,
-                k.GhiChu AS ghichu
-            FROM kehoachsanxuat k
-            LEFT JOIN (
-                SELECT MaKeHoach, SUM(SoLuong) AS total_qty FROM kehoachcapxuong GROUP BY MaKeHoach
-            ) kcx ON kcx.MaKeHoach = k.MaKeHoach
-            LEFT JOIN (
-                SELECT MaKeHoach, SUM(SanLuongMucTieu) AS total_ct_qty FROM chitietkehoach GROUP BY MaKeHoach
-            ) cts ON cts.MaKeHoach = k.MaKeHoach
-                        WHERE k.MaKeHoach = :id
-                            AND k.TrangThai = 'Đã duyệt'
-            LIMIT 1
-        ";
-
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute([':id' => $maKeHoach]);
+    public function getPlan(string $maKeHoach, ?string $maPhanXuong = null): ?array {
+        // Lấy thông tin kế hoạch kèm MaPhanXuong
+        // Nếu MaPhanXuong được truyền vào, chỉ trả về plan nếu nó thuộc phân xưởng đó (security check)
+        // Ưu tiên lấy MaPhanXuong từ chitietkehoach để không phụ thuộc vào kehoachcapxuong.
+        
+        if ($maPhanXuong !== null && $maPhanXuong !== '') {
+            // Truyền MaPhanXuong: chỉ lấy plan nếu nó thuộc phân xưởng đó
+            $sql = "
+                SELECT
+                    k.MaKeHoach AS ma_kehoach,
+                    :ma_px AS ma_px,
+                    k.TenKeHoach AS sanpham,
+                    COALESCE(kcx.total_qty, cts.total_ct_qty, 0) AS soluong,
+                    k.NgayBatDau AS ngay_batdau,
+                    k.GhiChu AS ghichu
+                FROM kehoachsanxuat k
+                LEFT JOIN (
+                    SELECT MaKeHoach, SUM(SoLuong) AS total_qty FROM kehoachcapxuong GROUP BY MaKeHoach
+                ) kcx ON kcx.MaKeHoach = k.MaKeHoach
+                LEFT JOIN (
+                    SELECT MaKeHoach, SUM(SanLuongMucTieu) AS total_ct_qty FROM chitietkehoach GROUP BY MaKeHoach
+                ) cts ON cts.MaKeHoach = k.MaKeHoach
+                WHERE k.MaKeHoach = :id
+                  AND k.TrangThai = 'Đã duyệt'
+                  AND EXISTS(
+                      SELECT 1 FROM chitietkehoach ct2 
+                      WHERE ct2.MaKeHoach = k.MaKeHoach 
+                        AND TRIM(ct2.MaPhanXuong) = TRIM(:ma_px)
+                  )
+                LIMIT 1
+            ";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute([':id' => $maKeHoach, ':ma_px' => trim($maPhanXuong)]);
+        } else {
+            // Không truyền MaPhanXuong: lấy plan bất kì (cho API)
+            $sql = "
+                SELECT
+                    k.MaKeHoach AS ma_kehoach,
+                    (SELECT ct.MaPhanXuong FROM chitietkehoach ct WHERE ct.MaKeHoach = k.MaKeHoach LIMIT 1) AS ma_px,
+                    k.TenKeHoach AS sanpham,
+                    COALESCE(kcx.total_qty, cts.total_ct_qty, 0) AS soluong,
+                    k.NgayBatDau AS ngay_batdau,
+                    k.GhiChu AS ghichu
+                FROM kehoachsanxuat k
+                LEFT JOIN (
+                    SELECT MaKeHoach, SUM(SoLuong) AS total_qty FROM kehoachcapxuong GROUP BY MaKeHoach
+                ) kcx ON kcx.MaKeHoach = k.MaKeHoach
+                LEFT JOIN (
+                    SELECT MaKeHoach, SUM(SanLuongMucTieu) AS total_ct_qty FROM chitietkehoach GROUP BY MaKeHoach
+                ) cts ON cts.MaKeHoach = k.MaKeHoach
+                WHERE k.MaKeHoach = :id
+                  AND k.TrangThai = 'Đã duyệt'
+                LIMIT 1
+            ";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute([':id' => $maKeHoach]);
+        }
+        
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         return $row ?: null;
     }
@@ -236,12 +341,17 @@ class YeuCauXuat {
         }
     }
 
-    public function listRequests(string $status = '', string $keyword = ''): array {
+    public function listRequests(string $status = '', string $keyword = '', ?string $maPhanXuong = null): array {
                 // Truy vấn theo schema thực tế (phieuyeucauxuatnguyenlieu + chitiet...)
                 $where = [];
                 $params = [];
                 if ($status !== '') { $where[] = 'p.TrangThai = :st'; $params[':st'] = $status; }
                 if ($keyword !== '') { $where[] = '(p.MaPhieuYC LIKE :kw OR p.MaPhanXuong LIKE :kw)'; $params[':kw'] = "%$keyword%"; }
+                // Lọc theo phân xưởng nếu được truyền vào
+                if ($maPhanXuong !== null && $maPhanXuong !== '') {
+                    $where[] = 'p.MaPhanXuong = :ma_px';
+                    $params[':ma_px'] = trim($maPhanXuong);
+                }
 
                 $sql = "SELECT
                         p.MaPhieuYC AS ma_phieu,

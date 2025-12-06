@@ -12,25 +12,49 @@ class PhieuKiemTraSP
 
     public function getPlans(?string $maPhanXuong = null): array
     {
-        $sql = "SELECT k.MaKeHoach, k.TenKeHoach, k.NgayBatDau, k.NgayKetThuc,
-                   (SELECT kc.MaPhanXuong FROM kehoachcapxuong kc WHERE kc.MaKeHoach = k.MaKeHoach LIMIT 1) AS MaPhanXuong,
-                   GROUP_CONCAT(DISTINCT ct.MaSanPham SEPARATOR ',') AS MaSanPhamList,
-                   GROUP_CONCAT(DISTINCT CONCAT(ct.MaSanPham,':',sp.TenSanPham) SEPARATOR ',') AS MaSanPhamNamedList
-            FROM kehoachsanxuat k
-            LEFT JOIN chitietkehoach ct ON ct.MaKeHoach = k.MaKeHoach
-            LEFT JOIN sanpham sp ON sp.MaSanPham = ct.MaSanPham
-            WHERE k.TrangThai = 'Đã duyệt'";
+        // Kế hoạch đã duyệt, kèm danh sách sản phẩm.
+        // Khi truyền $maPhanXuong, trả về chính xác mã phân xưởng đó (':ma_px AS MaPhanXuong')
+        // để tránh hiển thị MaPhanXuong khác (ví dụ plan có nhiều hàng chi tiết thuộc nhiều phân xưởng).
+        if ($maPhanXuong && trim((string)$maPhanXuong) !== '') {
+            $trimPx = trim((string)$maPhanXuong);
+            $sql = "SELECT k.MaKeHoach, k.TenKeHoach, k.NgayBatDau, k.NgayKetThuc,
+                           :ma_px AS MaPhanXuong,
+                           GROUP_CONCAT(DISTINCT ct.MaSanPham SEPARATOR ',') AS MaSanPhamList,
+                           GROUP_CONCAT(DISTINCT CONCAT(ct.MaSanPham,':',sp.TenSanPham) SEPARATOR ',') AS MaSanPhamNamedList
+                    FROM kehoachsanxuat k
+                    LEFT JOIN chitietkehoach ct ON ct.MaKeHoach = k.MaKeHoach
+                    LEFT JOIN sanpham sp ON sp.MaSanPham = ct.MaSanPham
+                    WHERE UPPER(TRIM(k.TrangThai)) = UPPER(TRIM('Đã duyệt'))
+                      AND EXISTS (
+                          SELECT 1 FROM chitietkehoach ct_filter
+                          WHERE ct_filter.MaKeHoach = k.MaKeHoach
+                            AND UPPER(TRIM(ct_filter.MaPhanXuong)) = UPPER(TRIM(:ma_px))
+                      )
+                    GROUP BY k.MaKeHoach
+                    ORDER BY k.NgayBatDau DESC";
 
-        if ($maPhanXuong) {
-            $sql .= " AND EXISTS(SELECT 1 FROM kehoachcapxuong kc WHERE kc.MaKeHoach = k.MaKeHoach AND kc.MaPhanXuong = :ma_px)";
-            $sql .= " GROUP BY k.MaKeHoach ORDER BY k.NgayBatDau DESC";
             $stmt = $this->pdo->prepare($sql);
-            $stmt->execute([':ma_px' => $maPhanXuong]);
-        } else {
-            $sql .= " GROUP BY k.MaKeHoach ORDER BY k.NgayBatDau DESC";
-            $stmt = $this->pdo->query($sql);
+            $stmt->execute([':ma_px' => $trimPx]);
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            @file_put_contents(APP_PATH . '/logs/error.log', "[PhieuKiemTraSP::getPlans] filtered ma_px={$trimPx} count=" . count($rows) . " plans=" . implode(',', array_column($rows, 'MaKeHoach')) . "\n", FILE_APPEND | LOCK_EX);
+
+            return $rows;
         }
 
+        // Không lọc phân xưởng: lấy tất cả kế hoạch đã duyệt, gán MaPhanXuong từ một hàng chi tiết (nếu có)
+        $sql = "SELECT k.MaKeHoach, k.TenKeHoach, k.NgayBatDau, k.NgayKetThuc,
+                       (SELECT ct.MaPhanXuong FROM chitietkehoach ct WHERE ct.MaKeHoach = k.MaKeHoach LIMIT 1) AS MaPhanXuong,
+                       GROUP_CONCAT(DISTINCT ct.MaSanPham SEPARATOR ',') AS MaSanPhamList,
+                       GROUP_CONCAT(DISTINCT CONCAT(ct.MaSanPham,':',sp.TenSanPham) SEPARATOR ',') AS MaSanPhamNamedList
+                FROM kehoachsanxuat k
+                LEFT JOIN chitietkehoach ct ON ct.MaKeHoach = k.MaKeHoach
+                LEFT JOIN sanpham sp ON sp.MaSanPham = ct.MaSanPham
+                WHERE UPPER(TRIM(k.TrangThai)) = UPPER(TRIM('Đã duyệt'))
+                GROUP BY k.MaKeHoach
+                ORDER BY k.NgayBatDau DESC";
+
+        $stmt = $this->pdo->query($sql);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
@@ -42,7 +66,7 @@ class PhieuKiemTraSP
                     WHERE EXISTS(
                         SELECT 1 FROM chitietkehoach ct
                         WHERE ct.MaSanPham = lo.MaSanPham
-                          AND ct.MaPhanXuong = :ma_px
+                        AND ct.MaPhanXuong = :ma_px
                     )
                     ORDER BY lo.MaLoHang DESC";
             $stmt = $this->pdo->prepare($sql);
@@ -108,10 +132,31 @@ class PhieuKiemTraSP
         }
     }
 
-    public function listTickets(): array
+    public function listTickets(?string $maPhanXuong = null): array
     {
-        $sql = "SELECT MaPhieuKT, MaLoHang, DATE(NgayKiemTra) AS ngay_kiemtra, TrangThai, MaNV FROM phieuyeucaukiemtralosp ORDER BY NgayKiemTra DESC";
-        $stmt = $this->pdo->query($sql);
+        // Nếu không truyền mã phân xưởng → trả về toàn bộ (dùng cho QC / admin)
+        if ($maPhanXuong === null || $maPhanXuong === '') {
+            $sql = "SELECT MaPhieuKT, MaLoHang, DATE(NgayKiemTra) AS ngay_kiemtra, TrangThai, MaNV
+                    FROM phieuyeucaukiemtralosp
+                    ORDER BY NgayKiemTra DESC";
+            $stmt = $this->pdo->query($sql);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+
+        // Có mã phân xưởng: chỉ lấy phiếu mà người lập (MaNV) là xưởng trưởng của phân xưởng đó
+        // Đảm bảo chỉ hiển thị phiếu do xưởng trưởng của phân xưởng đó tạo
+        $trimPx = trim((string)$maPhanXuong);
+        $sql = "SELECT DISTINCT p.MaPhieuKT, p.MaLoHang, DATE(p.NgayKiemTra) AS ngay_kiemtra, p.TrangThai, p.MaNV
+                FROM phieuyeucaukiemtralosp p
+                WHERE EXISTS (
+                    SELECT 1 FROM phanxuong px
+                    WHERE px.MaXuongTruong = p.MaNV
+                      AND TRIM(px.MaPhanXuong) = TRIM(:mapx)
+                )
+                ORDER BY p.NgayKiemTra DESC";
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([':mapx' => $trimPx]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 

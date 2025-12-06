@@ -32,10 +32,27 @@
       <?php else: ?>
         <?php foreach ($rows as $r): ?>
           <?php
+            $trangThai = $r['TrangThai'] ?? '';
             $badgeClass = 'secondary';
-            if (($r['TrangThai'] ?? '') === 'Chờ xử lý') $badgeClass = 'warning text-dark';
-            if (($r['TrangThai'] ?? '') === 'Đã duyệt') $badgeClass = 'success';
-            if (($r['TrangThai'] ?? '') === 'Nháp') $badgeClass = 'secondary';
+            
+            // Kiểm tra trạng thái có chứa "Đạt" → màu xanh
+            if (stripos($trangThai, 'Đạt') !== false || stripos($trangThai, 'đạt') !== false) {
+                $badgeClass = 'success';
+            }
+            // Kiểm tra trạng thái có chứa "Không đạt" → màu đỏ
+            elseif (stripos($trangThai, 'Không đạt') !== false || stripos($trangThai, 'không đạt') !== false) {
+                $badgeClass = 'danger';
+            }
+            // Các trạng thái khác
+            elseif ($trangThai === 'Chờ xử lý' || $trangThai === 'Chờ kiểm tra') {
+                $badgeClass = 'warning text-dark';
+            }
+            elseif ($trangThai === 'Đã duyệt') {
+                $badgeClass = 'success';
+            }
+            elseif ($trangThai === 'Nháp') {
+                $badgeClass = 'secondary';
+            }
           ?>
           <tr>
             <td><?php echo htmlspecialchars($r['MaPhieuKT'] ?? ''); ?></td>

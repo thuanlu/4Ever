@@ -17,7 +17,8 @@ class YeuCauXuatController extends BaseController {
 
         $plans = $model->getPlans($maPX);
         $selectedMaKH = $_GET['ma_kehoach'] ?? ($plans[0]['ma_kehoach'] ?? '');
-        $selectedPlan = $selectedMaKH ? $model->getPlan($selectedMaKH) : null;
+        // Ensure the selected plan is filtered by the user's MaPhanXuong for security
+        $selectedPlan = $selectedMaKH ? $model->getPlan($selectedMaKH, $maPX) : null;
         $materials = $selectedPlan ? $model->getMaterialsForPlan($selectedPlan['ma_kehoach'], (int)$selectedPlan['soluong']) : [];
 
         // Preserve form values after redirect on validation errors
@@ -27,7 +28,7 @@ class YeuCauXuatController extends BaseController {
         // Filters for embedded list
         $status = $_GET['status'] ?? '';
         $keyword = trim($_GET['q'] ?? '');
-        $requests = $model->listRequests($status, $keyword);
+        $requests = $model->listRequests($status, $keyword, $maPX);
 
     // Use system default timezone / server date for default date (format YYYY-MM-DD for HTML date input)
     $minDate = (new DateTime('today'))->format('Y-m-d');
@@ -109,10 +110,16 @@ class YeuCauXuatController extends BaseController {
     public function list() {
         $this->requireRole(['XT']);
         $model = $this->loadModel('YeuCauXuat');
+        // Xác định phân xưởng của xưởng trưởng đang đăng nhập để lọc phiếu
+        $maPX = '';
+        $maNV = $_SESSION['user_id'] ?? ($_SESSION['username'] ?? null);
+        if ($maNV) {
+            $maPX = $model->getPhanXuongForUser($maNV) ?? '';
+        }
         // Không gọi ensureTables() ở đây để sử dụng dữ liệu thực từ database (không tự tạo/seed)
         $status = $_GET['status'] ?? '';
         $keyword = trim($_GET['q'] ?? '');
-        $rows = $model->listRequests($status, $keyword);
+        $rows = $model->listRequests($status, $keyword, $maPX);
         // The view file has been moved under xuongtruong namespace
         $this->loadView('xuongtruong/yeucauxuat_list', [
             'pageTitle' => 'Danh sách phiếu yêu cầu xuất',

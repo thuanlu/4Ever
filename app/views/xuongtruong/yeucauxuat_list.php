@@ -3,7 +3,7 @@
 	<div class="d-flex justify-content-between align-items-center mb-3">
 		<h4 class="mb-0"><?php echo htmlspecialchars($pageTitle ?? 'Danh sách phiếu yêu cầu xuất'); ?></h4>
 		<div>
-			<a class="btn btn-outline-secondary btn-sm" href="<?php echo BASE_URL; ?>">Về Dashboard</a>
+			<a class="btn btn-outline-secondary btn-sm" href="<?php echo BASE_URL; ?>xuongtruong/dashboard">Về Dashboard</a>
 			<a class="btn btn-primary btn-sm" href="<?php echo BASE_URL; ?>yeucauxuat">Tạo phiếu mới</a>
 		</div>
 	</div>

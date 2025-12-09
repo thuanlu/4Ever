@@ -156,5 +156,57 @@ class XuatNguyenLieu {
         $sql = "SELECT MaPX FROM PhieuXuatNguyenLieu WHERE MaPX LIKE 'PXNL%' ORDER BY MaPX DESC LIMIT 1";
         return $this->conn->query($sql)->fetchColumn();
     }
+
+    // 6. Lấy lịch sử phiếu xuất đã duyệt
+    public function getExportHistory() {
+        $sql = "
+            SELECT 
+                xnl.*,
+                pyc.MaPhieuYC,
+                pyc.NgayLap AS NgayYeuCau,
+                px.TenPhanXuong,
+                nv.HoTen AS NguoiXuat,
+                xnl.TrangThai AS TrangThaiPX
+            FROM phieuxuatnguyenlieu xnl
+            JOIN phieuyeucauxuatnguyenlieu pyc ON xnl.MaPhieuYC = pyc.MaPhieuYC
+            JOIN phanxuong px ON pyc.MaPhanXuong = px.MaPhanXuong
+            LEFT JOIN nhanvien nv ON xnl.MaNV = nv.MaNV
+            WHERE xnl.TrangThai = 'Đã duyệt'
+            ORDER BY xnl.NgayLap DESC
+        ";
+
+        return $this->conn->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // 7. Lấy chi tiết từng phiếu xuất
+    public function getExportItems($maPX) {
+        $sql = "
+            SELECT ct.*, nl.TenNguyenLieu, nl.DonViTinh
+            FROM ChiTietPhieuXuatNguyenLieu ct
+            JOIN NguyenLieu nl ON ct.MaNguyenLieu = nl.MaNguyenLieu
+            WHERE ct.MaPX = ?
+        ";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute([$maPX]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function show($maPX) {
+        $this->requireRole(["NVK"]);
+
+        $model = $this->loadModel("XuatNguyenLieu");
+
+        $px = $model->getExportById($maPX);
+        $items = $model->getExportItems($maPX);
+
+        echo json_encode([
+            'phieu' => $px,
+            'items' => $items
+        ]);
+    }
+
+
+
+
 }
 ?>

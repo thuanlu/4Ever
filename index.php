@@ -68,12 +68,12 @@ $router->addRoute('GET', '/reports/attendance', 'ReportController', 'attendance'
 
 //Routes cho QC
 $router->addRoute('GET', '/qc', 'KetQuaKiemDinhController', 'index');
-$router->addRoute('POST', '/qc/store', 'KetQuaKiemDinhController', 'store');
+$router->addRoute('POST', '/qc/store', 'KetQuaKiemDinhController', 'store'); // lưu
 
 
 // Quản lý Xuất nguyên liệu
 $router->addRoute('GET',  '/kho/xuatnguyenlieu', 'XuatNguyenLieuController', 'index');
-$router->addRoute('POST', '/kho/xuatnguyenlieu/store', 'XuatNguyenLieuController', 'store');
+$router->addRoute('POST', '/kho/xuatnguyenlieu/store', 'XuatNguyenLieuController', 'store'); // lưu 
 $router->addRoute('GET', '/kho/tonkho', 'CanhBaoTonKhoController', 'stock');
 
 

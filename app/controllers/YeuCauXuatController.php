@@ -16,7 +16,7 @@ class YeuCauXuatController extends BaseController {
         }
 
         $plans = $model->getPlans($maPX);
-        $selectedMaKH = $_GET['ma_kehoach'] ?? ($plans[0]['ma_kehoach'] ?? '');
+        $selectedMaKH = $_GET['ma_kehoach'] ?? ''; // Không tự động chọn kế hoạch đầu tiên
         // Ensure the selected plan is filtered by the user's MaPhanXuong for security
         $selectedPlan = $selectedMaKH ? $model->getPlan($selectedMaKH, $maPX) : null;
         $materials = $selectedPlan ? $model->getMaterialsForPlan($selectedPlan['ma_kehoach'], (int)$selectedPlan['soluong']) : [];

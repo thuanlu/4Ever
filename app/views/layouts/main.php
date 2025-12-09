@@ -209,9 +209,9 @@ if (!function_exists('getRoleDisplayName')) {
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>
-    // Tự đóng alert sau 5s
+    // Tự đóng alert sau 5s (trừ alert-persistent)
     setTimeout(() => {
-      document.querySelectorAll('.alert').forEach(a => {
+      document.querySelectorAll('.alert:not(.alert-persistent)').forEach(a => {
         try { new bootstrap.Alert(a).close(); } catch(e){}
       });
     }, 5000);

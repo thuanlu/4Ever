@@ -46,63 +46,61 @@
 
     </div>
 
-    <?php if ($selectedPlan): ?>
-      <div class="col-12">
-        <div class="alert alert-info">
-          <strong>Thông tin kế hoạch:</strong>
-          <div class="row mt-2">
-            <div class="col-md-3"><small>Mã kế hoạch:</small><br><strong><?php echo htmlspecialchars($selectedPlan['ma_kehoach']); ?></strong></div>
-            <div class="col-md-3"><small>Mã phân xưởng:</small><br><strong><?php echo htmlspecialchars($selectedPlan['ma_px'] ?? 'Không xác định'); ?></strong></div>
-            <div class="col-md-3"><small>Sản phẩm:</small><br><strong><?php echo htmlspecialchars($selectedPlan['sanpham']); ?></strong></div>
-            <div class="col-md-3"><small>Số lượng SP:</small><br><strong><?php echo (int)$selectedPlan['soluong']; ?></strong></div>
-          </div>
-        </div>
-      </div>
+    <div class="col-12" id="plan-warning" <?php echo $selectedPlan ? 'style="display:none;"' : ''; ?>>
+      <div class="alert alert-warning mb-0">Vui lòng chọn kế hoạch để hệ thống tính toán nguyên liệu.</div>
+    </div>
 
-      <div class="col-12">
-        <div class="card">
-          <div class="card-header bg-light"><strong>Nguyên liệu theo định mức</strong> <small class="text-muted">(Hệ thống tính tự động, tối đa +5%)</small></div>
-          <div class="card-body p-0">
-            <div class="table-responsive">
-              <table class="table table-striped mb-0">
-                <thead>
+    <div class="col-12" id="plan-info-section" <?php echo !$selectedPlan ? 'style="display:none;"' : ''; ?>>
+      <div class="alert alert-info alert-persistent">
+        <strong>Thông tin kế hoạch:</strong>
+        <div class="row mt-2">
+          <div class="col-md-3"><small>Mã kế hoạch:</small><br><strong id="info-ma-kehoach"><?php echo $selectedPlan ? htmlspecialchars($selectedPlan['ma_kehoach']) : ''; ?></strong></div>
+          <div class="col-md-3"><small>Mã phân xưởng:</small><br><strong id="info-ma-px"><?php echo $selectedPlan ? htmlspecialchars($selectedPlan['ma_px'] ?? 'Không xác định') : ''; ?></strong></div>
+          <div class="col-md-3"><small>Sản phẩm:</small><br><strong id="info-sanpham"><?php echo $selectedPlan ? htmlspecialchars($selectedPlan['sanpham']) : ''; ?></strong></div>
+          <div class="col-md-3"><small>Số lượng SP:</small><br><strong id="info-soluong"><?php echo $selectedPlan ? (int)$selectedPlan['soluong'] : ''; ?></strong></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12" id="plan-materials-section" <?php echo !$selectedPlan ? 'style="display:none;"' : ''; ?>>
+      <div class="card">
+        <div class="card-header bg-light"><strong>Nguyên liệu theo định mức</strong> <small class="text-muted">(Hệ thống tính tự động, tối đa +5%)</small></div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-striped mb-0">
+              <thead>
+                <tr>
+                  <th style="width: 20%">Mã NL</th>
+                  <th style="width: 35%">Tên nguyên liệu</th>
+                  <th style="width: 20%" class="text-end">Số lượng cần</th>
+                  <th style="width: 25%" class="text-end">Tối đa cho phép (+5%)</th>
+                </tr>
+              </thead>
+              <tbody id="materials-tbody">
+              <?php if (empty($materials)): ?>
+                <tr><td colspan="4" class="text-center text-muted py-3">Chưa có định mức nguyên liệu cho kế hoạch này</td></tr>
+              <?php else: ?>
+                <?php foreach ($materials as $idx => $m): ?>
                   <tr>
-                    <th style="width: 20%">Mã NL</th>
-                    <th style="width: 35%">Tên nguyên liệu</th>
-                    <th style="width: 20%" class="text-end">Số lượng cần</th>
-                    <th style="width: 25%" class="text-end">Tối đa cho phép (+5%)</th>
+                    <td><?php echo htmlspecialchars($m['ma_nguyenlieu']); ?></td>
+                    <td><?php echo htmlspecialchars($m['ten']); ?></td>
+                    <td class="text-end">
+                      <?php echo number_format($m['base'], 2); ?>
+                      <input type="hidden" name="materials[<?php echo $idx; ?>][ma_nguyenlieu]" value="<?php echo htmlspecialchars($m['ma_nguyenlieu']); ?>">
+                      <input type="hidden" name="materials[<?php echo $idx; ?>][ten]" value="<?php echo htmlspecialchars($m['ten']); ?>">
+                      <input type="hidden" name="materials[<?php echo $idx; ?>][so_luong]" value="<?php echo htmlspecialchars($m['base']); ?>">
+                      <input type="hidden" name="materials[<?php echo $idx; ?>][so_luong_max]" value="<?php echo htmlspecialchars($m['max']); ?>">
+                    </td>
+                    <td class="text-end text-muted"><?php echo number_format($m['max'], 2); ?></td>
                   </tr>
-                </thead>
-                <tbody>
-                <?php if (empty($materials)): ?>
-                  <tr><td colspan="4" class="text-center text-muted py-3">Chưa có định mức nguyên liệu cho kế hoạch này</td></tr>
-                <?php else: ?>
-                  <?php foreach ($materials as $idx => $m): ?>
-                    <tr>
-                      <td><?php echo htmlspecialchars($m['ma_nguyenlieu']); ?></td>
-                      <td><?php echo htmlspecialchars($m['ten']); ?></td>
-                      <td class="text-end">
-                        <?php echo number_format($m['base'], 2); ?>
-                        <input type="hidden" name="materials[<?php echo $idx; ?>][ma_nguyenlieu]" value="<?php echo htmlspecialchars($m['ma_nguyenlieu']); ?>">
-                        <input type="hidden" name="materials[<?php echo $idx; ?>][ten]" value="<?php echo htmlspecialchars($m['ten']); ?>">
-                        <input type="hidden" name="materials[<?php echo $idx; ?>][so_luong]" value="<?php echo htmlspecialchars($m['base']); ?>">
-                        <input type="hidden" name="materials[<?php echo $idx; ?>][so_luong_max]" value="<?php echo htmlspecialchars($m['max']); ?>">
-                      </td>
-                      <td class="text-end text-muted"><?php echo number_format($m['max'], 2); ?></td>
-                    </tr>
-                  <?php endforeach; ?>
-                <?php endif; ?>
-                </tbody>
-              </table>
-            </div>
+                <?php endforeach; ?>
+              <?php endif; ?>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
-    <?php else: ?>
-      <div class="col-12">
-        <div class="alert alert-warning mb-0">Vui lòng chọn kế hoạch để hệ thống tính toán nguyên liệu.</div>
-      </div>
-    <?php endif; ?>
+    </div>
 
     <div class="col-12 d-flex gap-2 justify-content-end">
       <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('frm').reset()">Làm mới</button>
@@ -177,6 +175,16 @@
 
 </div>
 
+<style>
+  /* Đảm bảo form không bị ẩn */
+  #plan-info-section[style*="display: block"],
+  #plan-materials-section[style*="display: block"] {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+</style>
+
 <script>
   function validateDateNotPast(input) {
     const v = input.value; if (!v) return true;
@@ -185,11 +193,26 @@
     if (d < today) { alert('Ngày yêu cầu không được là ngày trong quá khứ'); input.focus(); return false; }
     return true;
   }
+  
   function onPlanChange(sel) {
+    if (!sel.value) {
+      // Nếu không chọn kế hoạch, reload về trang gốc không có tham số
+      const url = new URL(window.location.href);
+      url.searchParams.delete('ma_kehoach');
+      window.location.href = url.toString();
+      return;
+    }
+    // Reload page với kế hoạch được chọn
+    loadPlanData(sel.value);
+  }
+  
+  function loadPlanData(maKeHoach) {
+    // Reload page với kế hoạch được chọn
     const url = new URL(window.location.href);
-    url.searchParams.set('ma_kehoach', sel.value);
+    url.searchParams.set('ma_kehoach', maKeHoach);
     window.location.href = url.toString();
   }
+  
   function setActionAndSubmit(act) {
     const dateInput = document.getElementById('ngay_yeucau');
     if (!validateDateNotPast(dateInput)) return;

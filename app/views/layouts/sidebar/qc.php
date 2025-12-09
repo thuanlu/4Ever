@@ -5,9 +5,6 @@
     <a class="nav-link" href="<?php echo BASE_URL; ?>qc">
         <i class="fas fa-check-double me-2"></i> Ghi nhận kết quả kiểm định
     </a>
-    <a class="nav-link" href="<?php echo BASE_URL; ?>qc/history">
-        <i class="fas fas fa-boxes me-2"></i> Lịch sử ghi nhận kết quả kiểm định
-    </a>
     <a class="nav-link" href="<?php echo BASE_URL; ?>qc/report">
         <i class="fas fa-file-alt me-2"></i>Báo cáo chất lượng
     </a>

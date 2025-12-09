@@ -68,10 +68,7 @@ $router->addRoute('GET', '/reports/attendance', 'ReportController', 'attendance'
 
 //Routes cho QC
 $router->addRoute('GET', '/qc', 'KetQuaKiemDinhController', 'index');
-$router->addRoute('GET', '/qc/view/(.*)', 'KetQuaKiemDinhController', 'view');
-$router->addRoute('POST', '/qc/view/(.*)', 'KetQuaKiemDinhController', 'view');  
 $router->addRoute('POST', '/qc/store', 'KetQuaKiemDinhController', 'store');
-$router->addRoute('GET', '/qc/history', 'KetQuaKiemDinhController', 'history');
 
 // Xử lý request
 $router->dispatch();

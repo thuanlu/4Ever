@@ -153,6 +153,7 @@ $router->addRoute('GET', '/nhapkho', 'NhapKhoController', 'index');
 $router->addRoute('POST', '/nhapkho/confirm', 'NhapKhoController', 'confirmImport');
 $router->addRoute('POST', '/nhapkho/confirm-multi', 'NhapKhoController', 'confirmImportMulti');
 $router->addRoute('GET', '/nhapkho/detail', 'NhapKhoController', 'getDetail');
+$router->addRoute('GET', '/nhapkho/get-thanh-pham-trong-kho', 'NhapKhoController', 'getThanhPhamTrongKho');
 
 // Routes cho Tra Cứu Tồn Kho
 $router->addRoute('GET', '/tracuutonkho', 'TraCuuTonKhoController', 'index');

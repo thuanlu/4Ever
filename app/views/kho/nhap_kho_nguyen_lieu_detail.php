@@ -12,9 +12,9 @@ $chiTiet = $chiTietPhieuNhap['chiTiet'];
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h2 class="mb-1">
-                <i class="fas fa-file-invoice me-2 text-primary"></i>Chi Tiết Phiếu Nhập
+                <i class="fas fa-file-invoice me-2 text-primary"></i>Chi Tiết Phiếu Đặt
             </h2>
-            <p class="text-muted">Thông tin chi tiết phiếu nhập nguyên liệu</p>
+            <p class="text-muted">Thông tin chi tiết phiếu đặt nguyên liệu</p>
         </div>
         <a href="<?= BASE_URL ?>nhapkhonguyenlieu" class="btn btn-secondary">
             <i class="fas fa-arrow-left me-2"></i>Quay Lại
@@ -32,7 +32,7 @@ $chiTiet = $chiTietPhieuNhap['chiTiet'];
     <div class="card mb-4">
         <div class="card-header">
             <h5 class="mb-0">
-                <i class="fas fa-info-circle me-2"></i>Thông Tin Phiếu Nhập
+                <i class="fas fa-info-circle me-2"></i>Thông Tin Phiếu Đặt
             </h5>
         </div>
         <div class="card-body">
@@ -40,16 +40,16 @@ $chiTiet = $chiTietPhieuNhap['chiTiet'];
                 <div class="col-md-6">
                     <table class="table table-borderless">
                         <tr>
-                            <th width="40%">Mã Phiếu Nhập:</th>
-                            <td><span class="badge bg-primary"><?= htmlspecialchars($phieu['MaPhieuNhap']) ?></span></td>
+                            <th width="40%">Mã Phiếu Đặt:</th>
+                            <td><span class="badge bg-primary"><?= htmlspecialchars($phieu['MaPhieu']) ?></span></td>
                         </tr>
                         <tr>
-                            <th>Ngày Nhập:</th>
-                            <td><?= date('d/m/Y H:i', strtotime($phieu['NgayNhap'])) ?></td>
+                            <th>Tên Phiếu:</th>
+                            <td><?= htmlspecialchars($phieu['TenPhieu'] ?? '') ?></td>
                         </tr>
                         <tr>
-                            <th>Nhân Viên:</th>
-                            <td><?= htmlspecialchars($phieu['TenNhanVien'] ?? 'N/A') ?></td>
+                            <th>Ngày Lập:</th>
+                            <td><?= date('d/m/Y', strtotime($phieu['NgayLapPhieu'])) ?></td>
                         </tr>
                     </table>
                 </div>
@@ -60,8 +60,20 @@ $chiTiet = $chiTietPhieuNhap['chiTiet'];
                             <td><span class="badge bg-info"><?= htmlspecialchars($phieu['TenNhaCungCap'] ?? 'N/A') ?></span></td>
                         </tr>
                         <tr>
-                            <th>Tổng Giá Trị:</th>
-                            <td><strong class="text-success"><?= number_format($phieu['TongGiaTri'], 0, ',', '.') ?> đ</strong></td>
+                            <th>Kế Hoạch:</th>
+                            <td><?= htmlspecialchars($phieu['TenKeHoach'] ?? $phieu['MaKHSX'] ?? 'N/A') ?></td>
+                        </tr>
+                        <tr>
+                            <th>Trạng Thái:</th>
+                            <td><span class="badge bg-warning text-dark"><?= htmlspecialchars($phieu['TrangThai'] ?? 'Đã duyệt') ?></span></td>
+                        </tr>
+                        <tr>
+                            <th>Tổng Chi Phí Dự Kiến:</th>
+                            <td><strong class="text-success"><?= number_format($phieu['TongChiPhiDuKien'] ?? 0, 0, ',', '.') ?> đ</strong></td>
+                        </tr>
+                        <tr>
+                            <th>Người Lập:</th>
+                            <td><?= htmlspecialchars($phieu['NguoiLapPhieu'] ?? 'N/A') ?></td>
                         </tr>
                     </table>
                 </div>
@@ -81,13 +93,13 @@ $chiTiet = $chiTietPhieuNhap['chiTiet'];
                 <table class="table table-hover table-striped">
                     <thead class="table-primary">
                         <tr>
-                            <th>Mã NL</th>
+                            <th>Mã NVL</th>
                             <th>Tên Nguyên Liệu</th>
                             <th>Loại</th>
                             <th>Đơn Vị</th>
-                            <th>Số Lượng Nhập</th>
-                            <th>Đơn Giá</th>
-                            <th>Thành Tiền</th>
+                            <th>Số Lượng Đặt</th>
+                            <th>Đơn Giá Dự Kiến</th>
+                            <th>Thành Tiền Dự Kiến</th>
                             <th>Tồn Kho Hiện Tại</th>
                         </tr>
                     </thead>
@@ -129,17 +141,13 @@ $chiTiet = $chiTietPhieuNhap['chiTiet'];
                 </h5>
             </div>
             <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <button type="button" class="btn btn-success btn-lg w-100" onclick="confirmImport()">
-                            <i class="fas fa-check me-2"></i>Xác Nhận Nhập Kho
-                        </button>
-                    </div>
-                    <div class="col-md-6">
-                        <button type="button" class="btn btn-danger btn-lg w-100" onclick="showRejectForm()">
-                            <i class="fas fa-times me-2"></i>Từ Chối
-                        </button>
-                    </div>
+                <div class="d-flex flex-column flex-md-row w-100">
+                    <button type="button" class="btn btn-success btn-lg flex-fill" onclick="confirmImport()">
+                        <i class="fas fa-check me-2"></i>Xác Nhận Nhập Kho
+                    </button>
+                    <button type="button" class="btn btn-danger btn-lg flex-fill" onclick="showRejectForm()">
+                        <i class="fas fa-times me-2"></i>Từ Chối
+                    </button>
                 </div>
 
                 <!-- Form từ chối (ẩn mặc định) -->
@@ -150,7 +158,7 @@ $chiTiet = $chiTietPhieuNhap['chiTiet'];
                         </div>
                         <div class="card-body">
                             <form id="rejectForm" onsubmit="rejectImport(event)">
-                                <input type="hidden" name="maPhieuNhap" value="<?= htmlspecialchars($phieu['MaPhieuNhap']) ?>">
+                                <input type="hidden" name="maPhieu" value="<?= htmlspecialchars($phieu['MaPhieu']) ?>">
                                 <div class="mb-3">
                                     <label for="lyDo" class="form-label">Lý Do Từ Chối <span class="text-danger">*</span></label>
                                     <textarea class="form-control" 
@@ -211,13 +219,9 @@ function hideRejectForm() {
 }
 
 function confirmImport() {
-    if (!confirm('Bạn có chắc chắn muốn xác nhận nhập kho phiếu nhập này?')) {
-        return;
-    }
-
-    const maPhieuNhap = '<?= htmlspecialchars($phieu['MaPhieuNhap']) ?>';
+    const maPhieu = '<?= htmlspecialchars($phieu['MaPhieu']) ?>';
     const formData = new FormData();
-    formData.append('maPhieuNhap', maPhieuNhap);
+    formData.append('maPhieu', maPhieu);
 
     fetch('<?= BASE_URL ?>nhapkhonguyenlieu/confirm', {
         method: 'POST',
@@ -240,7 +244,7 @@ function confirmImport() {
     })
     .then(data => {
         if (data && data.success) {
-            showAlert('Nhập kho thành công!', 'success');
+            showAlert('Đã tạo phiếu nhập và cập nhật kho thành công!', 'success');
             setTimeout(() => {
                 window.location.href = '<?= BASE_URL ?>nhapkhonguyenlieu';
             }, 2000);

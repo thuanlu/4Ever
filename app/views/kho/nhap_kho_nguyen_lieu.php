@@ -20,7 +20,7 @@ ob_start();
     <div class="card">
         <div class="card-header">
             <h5 class="mb-0">
-                <i class="fas fa-list me-2"></i>Danh sách Phiếu Nhập Cần Nhập Kho
+                <i class="fas fa-list me-2"></i>Danh sách Phiếu Đặt Cần Nhập Kho
             </h5>
         </div>
         <div class="card-body">
@@ -28,18 +28,18 @@ ob_start();
                 <!-- Không có dữ liệu -->
                 <div class="text-center py-5">
                     <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
-                    <h5 class="text-muted">Không có phiếu nhập nào cần nhập kho</h5>
-                    <p class="text-muted">Tất cả phiếu nhập đã được nhập kho</p>
+                    <h5 class="text-muted">Không có phiếu đặt nào cần nhập kho</h5>
+                    <p class="text-muted">Tất cả phiếu đặt đã được xử lý</p>
                 </div>
             <?php else: ?>
                 <div class="table-responsive">
                     <table class="table table-hover table-striped">
                         <thead class="table-primary">
                             <tr>
-                                <th>Mã Phiếu Nhập</th>
-                                <th>Ngày Nhập</th>
+                                <th>Mã Phiếu Đặt</th>
+                                <th>Tên Phiếu</th>
+                                <th>Ngày Lập</th>
                                 <th>Nhà Cung Cấp</th>
-                                <th>Nhân Viên</th>
                                 <th>Tổng Giá Trị</th>
                                 <th>Trạng Thái</th>
                                 <th>Thao Tác</th>
@@ -49,23 +49,21 @@ ob_start();
                             <?php foreach ($danhSachPhieuNhap as $phieuNhap): ?>
                                 <tr>
                                     <td>
-                                        <span class="badge bg-primary"><?= htmlspecialchars($phieuNhap['MaPhieuNhap']) ?></span>
+                                        <span class="badge bg-primary"><?= htmlspecialchars($phieuNhap['MaPhieu']) ?></span>
                                     </td>
-                                    <td><?= date('d/m/Y H:i', strtotime($phieuNhap['NgayNhap'])) ?></td>
+                                    <td><?= htmlspecialchars($phieuNhap['TenPhieu'] ?? '') ?></td>
+                                    <td><?= date('d/m/Y', strtotime($phieuNhap['NgayLapPhieu'])) ?></td>
                                     <td>
                                         <span class="badge bg-info"><?= htmlspecialchars($phieuNhap['TenNhaCungCap'] ?? 'N/A') ?></span>
                                     </td>
                                     <td>
-                                        <?= htmlspecialchars($phieuNhap['TenNhanVien'] ?? 'N/A') ?>
+                                        <strong class="text-success"><?= number_format($phieuNhap['TongChiPhiDuKien'] ?? 0, 0, ',', '.') ?> đ</strong>
                                     </td>
                                     <td>
-                                        <strong class="text-success"><?= number_format($phieuNhap['TongGiaTri'], 0, ',', '.') ?> đ</strong>
+                                        <span class="badge bg-warning text-dark"><?= htmlspecialchars($phieuNhap['TrangThai'] ?? 'Đã duyệt') ?></span>
                                     </td>
                                     <td>
-                                        <span class="badge bg-warning text-dark"><?= htmlspecialchars($phieuNhap['TrangThaiNhap'] ?? 'Chưa nhập') ?></span>
-                                    </td>
-                                    <td>
-                                        <a href="<?= BASE_URL ?>nhapkhonguyenlieu/detail?maPhieuNhap=<?= urlencode($phieuNhap['MaPhieuNhap']) ?>" 
+                                        <a href="<?= BASE_URL ?>nhapkhonguyenlieu/detail?maPhieu=<?= urlencode($phieuNhap['MaPhieu']) ?>" 
                                            class="btn btn-sm btn-primary">
                                             <i class="fas fa-eye me-1"></i>Xem Chi Tiết
                                         </a>

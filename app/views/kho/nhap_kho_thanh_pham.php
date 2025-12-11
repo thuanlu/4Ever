@@ -24,7 +24,7 @@ ob_start();
         <button type="button" class="btn-close" onclick="closeAlert()"></button>
     </div>
 
-    <!-- Danh sách lô hàng -->
+    <!-- Gộp chung 1 form -->
     <div class="card">
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center">
@@ -92,6 +92,77 @@ ob_start();
                                         echo '<span class="badge bg-success">Đã nhập kho</span>';
                                     } else {
                                         echo '<span class="badge bg-warning text-dark">Chưa nhập kho</span>';
+                                    }
+                                    ?>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php endif; ?>
+        </div>
+        
+        <!-- Danh sách thành phẩm có trong kho -->
+        <div class="card-header border-top">
+            <h5 class="mb-0">
+                <i class="fas fa-boxes me-2"></i>Danh Sách Các Thành Phẩm Có Trong Kho
+            </h5>
+        </div>
+        <div class="card-body" id="thanh-pham-trong-kho-container">
+            <?php if (empty($thanhPhamTrongKho)): ?>
+                <!-- Không có dữ liệu -->
+                <div class="text-center py-5" id="empty-message">
+                    <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">Chưa có thành phẩm nào trong kho</h5>
+                    <p class="text-muted">Các thành phẩm sẽ xuất hiện ở đây sau khi được nhập kho</p>
+                </div>
+            <?php else: ?>
+                <!-- Bảng danh sách thành phẩm -->
+                <div class="table-responsive" id="thanh-pham-table-wrapper">
+                    <table class="table table-hover table-bordered" id="table-thanh-pham">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Mã Sản Phẩm</th>
+                                <th>Tên Sản Phẩm</th>
+                                <th>Size / Màu</th>
+                                <th>Số Lượng Tồn Kho</th>
+                                <th>Vị Trí Kho</th>
+                                <th>Giá Xuất</th>
+                                <th>Ngày Cập Nhật</th>
+                            </tr>
+                        </thead>
+                        <tbody id="thanh-pham-tbody">
+                            <?php foreach ($thanhPhamTrongKho as $tp): ?>
+                            <tr>
+                                <td class="fw-bold text-primary">
+                                    <?php echo htmlspecialchars($tp['MaSanPham']); ?>
+                                </td>
+                                <td><?php echo htmlspecialchars($tp['TenSanPham']); ?></td>
+                                <td>
+                                    <span class="badge bg-info"><?php echo htmlspecialchars($tp['Size']); ?></span>
+                                    <span class="badge bg-secondary"><?php echo htmlspecialchars($tp['Mau']); ?></span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-success fs-6">
+                                        <?php echo number_format($tp['SoLuongHienTai']); ?>
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">
+                                        <?php echo htmlspecialchars($tp['ViTriKho'] ?? 'Kho A'); ?>
+                                    </span>
+                                </td>
+                                <td class="text-end">
+                                    <?php echo number_format($tp['GiaXuat'] ?? 0, 0, ',', '.'); ?> đ
+                                </td>
+                                <td>
+                                    <?php 
+                                    if (!empty($tp['NgayCapNhat'])) {
+                                        $date = new DateTime($tp['NgayCapNhat']);
+                                        echo $date->format('d/m/Y H:i');
+                                    } else {
+                                        echo '-';
                                     }
                                     ?>
                                 </td>
@@ -212,6 +283,126 @@ function confirmImportSelected() {
 }
 
 /**
+ * Cập nhật lại danh sách thành phẩm trong kho
+ */
+function updateThanhPhamTrongKho() {
+    fetch('<?php echo BASE_URL; ?>nhapkho/get-thanh-pham-trong-kho', {
+        method: 'GET',
+        credentials: 'same-origin',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data && data.success && data.data) {
+            const container = document.getElementById('thanh-pham-trong-kho-container');
+            const tbody = document.getElementById('thanh-pham-tbody');
+            const emptyMessage = document.getElementById('empty-message');
+            const tableWrapper = document.getElementById('thanh-pham-table-wrapper');
+            
+            if (data.data.length === 0) {
+                // Không có dữ liệu
+                if (tbody) {
+                    tbody.innerHTML = '';
+                }
+                if (tableWrapper) {
+                    tableWrapper.style.display = 'none';
+                }
+                if (!emptyMessage) {
+                    container.innerHTML = `
+                        <div class="text-center py-5" id="empty-message">
+                            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">Chưa có thành phẩm nào trong kho</h5>
+                            <p class="text-muted">Các thành phẩm sẽ xuất hiện ở đây sau khi được nhập kho</p>
+                        </div>
+                    `;
+                }
+            } else {
+                // Có dữ liệu - cập nhật bảng
+                if (emptyMessage) {
+                    emptyMessage.remove();
+                }
+                if (!tableWrapper) {
+                    container.innerHTML = `
+                        <div class="table-responsive" id="thanh-pham-table-wrapper">
+                            <table class="table table-hover table-bordered" id="table-thanh-pham">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Mã Sản Phẩm</th>
+                                        <th>Tên Sản Phẩm</th>
+                                        <th>Size / Màu</th>
+                                        <th>Số Lượng Tồn Kho</th>
+                                        <th>Vị Trí Kho</th>
+                                        <th>Giá Xuất</th>
+                                        <th>Ngày Cập Nhật</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="thanh-pham-tbody"></tbody>
+                            </table>
+                        </div>
+                    `;
+                }
+                
+                const newTbody = document.getElementById('thanh-pham-tbody');
+                newTbody.innerHTML = data.data.map(tp => {
+                    const ngayCapNhat = tp.NgayCapNhat ? 
+                        new Date(tp.NgayCapNhat).toLocaleString('vi-VN', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        }) : '-';
+                    
+                    return `
+                        <tr>
+                            <td class="fw-bold text-primary">${escapeHtml(tp.MaSanPham)}</td>
+                            <td>${escapeHtml(tp.TenSanPham)}</td>
+                            <td>
+                                <span class="badge bg-info">${escapeHtml(tp.Size)}</span>
+                                <span class="badge bg-secondary">${escapeHtml(tp.Mau)}</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-success fs-6">
+                                    ${parseInt(tp.SoLuongHienTai).toLocaleString('vi-VN')}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary">
+                                    ${escapeHtml(tp.ViTriKho || 'Kho A')}
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                ${parseInt(tp.GiaXuat || 0).toLocaleString('vi-VN')} đ
+                            </td>
+                            <td>${ngayCapNhat}</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Error updating thanh pham trong kho:', error);
+    });
+}
+
+/**
+ * Escape HTML để tránh XSS
+ */
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+/**
  * Thực hiện nhập kho
  */
 function performImport(danhSachLoHang) {
@@ -274,7 +465,10 @@ function performImport(danhSachLoHang) {
                 : 'Nhập kho thành công!';
             showAlert(successMsg, 'success');
             
-            // Reload trang sau 2 giây
+            // Cập nhật lại danh sách thành phẩm trong kho ngay lập tức
+            updateThanhPhamTrongKho();
+            
+            // Reload trang sau 2 giây để cập nhật danh sách lô hàng
             setTimeout(() => {
                 window.location.reload();
             }, 2000);

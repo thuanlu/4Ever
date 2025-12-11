@@ -737,5 +737,42 @@ class NhapKho {
         }
     }
 
+    /**
+     * Lấy danh sách các thành phẩm có trong kho
+     * 
+     * @return array Danh sách thành phẩm với thông tin tồn kho
+     */
+    public function getDanhSachThanhPhamTrongKho() {
+        // Kiểm tra connection
+        if ($this->conn === null) {
+            error_log("NhapKho::getDanhSachThanhPhamTrongKho - Database connection is null!");
+            return [];
+        }
+
+        $query = "SELECT 
+                    tk.MaSanPham,
+                    sp.TenSanPham,
+                    sp.Size,
+                    sp.Mau,
+                    sp.GiaXuat,
+                    tk.SoLuongHienTai,
+                    tk.ViTriKho,
+                    tk.NgayCapNhat,
+                    tk.GhiChu
+                  FROM tonkho tk
+                  INNER JOIN sanpham sp ON tk.MaSanPham = sp.MaSanPham
+                  WHERE tk.SoLuongHienTai > 0
+                  ORDER BY tk.NgayCapNhat DESC, sp.TenSanPham ASC, tk.MaSanPham ASC";
+
+        try {
+            $stmt = $this->conn->prepare($query);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch(PDOException $e) {
+            error_log("Error getting danh sach thanh pham trong kho: " . $e->getMessage());
+            return [];
+        }
+    }
+
 }
 ?>

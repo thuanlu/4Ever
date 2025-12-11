@@ -28,6 +28,9 @@ class NhapKhoController extends BaseController {
             // Lấy danh sách lô hàng cần nhập
             $loHangs = $this->model->getLoHangCanNhap();
 
+            // Lấy danh sách thành phẩm có trong kho
+            $thanhPhamTrongKho = $this->model->getDanhSachThanhPhamTrongKho();
+
             // Debug: Log số lượng lô hàng tìm được
             error_log("NhapKhoController::index - Found " . count($loHangs) . " lo hang");
             if (count($loHangs) == 0) {
@@ -40,6 +43,7 @@ class NhapKhoController extends BaseController {
             // Truyền dữ liệu vào View
             $data = [
                 'loHangs' => $loHangs,
+                'thanhPhamTrongKho' => $thanhPhamTrongKho,
                 'currentUser' => $currentUser,
                 'pageTitle' => 'Nhập Kho Thành Phẩm',
                 'debug_count' => count($loHangs) // Thêm để debug
@@ -293,6 +297,31 @@ class NhapKhoController extends BaseController {
             $this->json([
                 'success' => false,
                 'message' => 'Lỗi khi lấy thông tin lô hàng!'
+            ]);
+        }
+    }
+
+    /**
+     * Lấy danh sách thành phẩm có trong kho (API endpoint)
+     * Route: GET /nhapkho/get-thanh-pham-trong-kho
+     */
+    public function getThanhPhamTrongKho() {
+        // Kiểm tra quyền
+        $this->requireRole(['NVK', 'nhan_vien_kho_tp']);
+
+        try {
+            $thanhPhamTrongKho = $this->model->getDanhSachThanhPhamTrongKho();
+            
+            $this->json([
+                'success' => true,
+                'data' => $thanhPhamTrongKho
+            ]);
+
+        } catch (Exception $e) {
+            error_log("Error in NhapKhoController::getThanhPhamTrongKho: " . $e->getMessage());
+            $this->json([
+                'success' => false,
+                'message' => 'Lỗi khi lấy danh sách thành phẩm trong kho!'
             ]);
         }
     }

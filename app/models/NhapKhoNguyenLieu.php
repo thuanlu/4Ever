@@ -24,10 +24,33 @@ class NhapKhoNguyenLieu {
     }
 
     /**
-     * Lấy danh sách các phiếu nhập nguyên liệu cần nhập kho
-     * (Các phiếu nhập từ nhà cung cấp nhưng chưa được nhập vào kho)
+     * Sinh mã phiếu nhập nguyên liệu mới (PNNL01, PNNL02, ...)
+     */
+    private function generateMaPhieuNhap() {
+        $prefix = 'PNNL';
+        $query = "SELECT MaPhieuNhap 
+                  FROM phieunhanguyenlieu 
+                  WHERE MaPhieuNhap LIKE '{$prefix}%' 
+                  ORDER BY CAST(SUBSTRING(MaPhieuNhap, " . (strlen($prefix) + 1) . ") AS UNSIGNED) DESC 
+                  LIMIT 1";
+
+        try {
+            $stmt = $this->conn->query($query);
+            $lastCode = $stmt ? $stmt->fetchColumn() : null;
+            $nextNumber = $lastCode ? ((int)substr($lastCode, strlen($prefix))) + 1 : 1;
+            return sprintf('%s%02d', $prefix, $nextNumber);
+        } catch (PDOException $e) {
+            error_log("Error generateMaPhieuNhap: " . $e->getMessage());
+            // Fallback để không chặn quy trình
+            return $prefix . date('ymdHis');
+        }
+    }
+
+    /**
+     * Lấy danh sách các phiếu ĐẶT NVL cần nhập kho
+     * (Truy xuất từ bảng phieudatnvl)
      * 
-     * @return array Danh sách phiếu nhập
+     * @return array Danh sách phiếu đặt
      */
     public function getDanhSachPhieuNhapCanNhap() {
         if ($this->conn === null) {
@@ -35,31 +58,28 @@ class NhapKhoNguyenLieu {
             return [];
         }
 
-        // Query đơn giản: lấy tất cả phiếu nhập có chi tiết
-        $query = "SELECT DISTINCT
-                    pn.MaPhieuNhap,
-                    pn.NgayNhap,
-                    pn.MaNhanVien,
-                    pn.TongGiaTri,
-                    ncc.TenNhaCungCap,
-                    nv.HoTen AS TenNhanVien,
-                    'Chưa nhập' AS TrangThaiNhap
-                  FROM phieunhanguyenlieu pn
-                  INNER JOIN nhacungcap ncc ON pn.MaNhaCungCap = ncc.MaNhaCungCap
-                  LEFT JOIN nhanvien nv ON pn.MaNhanVien = nv.MaNV
-                  INNER JOIN chitietphieunhapnguyenlieu ctn ON pn.MaPhieuNhap = ctn.MaPhieuNhap
-                  ORDER BY pn.NgayNhap DESC, pn.MaPhieuNhap ASC";
+        $query = "SELECT 
+                    pd.MaPhieu,
+                    pd.TenPhieu,
+                    pd.NgayLapPhieu,
+                    pd.TongChiPhiDuKien,
+                    pd.TrangThai,
+                    ncc.TenNhaCungCap
+                  FROM phieudatnvl pd
+                  LEFT JOIN nhacungcap ncc ON pd.MaNhaCungCap = ncc.MaNhaCungCap
+                  WHERE pd.TrangThai <> 'Đã nhập kho'
+                  ORDER BY pd.NgayLapPhieu DESC, pd.MaPhieu ASC";
 
         try {
             $stmt = $this->conn->prepare($query);
             $stmt->execute();
             $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
             
-            error_log("NhapKhoNguyenLieu::getDanhSachPhieuNhapCanNhap - Found " . count($results) . " phieu nhap");
+            error_log("NhapKhoNguyenLieu::getDanhSachPhieuNhapCanNhap - Found " . count($results) . " phieu dat");
             
             return $results;
         } catch (PDOException $e) {
-            error_log("Error getting danh sach phieu nhap can nhap: " . $e->getMessage());
+            error_log("Error getting danh sach phieu dat can nhap: " . $e->getMessage());
             error_log("SQL Query: " . $query);
             return [];
         }
@@ -77,15 +97,15 @@ class NhapKhoNguyenLieu {
             return null;
         }
 
-        // Lấy thông tin phiếu nhập
+        // Lấy thông tin phiếu ĐẶT
         $queryPhieu = "SELECT 
-                        pn.*,
+                        pd.*,
                         ncc.TenNhaCungCap,
-                        nv.HoTen AS TenNhanVien
-                      FROM phieunhanguyenlieu pn
-                      INNER JOIN nhacungcap ncc ON pn.MaNhaCungCap = ncc.MaNhaCungCap
-                      LEFT JOIN nhanvien nv ON pn.MaNhanVien = nv.MaNV
-                      WHERE pn.MaPhieuNhap = :maPhieuNhap";
+                        kh.TenKeHoach
+                      FROM phieudatnvl pd
+                      LEFT JOIN nhacungcap ncc ON pd.MaNhaCungCap = ncc.MaNhaCungCap
+                      LEFT JOIN kehoachsanxuat kh ON pd.MaKHSX = kh.MaKeHoach
+                      WHERE pd.MaPhieu = :maPhieuNhap";
 
         try {
             $stmt = $this->conn->prepare($queryPhieu);
@@ -97,21 +117,21 @@ class NhapKhoNguyenLieu {
                 return null;
             }
 
-            // Lấy chi tiết phiếu nhập với thông tin nguyên liệu
+            // Lấy chi tiết phiếu đặt + tồn kho hiện tại của NVL
             $queryChiTiet = "SELECT 
-                              ctn.MaPhieuNhap,
-                              ctn.MaNguyenLieu,
-                              ctn.SoLuongNhap,
-                              ctn.DonGia,
-                              ctn.ThanhTien,
-                              nl.TenNguyenLieu,
+                              ctd.MaPhieu,
+                              ctd.MaNVL AS MaNguyenLieu,
+                              ctd.TenNVL AS TenNguyenLieu,
+                              ctd.DonViTinh,
+                              ctd.SoLuongCan AS SoLuongNhap,
+                              ctd.DonGia,
+                              ctd.ThanhTien,
                               nl.LoaiNguyenLieu,
-                              nl.DonViTinh,
                               nl.SoLuongTonKho
-                            FROM chitietphieunhapnguyenlieu ctn
-                            INNER JOIN nguyenlieu nl ON ctn.MaNguyenLieu = nl.MaNguyenLieu
-                            WHERE ctn.MaPhieuNhap = :maPhieuNhap
-                            ORDER BY ctn.MaNguyenLieu ASC";
+                            FROM chitietphieudatnvl ctd
+                            LEFT JOIN nguyenlieu nl ON ctd.MaNVL = nl.MaNguyenLieu
+                            WHERE ctd.MaPhieu = :maPhieuNhap
+                            ORDER BY ctd.MaNVL ASC";
 
             $stmt = $this->conn->prepare($queryChiTiet);
             $stmt->bindParam(':maPhieuNhap', $maPhieuNhap);
@@ -129,10 +149,10 @@ class NhapKhoNguyenLieu {
     }
 
     /**
-     * Kiểm tra phiếu nhập đã được nhập kho chưa
-     * (Kiểm tra xem tồn kho đã được cập nhật từ phiếu nhập này chưa)
+     * Kiểm tra phiếu đặt đã được nhập kho chưa
+     * (Dựa vào trạng thái phiếu đặt)
      * 
-     * @param string $maPhieuNhap Mã phiếu nhập
+     * @param string $maPhieuNhap Mã phiếu đặt
      * @return bool True nếu đã nhập, False nếu chưa
      */
     public function daNhapKho($maPhieuNhap) {
@@ -140,53 +160,27 @@ class NhapKhoNguyenLieu {
             return false;
         }
 
-        // Lấy ngày nhập của phiếu
-        $queryPhieu = "SELECT NgayNhap FROM phieunhanguyenlieu WHERE MaPhieuNhap = :maPhieuNhap";
+        $queryPhieu = "SELECT TrangThai FROM phieudatnvl WHERE MaPhieu = :maPhieu LIMIT 1";
         $stmt = $this->conn->prepare($queryPhieu);
-        $stmt->bindParam(':maPhieuNhap', $maPhieuNhap);
+        $stmt->bindParam(':maPhieu', $maPhieuNhap);
         $stmt->execute();
         $phieu = $stmt->fetch(PDO::FETCH_ASSOC);
-        
+
         if (!$phieu) {
             return false;
         }
 
-        // Kiểm tra xem tất cả nguyên liệu trong phiếu đã được cập nhật tồn kho chưa
-        // (tồn kho >= số lượng nhập và ngày cập nhật >= ngày nhập)
-        $query = "SELECT COUNT(*) 
-                  FROM chitietphieunhapnguyenlieu ctn
-                  INNER JOIN nguyenlieu nl ON ctn.MaNguyenLieu = nl.MaNguyenLieu
-                  WHERE ctn.MaPhieuNhap = :maPhieuNhap
-                  AND nl.NgayCapNhat >= :ngayNhap
-                  AND nl.SoLuongTonKho >= ctn.SoLuongNhap";
-
-        try {
-            $stmt = $this->conn->prepare($query);
-            $stmt->bindParam(':maPhieuNhap', $maPhieuNhap);
-            $stmt->bindParam(':ngayNhap', $phieu['NgayNhap']);
-            $stmt->execute();
-            $count = (int)$stmt->fetchColumn();
-            
-            // Lấy tổng số nguyên liệu trong phiếu nhập
-            $queryCount = "SELECT COUNT(*) FROM chitietphieunhapnguyenlieu WHERE MaPhieuNhap = :maPhieuNhap";
-            $stmt = $this->conn->prepare($queryCount);
-            $stmt->bindParam(':maPhieuNhap', $maPhieuNhap);
-            $stmt->execute();
-            $totalCount = (int)$stmt->fetchColumn();
-            
-            // Nếu tất cả nguyên liệu đã được cập nhật tồn kho thì coi như đã nhập
-            return $totalCount > 0 && $count === $totalCount;
-        } catch (PDOException $e) {
-            error_log("Error checking daNhapKho: " . $e->getMessage());
-            return false;
-        }
+        return strtolower(trim($phieu['TrangThai'])) === strtolower('Đã nhập kho');
     }
 
     /**
-     * Xử lý nhập kho nguyên liệu từ phiếu nhập
-     * (Cập nhật tồn kho từ chi tiết phiếu nhập)
+     * Xử lý nhập kho nguyên liệu từ PHIẾU ĐẶT
+     * - Tạo mới phiếu nhập trong bảng phieunhanguyenlieu
+     * - Ghi chi tiết vào chitietphieunhapnguyenlieu
+     * - Cập nhật tồn kho nguyenlieu
+     * - Cập nhật trạng thái phiếu đặt thành "Đã nhập kho"
      * 
-     * @param string $maPhieuNhap Mã phiếu nhập
+     * @param string $maPhieuNhap Mã phiếu đặt
      * @param string $maNV Mã nhân viên (người xác nhận nhập kho)
      * @return array Kết quả xử lý
      */
@@ -201,40 +195,85 @@ class NhapKhoNguyenLieu {
         try {
             $this->conn->beginTransaction();
 
-            // 1. Lấy thông tin phiếu nhập
+            // 1. Lấy thông tin phiếu đặt + chi tiết
             $phieuNhap = $this->getChiTietPhieuNhap($maPhieuNhap);
             if (!$phieuNhap) {
-                throw new Exception("Không tìm thấy phiếu nhập ($maPhieuNhap)!");
+                throw new Exception("Không tìm thấy phiếu đặt ($maPhieuNhap)!");
             }
 
             // 2. Kiểm tra đã nhập chưa
             if ($this->daNhapKho($maPhieuNhap)) {
-                throw new Exception("Phiếu nhập ($maPhieuNhap) đã được nhập kho rồi!");
+                throw new Exception("Phiếu đặt ($maPhieuNhap) đã được nhập kho rồi!");
             }
 
-            // 3. Cập nhật tồn kho từ chi tiết phiếu nhập
-            foreach ($phieuNhap['chiTiet'] as $chiTiet) {
-                $maNguyenLieu = $chiTiet['MaNguyenLieu'];
-                $soLuongNhap = $chiTiet['SoLuongNhap'];
+            $phieuDat = $phieuNhap['phieu'];
+            $chiTiet = $phieuNhap['chiTiet'];
+
+            // 3. Tính tổng giá trị thực tế từ chi tiết (fallback: TongChiPhiDuKien)
+            $tongGiaTri = 0;
+            foreach ($chiTiet as $item) {
+                $thanhTien = $item['ThanhTien'] ?? ($item['SoLuongNhap'] * ($item['DonGia'] ?? 0));
+                $tongGiaTri += $thanhTien;
+            }
+            if ($tongGiaTri <= 0 && isset($phieuDat['TongChiPhiDuKien'])) {
+                $tongGiaTri = $phieuDat['TongChiPhiDuKien'];
+            }
+
+            // 4. Tạo phiếu nhập mới
+            $maPhieuNhapMoi = $this->generateMaPhieuNhap();
+            $queryInsertPhieu = "INSERT INTO phieunhanguyenlieu (MaPhieuNhap, MaNhaCungCap, NgayNhap, MaNhanVien, TongGiaTri)
+                                 VALUES (:maPhieuNhap, :maNhaCungCap, NOW(), :maNhanVien, :tongGiaTri)";
+            $stmt = $this->conn->prepare($queryInsertPhieu);
+            $stmt->execute([
+                ':maPhieuNhap' => $maPhieuNhapMoi,
+                ':maNhaCungCap' => $phieuDat['MaNhaCungCap'],
+                ':maNhanVien' => $maNV,
+                ':tongGiaTri' => $tongGiaTri
+            ]);
+
+            // 5. Thêm chi tiết phiếu nhập + cập nhật tồn kho
+            $queryInsertChiTiet = "INSERT INTO chitietphieunhapnguyenlieu (MaPhieuNhap, MaNguyenLieu, SoLuongNhap, DonGia, ThanhTien)
+                                   VALUES (:maPhieuNhap, :maNguyenLieu, :soLuongNhap, :donGia, :thanhTien)";
+            $stmtChiTiet = $this->conn->prepare($queryInsertChiTiet);
+
+            foreach ($chiTiet as $item) {
+                $maNguyenLieu = $item['MaNguyenLieu'];
+                $soLuongNhap = $item['SoLuongNhap'];
+                $donGia = $item['DonGia'] ?? 0;
+                $thanhTien = $item['ThanhTien'] ?? ($soLuongNhap * $donGia);
+
+                $stmtChiTiet->execute([
+                    ':maPhieuNhap' => $maPhieuNhapMoi,
+                    ':maNguyenLieu' => $maNguyenLieu,
+                    ':soLuongNhap' => $soLuongNhap,
+                    ':donGia' => $donGia,
+                    ':thanhTien' => $thanhTien
+                ]);
 
                 // Cập nhật tồn kho nguyên liệu
                 $queryUpdateTonKho = "UPDATE nguyenlieu 
-                                     SET SoLuongTonKho = SoLuongTonKho + :soLuongNhap,
-                                         NgayCapNhat = NOW()
-                                     WHERE MaNguyenLieu = :maNguyenLieu";
+                                      SET SoLuongTonKho = SoLuongTonKho + :soLuongNhap,
+                                          NgayCapNhat = NOW()
+                                      WHERE MaNguyenLieu = :maNguyenLieu";
 
-                $stmt = $this->conn->prepare($queryUpdateTonKho);
-                $stmt->bindParam(':soLuongNhap', $soLuongNhap);
-                $stmt->bindParam(':maNguyenLieu', $maNguyenLieu);
-                $stmt->execute();
+                $stmtUpdate = $this->conn->prepare($queryUpdateTonKho);
+                $stmtUpdate->bindParam(':soLuongNhap', $soLuongNhap);
+                $stmtUpdate->bindParam(':maNguyenLieu', $maNguyenLieu);
+                $stmtUpdate->execute();
             }
+
+            // 6. Cập nhật trạng thái phiếu đặt
+            $queryUpdatePhieuDat = "UPDATE phieudatnvl SET TrangThai = 'Đã nhập kho' WHERE MaPhieu = :maPhieu";
+            $stmt = $this->conn->prepare($queryUpdatePhieuDat);
+            $stmt->bindParam(':maPhieu', $maPhieuNhap);
+            $stmt->execute();
 
             $this->conn->commit();
 
             return [
                 'success' => true,
-                'maPhieuNhap' => $maPhieuNhap,
-                'message' => 'Nhập kho thành công!'
+                'maPhieuNhap' => $maPhieuNhapMoi,
+                'message' => 'Tạo phiếu nhập và cập nhật kho thành công!'
             ];
 
         } catch (Exception $e) {

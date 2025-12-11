@@ -30,7 +30,7 @@ class NhapKhoNguyenLieuController extends BaseController {
         }
 
         try {
-            // Lấy danh sách phiếu nhập cần nhập kho
+            // Lấy danh sách phiếu ĐẶT NVL cần nhập kho
             $danhSachPhieuNhap = $this->model->getDanhSachPhieuNhapCanNhap();
 
             // Lấy thông tin user hiện tại
@@ -70,26 +70,26 @@ class NhapKhoNguyenLieuController extends BaseController {
             return;
         }
 
-        $maPhieuNhap = $_GET['maPhieuNhap'] ?? '';
+        $maPhieuDat = $_GET['maPhieu'] ?? $_GET['maPhieuNhap'] ?? '';
 
-        if (empty($maPhieuNhap)) {
-            $_SESSION['error'] = "Mã phiếu nhập không hợp lệ!";
+        if (empty($maPhieuDat)) {
+            $_SESSION['error'] = "Mã phiếu đặt không hợp lệ!";
             $this->redirect('nhapkhonguyenlieu');
             return;
         }
 
         try {
             // Lấy chi tiết phiếu nhập
-            $chiTietPhieuNhap = $this->model->getChiTietPhieuNhap($maPhieuNhap);
+            $chiTietPhieuNhap = $this->model->getChiTietPhieuNhap($maPhieuDat);
 
             if (!$chiTietPhieuNhap) {
-                $_SESSION['error'] = "Không tìm thấy phiếu nhập!";
+                $_SESSION['error'] = "Không tìm thấy phiếu đặt!";
                 $this->redirect('nhapkhonguyenlieu');
                 return;
             }
 
             // Kiểm tra đã nhập chưa
-            $daNhap = $this->model->daNhapKho($maPhieuNhap);
+            $daNhap = $this->model->daNhapKho($maPhieuDat);
 
             // Lấy thông tin user hiện tại
             $currentUser = $this->getCurrentUser();
@@ -98,7 +98,7 @@ class NhapKhoNguyenLieuController extends BaseController {
                 'chiTietPhieuNhap' => $chiTietPhieuNhap,
                 'daNhap' => $daNhap,
                 'currentUser' => $currentUser,
-                'pageTitle' => 'Chi Tiết Phiếu Nhập - ' . $maPhieuNhap
+                'pageTitle' => 'Chi Tiết Phiếu Đặt - ' . $maPhieuDat
             ];
 
             $this->loadView('kho/nhap_kho_nguyen_lieu_detail', $data);
@@ -137,12 +137,12 @@ class NhapKhoNguyenLieuController extends BaseController {
             return;
         }
 
-        $maPhieuNhap = $_POST['maPhieuNhap'] ?? '';
+        $maPhieuDat = $_POST['maPhieu'] ?? $_POST['maPhieuNhap'] ?? '';
 
-        if (empty($maPhieuNhap)) {
+        if (empty($maPhieuDat)) {
             $this->json([
                 'success' => false,
-                'message' => 'Mã phiếu nhập không hợp lệ!'
+                'message' => 'Mã phiếu đặt không hợp lệ!'
             ]);
             return;
         }
@@ -160,13 +160,14 @@ class NhapKhoNguyenLieuController extends BaseController {
             }
 
             // Xử lý nhập kho
-            $result = $this->model->nhapKhoTuPhieuNhap($maPhieuNhap, $maNV);
+            $result = $this->model->nhapKhoTuPhieuNhap($maPhieuDat, $maNV);
 
             if ($result['success']) {
                 $this->json([
                     'success' => true,
-                    'message' => 'Nhập kho thành công!',
-                    'maPhieuNhap' => $result['maPhieuNhap'] ?? ''
+                    'message' => 'Đã tạo phiếu nhập và cập nhật kho thành công!',
+                    'maPhieuNhap' => $result['maPhieuNhap'] ?? '',
+                    'maPhieu' => $maPhieuDat
                 ]);
             } else {
                 $this->json([
@@ -213,13 +214,13 @@ class NhapKhoNguyenLieuController extends BaseController {
             return;
         }
 
-        $maPhieuNhap = $_POST['maPhieuNhap'] ?? '';
+        $maPhieuNhap = $_POST['maPhieu'] ?? $_POST['maPhieuNhap'] ?? '';
         $lyDo = $_POST['lyDo'] ?? '';
 
         if (empty($maPhieuNhap)) {
             $this->json([
                 'success' => false,
-                'message' => 'Mã phiếu nhập không hợp lệ!'
+                'message' => 'Mã phiếu đặt không hợp lệ!'
             ]);
             return;
         }
